@@ -1,0 +1,20 @@
+{
+  "newdev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-ised-newdev-142348-authRole",
+      "UnauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-newdev-142348-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-newdev-142348-authRole",
+      "Region": "ca-central-1",
+      "DeploymentBucketName": "amplify-ised-newdev-142348-deployment",
+      "UnauthRoleName": "amplify-ised-newdev-142348-unauthRole",
+      "StackName": "amplify-ised-newdev-142348",
+      "StackId": "arn:aws:cloudformation:ca-central-1:834289487514:stack/amplify-ised-newdev-142348/d0ad1de0-5706-11ed-a86a-028e51c9e090",
+      "AmplifyAppId": "d3r4k2lt45dkzj"
+    },
+    "categories": {
+      "auth": {
+        "ised012c959f": {}
+      }
+    }
+  }
+}
