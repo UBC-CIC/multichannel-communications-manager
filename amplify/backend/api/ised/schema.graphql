@@ -4,7 +4,8 @@ input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONL
 
 
 type User @model {
-  email: String! @index(queryField: "getUserByEmail")
+  userId: ID! @primaryKey
+  email: String! @index
   phone: Int
   phoneId: String
   postalCode: String
@@ -13,15 +14,16 @@ type User @model {
 }
 
 type Category @model {
-  acronym: String! @index(queryField: "getCategoryByAcronym")
+  categoryId: ID! @primaryKey
+  acronym: String! @index
   title: String!
   description: String
   categoryTopic: [CategoryTopic] @hasMany
 }
 
 type Topic @model {
-  acronym: String! @index(queryField: "getTopicByAcronym")
-  # add name field?
+  topicId: ID! @primaryKey
+  acronym: String! @index
   categoryTopic: [CategoryTopic] @hasMany
 }
 
@@ -29,20 +31,15 @@ type Topic @model {
 # relations
 
 type CategoryTopic @model {
-  # (sortKeyFields: ["categoryId","topicId"])
-  categoryId: String! @index(queryField: "getCatTopicByCatId")
-  category: Category! @belongsTo(fields: ["categoryId"])
-  topicId: String!
-  topic: Topic! @belongsTo(fields: ["topicId"])
-  userCategoryTopics: [UserCategoryTopic] @hasMany
+  categoryTopicId: ID! @primaryKey(sortKeyFields: ["categoryId","topicId"])
+  categoryId: ID!
+  topicId: ID! 
 }
 
 type UserCategoryTopic @model {
-  # (sortKeyFields: ["userId", "categoryTopicId"])
-  userId: String! @index(queryField: "getUserCatTopicByUserId")
-  user: User! @belongsTo(fields: ["userId"])
-  categoryTopicId: String!
-  categoryTopic: CategoryTopic! @belongsTo(fields: ["categoryTopicId"])
+  userCategoryTopicsId: ID! @primaryKey(sortKeyFields: ["userId", "categoryTopicId"])
+  userId: ID!
+  categoryTopicId: ID!  
   email: Boolean!
   sms: Boolean!
 }

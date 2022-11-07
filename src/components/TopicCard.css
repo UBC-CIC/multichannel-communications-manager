@@ -1,0 +1,18 @@
+.front,.back{
+    height: 53vh;
+    backface-visibility: hidden;
+    transition: transform .6s linear;
+  }
+.front {
+    transform: perspective(600px) rotateY(0deg);
+}
+.back{
+     transform: perspective(600px) rotateY(-180deg); 
+}
+
+.card.rotated > .front{
+    transform: perspective(600px) rotateY(180deg);
+  }
+.card.rotated > .back{ 
+    transform: perspective(600px) rotateY(0deg);
+  }  
