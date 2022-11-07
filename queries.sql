@@ -11,7 +11,7 @@ CREATE TABLE Category (
     category_id int PRIMARY KEY AUTO_INCREMENT,
     acronym varchar(10) UNIQUE NOT NULL,
     title varchar(50) NOT NULL,
-    description text 
+    category_description text 
 )
 
 CREATE TABLE Topic (
