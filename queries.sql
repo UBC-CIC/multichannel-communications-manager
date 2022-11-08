@@ -5,7 +5,7 @@ CREATE TABLE User (
     phone_id int UNIQUE AUTO_INCREMENT,
     postal_code varchar(10),
     province ENUM('AB','BC','MB','NB','NL','NT','NS','NU','ON','PE','QC','SK','YT') NOT NULL
-)
+);
 
 CREATE TABLE Category (
     category_id int PRIMARY KEY AUTO_INCREMENT,
