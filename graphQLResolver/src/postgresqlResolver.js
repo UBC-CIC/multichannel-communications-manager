@@ -1,5 +1,5 @@
 let AWS = require("aws-sdk");
-let postgres = require("postgres");
+let { Pool, Client } = require("pg");
 AWS.config.update({ region: "ca-central-1" });
 let secretsManager = new AWS.SecretsManager();
 const SM_EXAMPLE_DATABASE_CREDENTIALS = "psotgre-dev";
@@ -8,64 +8,15 @@ const URL_RDS_PROXY =
 
 // let { SM_EXAMPLE_DATABASE_CREDENTIALS, URL_RDS_PROXY } = process.env;
 
-let sm = await secretsManager
-  .getSecretValue({ SecretId: SM_EXAMPLE_DATABASE_CREDENTIALS })
-  .promise();
-let credentials = JSON.parse(sm.SecretString);
-
-let connectionConfig = {
-  host: URL_RDS_PROXY,
-  port: credentials.port,
-  username: credentials.username,
-  password: credentials.password,
-  database: credentials.dbname,
-  ssl: true,
-};
-
-let connection = postgres(connectionConfig);
-
-handler({})
-  .then()
-  .catch((err) => console.log(err));
-
-// async function handler(event) {
-//   let sm = await secretsManager
-//     .getSecretValue({ SecretId: SM_EXAMPLE_DATABASE_CREDENTIALS })
-//     .promise();
-//   let credentials = JSON.parse(sm.SecretString);
-
-//   let connectionConfig = {
-//     host: URL_RDS_PROXY,
-//     port: credentials.port,
-//     username: credentials.username,
-//     password: credentials.password,
-//     database: credentials.dbname,
-//     ssl: true,
-//   };
-
-//   let sql = postgres(connectionConfig);
-//   let payload = {};
-
-//   // let parkingColumns = event.info.selectionSetList.filter(
-//   //   (item) => !item.startsWith("car")
-//   // );
-//   let [parking] = await sql`SELECT * FROM Parking WHERE id = PRK01`;
-
-//   payload = { ...parking };
-
-//   await sql.end({ timeout: 0 });
-
-//   console.log(payload);
-//   return payload;
-// }
-
 let dbInit = false;
+
+// Reference: https://cic.ubc.ca/2022/09/29/blending-old-and-new-with-rds-and-appsync/
 function executeSQL(connection, sql_statement) {
   // executes an sql statement as a promise
   // with included error handling
   return new Promise((resolve, reject) => {
     console.log("Executing SQL:", sql_statement);
-    connection.query({ sql: sql_statement, timeout: 60000 }, (err, data) => {
+    connection.query(sql_statement, (err, data) => {
       // if there is an error, it gets saved in err, else the response from DB saved in data
 
       if (err) {
@@ -76,6 +27,7 @@ function executeSQL(connection, sql_statement) {
   });
 }
 
+// Reference: https://cic.ubc.ca/2022/09/29/blending-old-and-new-with-rds-and-appsync/
 function populateAndSanitizeSQL(sql, variableMapping, connection) {
   // iterates through the variableMapping JSON object, and replaces
   // the first instance of the key in the sql string with the value.
@@ -93,11 +45,29 @@ function populateAndSanitizeSQL(sql, variableMapping, connection) {
 }
 
 exports.handler = async (event) => {
+  let sm = await secretsManager
+    .getSecretValue({ SecretId: SM_EXAMPLE_DATABASE_CREDENTIALS })
+    .promise();
+  let credentials = JSON.parse(sm.SecretString);
+
+  let connectionConfig = {
+    host: URL_RDS_PROXY,
+    port: credentials.port,
+    user: credentials.username,
+    password: credentials.password,
+    database: credentials.dbname,
+    ssl: true,
+  };
+
+  let connection = new Pool(connectionConfig);
+  let payload = event.payload;
+
   // called whenever a GraphQL event is received
   console.log("Received event", JSON.stringify(event, null, 3));
   let result;
   // split up multiple SQL statements into an array
-  let sql_statements = event.sql.split(";");
+  console.log(payload.sql);
+  let sql_statements = payload.sql.split(";");
   // iterate through the SQL statements
   for (let sql_statement of sql_statements) {
     // sometimes an empty statement will try to be executed,
@@ -108,7 +78,7 @@ exports.handler = async (event) => {
     // 'fill in' the variables in the sql statement with ones from variableMapping
     const inputSQL = populateAndSanitizeSQL(
       sql_statement,
-      event.variableMapping,
+      payload.variableMapping,
       connection
     );
     // execute the sql statement on our database
