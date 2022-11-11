@@ -1,4 +1,4 @@
-CREATE TYPE "Province" AS ENUM (
+CREATE TYPE "province" AS ENUM (
   'AB',
   'BC',
   'MB',
@@ -15,10 +15,10 @@ CREATE TYPE "Province" AS ENUM (
 );
 
 CREATE TABLE "User" (
-  "user_id" int PRIMARY KEY AUTO_INCREMENT,
+  "user_id" SERIAL PRIMARY KEY,
   "email_address" text UNIQUE NOT NULL,
   "phone_address" int UNIQUE,
-  "phone_id" int UNIQUE AUTO_INCREMENT,
+  "phone_id" SERIAL,
   "postal_code" varchar(10),
   "province" Province NOT NULL
 );
