@@ -242,7 +242,15 @@ function Login(props) {
     // Send the answer to the User Pool
     // This will throw an error if it’s the 3rd wrong answer
     console.log(formState.authCode);
-    await Auth.sendCustomChallengeAnswer(cognitoUser, formState.authCode);
+    try {
+      let data = await Auth.sendCustomChallengeAnswer(
+        cognitoUser,
+        formState.authCode
+      );
+      console.log("data:", data);
+    } catch (e) {
+      console.log(e);
+    }
     // It we get here, the answer was sent successfully,
     // but it might have been wrong (1st or 2nd time)
     // So we should test if the user is authenticated now
