@@ -31,15 +31,20 @@ function executeSQL(connection, sql_statement) {
 function populateAndSanitizeSQL(sql, variableMapping, connection) {
   // iterates through the variableMapping JSON object, and replaces
   // the first instance of the key in the sql string with the value.
-  // Also sanitizes the inputs for the values
   Object.entries(variableMapping).forEach(([key, value]) => {
-    let escapedValue = connection.escape(value);
+    // let escapedValue = connection.escape(value);
     // if in the GraphQL request, a user does not pass in the value of
     // a variable required in the statement, set the variable to null
-    if (String(escapedValue).length == 0 || escapedValue.charAt(0) == "$") {
-      escapedValue = null;
+    console.log("key:", key);
+    console.log("value:", value);
+    console.log("value type:", typeof value);
+    if (
+      String(value).length == 0
+      // || value.charAt(0) == "$"
+    ) {
+      value = null;
     }
-    sql = sql.replace(key, escapedValue);
+    sql = sql.replace(key, value);
   });
   return sql;
 }
@@ -60,14 +65,13 @@ exports.handler = async (event) => {
   };
 
   let connection = new Pool(connectionConfig);
-  let payload = event.payload;
 
   // called whenever a GraphQL event is received
   console.log("Received event", JSON.stringify(event, null, 3));
   let result;
   // split up multiple SQL statements into an array
-  console.log(payload.sql);
-  let sql_statements = payload.sql.split(";");
+  console.log(event.sql);
+  let sql_statements = event.sql.split(";");
   // iterate through the SQL statements
   for (let sql_statement of sql_statements) {
     // sometimes an empty statement will try to be executed,
@@ -78,7 +82,7 @@ exports.handler = async (event) => {
     // 'fill in' the variables in the sql statement with ones from variableMapping
     const inputSQL = populateAndSanitizeSQL(
       sql_statement,
-      payload.variableMapping,
+      event.variableMapping,
       connection
     );
     // execute the sql statement on our database
@@ -94,5 +98,6 @@ exports.handler = async (event) => {
     result = await executeSQL(connection, responseSQL);
   }
   console.log("Finished execution");
+  console.log("lambda return:", result);
   return result;
 };
