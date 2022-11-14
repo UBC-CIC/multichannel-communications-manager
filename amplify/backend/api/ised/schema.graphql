@@ -1,8 +1,8 @@
 # This "input" configures a global authorization rule to enable public access to
 # all models in this schema. Learn more about authorization rules here: https://docs.amplify.aws/cli/graphql/authorization-rules
-input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONLY!
-
-
+input AMPLIFY {
+  globalAuthRule: AuthRule = { allow: public }
+} # FOR TESTING ONLY!
 type Category {
   category_id: Int!
   acronym: String!
@@ -15,6 +15,7 @@ type Topic {
   acronym: String!
 }
 
+# TODO: change acronym to PK?
 type CategoryTopic {
   categoryTopic_id: Int!
   category_acronym: String!
@@ -30,8 +31,8 @@ type UserCategoryTopic {
 
 type User {
   user_id: Int!
-  user_email: String!
-  phone: Int
+  email_address: String!
+  phone_address: Int
   phone_id: String
   postal_code: String
   province: Province!
@@ -68,19 +69,25 @@ type Mutation {
   ): Category
   # TODO: delete or archive?
   deleteCategory(category_id: Int!): String
-  
-  createTopic(
-    acronym: String!
-  ): Topic
-  updateTopic(
-    topic_id: Int!
-    acronym: String
-  ): Topic
+
+  createTopic(acronym: String!): Topic
+  updateTopic(topic_id: Int!, acronym: String): Topic
   deleteTopic(topic_id: Int!): String
-  addCategoryTopic(category_acronym: String!, topic_acronym: String!): CategoryTopic
+  addCategoryTopic(
+    category_acronym: String!
+    topic_acronym: String!
+  ): CategoryTopic
   deleteCategoryTopic(category_acronym: String!, topic_acronym: String!): String
-  userFollowCategoryTopic(user_id: Int!, category_acronym: String!, topic_acronym: String!): UserCategoryTopic
-  userUnfollowCategoryTopic(user_id: Int!, category_acronym: String!, topic_acronym: String!): User
+  userFollowCategoryTopic(
+    user_id: Int!
+    category_acronym: String!
+    topic_acronym: String!
+  ): UserCategoryTopic
+  userUnfollowCategoryTopic(
+    user_id: Int!
+    category_acronym: String!
+    topic_acronym: String!
+  ): User
 }
 
 type Query {
