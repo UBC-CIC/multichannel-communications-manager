@@ -12,7 +12,6 @@ import { Alert } from "@mui/lab";
 import { ArrowBack, AlternateEmail, Dialpad } from "@mui/icons-material";
 import theme from "../../themes";
 import { Auth } from "aws-amplify";
-import { CognitoUser } from "amazon-cognito-identity-js";
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { updateLoginState } from "../../actions/loginAction";
@@ -128,6 +127,7 @@ function Login(props) {
     setInvalidEmailError(false);
   }
 
+  //updates province dropdown value or text box input fields for the General Information form step
   function onChange(e, value) {
     e.persist();
     clearErrors();
@@ -152,6 +152,9 @@ function Login(props) {
     }
   }
 
+  /*functions for user sign up process*/
+
+  /*functions for creating randomly generated password*/
   function getRandomString(bytes) {
     const randomValues = new Uint8Array(bytes);
     window.crypto.getRandomValues(randomValues);
@@ -162,6 +165,7 @@ function Login(props) {
     return nr.toString(16).padStart(2, "0");
   }
 
+  //function for user sign up
   async function signUp() {
     try {
       const { email, province, postal_code } = formState;
@@ -194,6 +198,8 @@ function Login(props) {
     }
   }
 
+  //function to finish implementing after sign up is working properly
+  //to resend confirmation code if user did not receive it or if the email timed out
   // async function resendConfirmationCode() {
   //   try {
   //     const { email } = formState;
@@ -210,29 +216,9 @@ function Login(props) {
   //   }
   // }
 
-  // useEffect(() => {
-  //   if (cognitoUser && formState.authCode) {
-  //     console.log(cognitoUser, formState.authCode);
-  //     answerCustomChallenge(cognitoUser);
-  //   }
-  // }, [cognitoUser, formState.authCode]);
+  /* functions for user email verification */
 
-  useEffect(() => {
-    async function retrieveUser() {
-      try {
-        Auth.currentAuthenticatedUser()
-          .then((user) => {
-            updateLoginState("signedIn");
-          })
-          .catch((err) => {
-            updateLoginState("signIn");
-          });
-      } catch (e) {}
-    }
-    retrieveUser();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  //sends user inputted email confirmation code to user pool to verify
   async function answerCustomChallenge() {
     // Send the answer to the User Pool
     // This will throw an error if it’s the 3rd wrong answer
@@ -247,16 +233,12 @@ function Login(props) {
       await Auth.currentSession();
       updateLoginState("signedIn");
     } catch (e) {
-      // console.log("The user did not enter the right code");
       console.log(e);
     }
   }
 
   const verifyEmail = () => {
-    console.log("in verifyEmail function", cognitoUser);
-    console.log(cognitoUser);
     if (cognitoUser && formState.authCode) {
-      console.log("going to answer custom challenge function");
       answerCustomChallenge();
     } else if (loginState === "confirmSignUp") {
       handleNextStep();
@@ -269,9 +251,9 @@ function Login(props) {
     cognitoUser && verifyEmail();
   }, [cognitoUser]);
 
+  /* functions for user sign in */
   async function signIn() {
     try {
-      console.log("in sign in function");
       const { email } = formState;
       updateLoginState("verifyEmail");
       setActiveStep(1);
@@ -280,6 +262,7 @@ function Login(props) {
     } catch (e) {
       setLoading(false);
       const errorMsg = e.code;
+      console.log(errorMsg);
     }
   }
 
@@ -290,6 +273,7 @@ function Login(props) {
   //   }
   // }
 
+  //resets progress bar and form states
   function resetStates(state) {
     // resets the progress bar
     handleResetSteps();
@@ -419,10 +403,6 @@ function Login(props) {
                     <span>Verify Account</span>
                   ) : loginState === "forgotPassword" ? (
                     <span>Forgot your password?</span>
-                  ) : loginState === "resetPassword" ? (
-                    <span>Password Reset</span>
-                  ) : loginState === "newUserPassword" ? (
-                    <span>Set New Password</span>
                   ) : (
                     <span></span>
                   )}
