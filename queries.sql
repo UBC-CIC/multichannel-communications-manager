@@ -37,8 +37,10 @@ CREATE TABLE "Topic" (
 
 CREATE TABLE "CategoryTopic" (
   categoryTopic_id SERIAL PRIMARY KEY,
-  category_id int NOT NULL,
-  topic_id int NOT NULL
+  -- category_id int NOT NULL,
+  category_acronym varchar(10) NOT NULL,
+  -- topic_id int NOT NULL,
+  topic_acronym varchar(10) NOT NULL
 );
 
 CREATE TABLE "UserCategoryTopic" (
@@ -63,9 +65,9 @@ COMMENT ON COLUMN "Category".acronym IS 'Letters only';
 
 -- COMMENT ON COLUMN Topic.acronym IS 'Letters only';
 
-ALTER TABLE "CategoryTopic" ADD FOREIGN KEY (category_id) REFERENCES "Category" (category_id) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CategoryTopic" ADD FOREIGN KEY (category_acronym) REFERENCES "Category" (acronym) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "CategoryTopic" ADD FOREIGN KEY (topic_id) REFERENCES "Topic" (topic_id) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CategoryTopic" ADD FOREIGN KEY (topic_acronym) REFERENCES "Topic" (acronym) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "UserCategoryTopic" ADD FOREIGN KEY (id) REFERENCES "User" (user_id) ON DELETE CASCADE ON UPDATE CASCADE;
 

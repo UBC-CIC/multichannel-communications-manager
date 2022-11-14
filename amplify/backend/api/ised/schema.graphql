@@ -15,11 +15,10 @@ type Topic {
   acronym: String!
 }
 
-# TODO: change acronym to PK?
 type CategoryTopic {
   categoryTopic_id: Int!
-  category_acronym: String!
-  topic_acronym: String!
+  category_id: Int!
+  topic_id: Int!
 }
 
 type UserCategoryTopic {
