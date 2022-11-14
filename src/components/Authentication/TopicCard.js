@@ -29,12 +29,14 @@ const TopicCard = ({
     initialNotificationSelection
   );
   const [isRotated, setIsRotated] = useState(false);
+  //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
   const subtopics = ["COVID-19", "Subtopic 2", "Subtopic 3", "Subtopic 4"];
 
   const handleCloseNotificationDialog = () => {
     setOpenNotificationDialog(false);
   };
 
+  //updates setSelectedSubtopics every time subtopics are selected/unselected by user
   const handleChange = (e, subtopic) => {
     if (e.target.checked) {
       setSelectedSubtopics((prev) => [...prev, `${title}/${subtopic}`]);
@@ -45,6 +47,7 @@ const TopicCard = ({
     }
   };
 
+  //renders front of the card displaying topic of interest information
   const renderCardFront = () => {
     return (
       <>
@@ -123,6 +126,7 @@ const TopicCard = ({
     );
   };
 
+  //renders the back of the card displaying all subtopics for user to select
   const renderCardBack = () => {
     return (
       <Card>

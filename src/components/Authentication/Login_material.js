@@ -225,9 +225,9 @@ function Login(props) {
   //sends user inputted email confirmation code to user pool to verify
   async function answerCustomChallenge() {
     console.log("in answerCustomeChallenge()");
+    console.log(formState.authCode);
     // Send the answer to the User Pool
     // This will throw an error if it’s the 3rd wrong answer
-    console.log(formState.authCode);
     try {
       let data = await Auth.sendCustomChallengeAnswer(
         cognitoUser,
@@ -269,6 +269,7 @@ function Login(props) {
     // confirmSignUp();
   };
 
+  //once user is signed in and cognitoUser is set from signIn function, run verifyEmail function
   useEffect(() => {
     cognitoUser && verifyEmail();
   }, [cognitoUser]);
@@ -288,6 +289,7 @@ function Login(props) {
     }
   }
 
+  //to add in later for user input sanitization
   // function checkEmptyString(str) {
   //   // check if string is empty after space trimmed
   //   if (str.replace(/\s+/g, "") === "") {

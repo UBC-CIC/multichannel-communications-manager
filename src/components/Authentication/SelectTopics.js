@@ -71,6 +71,7 @@ const SelectTopics = ({ handleNextStep }) => {
     },
   ];
 
+  //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
   const [allSelectedTopics, setAllSelectedTopics] = useState();
   const [selectedSubtopics, setSelectedSubtopics] = useState([]);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
@@ -79,6 +80,7 @@ const SelectTopics = ({ handleNextStep }) => {
   const [pageCount, setPageCount] = useState();
   const topicsPerPage = 3;
 
+  //updates pagination
   useEffect(() => {
     //change this to use queried data later
     const topicsPageCount =
