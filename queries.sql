@@ -44,7 +44,7 @@ CREATE TABLE "CategoryTopic" (
 );
 
 CREATE TABLE "UserCategoryTopic" (
-  id Int NOT NULL,
+  user_id Int NOT NULL,
   categorytopic_id int NOT NULL,
   email_notice boolean NOT NULL,
   sms_notice boolean NOT NULL,
@@ -57,7 +57,7 @@ CREATE INDEX ON "Category" (acronym);
 
 CREATE INDEX ON "Topic" (acronym);
 
-CREATE INDEX ON "CategoryTopic" (category_id, topic_id);
+CREATE UNIQUE INDEX ON "CategoryTopic" (category_acronym, topic_acronym);
 
 COMMENT ON COLUMN "User".postal_code IS 'Has to be a valid postal code';
 

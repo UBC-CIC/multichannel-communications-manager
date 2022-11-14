@@ -45,10 +45,11 @@ update "Topic" set acronym = 'covid19' where "Topic".topic_id = 1;
 delete from "Topic" where "Topic".topic_id = 1;
 
 -- addTopicToCategory
-insert into CategoryTopic (category_acronym, topic_acronym) values ('EDU', 'tax');
+insert into "CategoryTopic" (category_acronym, topic_acronym) values ('ED', 'covid19');
 
 -- userFollowCategoryTopic
-insert into "UserCategoryTopic" (user_id, categoryTopic_id) values (1, select categoryTopic_id from "CategoryTopic" where "CategoryTopic".category_acronym = 'ED' and "CategoryTopic".topic_acronym = 'tax');
+insert into "UserCategoryTopic" (user_id, categoryTopic_id) select 1, "CategoryTopic".categoryTopic_id from "CategoryTopic" where "CategoryTopic".category_acronym = 'ED' and "CategoryTopic".topic_acronym = 'tax';
 
 -- userUnfollowCategoryTopic
-delete from "UserCategoryTopic" where 
+delete from "UserCategoryTopic" where "UserCategoryTopic".user_id = 1 and "UserCategoryTopic".categoryTopic_id in (select categoryTopic_id from "CategoryTopic" where "CategoryTopic".category_acronym = 'ED' and "CategoryTopic".topic_acronym = 'covid19');
+
