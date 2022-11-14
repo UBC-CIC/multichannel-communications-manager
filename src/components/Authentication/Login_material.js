@@ -167,11 +167,12 @@ function Login(props) {
 
   //function for user sign up
   async function signUp() {
+    console.log("in signUp");
     try {
       const { email, province, postal_code } = formState;
 
       setLoading(true);
-      await Auth.signUp({
+      let data = await Auth.signUp({
         username: email,
         password: getRandomString(30),
         attributes: {
@@ -179,8 +180,11 @@ function Login(props) {
           "custom:postal_code": postal_code,
         },
       });
+      // console.log(data.user);
+      setCognitoUser(data.user);
+      // console.log("cognitoUser: ", cognitoUser);
       updateFormState(() => ({ ...initialFormState, email }));
-      updateLoginState("confirmSignUp");
+      // updateLoginState("confirmSignUp");
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -220,10 +224,19 @@ function Login(props) {
 
   //sends user inputted email confirmation code to user pool to verify
   async function answerCustomChallenge() {
+    console.log("in answerCustomeChallenge()");
     // Send the answer to the User Pool
     // This will throw an error if it’s the 3rd wrong answer
     console.log(formState.authCode);
-    await Auth.sendCustomChallengeAnswer(cognitoUser, formState.authCode);
+    try {
+      let data = await Auth.sendCustomChallengeAnswer(
+        cognitoUser,
+        formState.authCode
+      );
+      console.log("data:", data);
+    } catch (e) {
+      console.log(e);
+    }
     // It we get here, the answer was sent successfully,
     // but it might have been wrong (1st or 2nd time)
     // So we should test if the user is authenticated now
@@ -238,10 +251,19 @@ function Login(props) {
   }
 
   const verifyEmail = () => {
-    if (cognitoUser && formState.authCode) {
-      answerCustomChallenge();
-    } else if (loginState === "confirmSignUp") {
+    if (loginState === "confirmSignUp" && formState.authCode) {
+      // confirm sign up
+      // After retrieveing the confirmation code from the user
+      Auth.confirmSignUp(cognitoUser.username, formState.authCode, {
+        // Optional. Force user confirmation irrespective of existing alias. By default set to True.
+        forceAliasCreation: true,
+      })
+        .then((data) => console.log(data))
+        .catch((err) => console.log(err));
       handleNextStep();
+    } else if (cognitoUser && formState.authCode) {
+      console.log("going to answer custom challenge function");
+      answerCustomChallenge();
     }
     //confirm signup function will be uncommented after figuring out cognito integration
     // confirmSignUp();
