@@ -32,7 +32,7 @@ type User {
   user_id: Int!
   email_address: String!
   phone_address: Int
-  phone_id: String
+  phone_id: Int
   postal_code: String
   province: Province!
 }
@@ -47,8 +47,7 @@ type Mutation {
   updateUser(
     user_id: Int!
     email_address: String
-    phone: Int
-    phone_id: Int
+    phone_address: Int
     postal_code: String
     province: Province
   ): User
