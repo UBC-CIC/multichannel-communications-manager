@@ -1,0 +1,23 @@
+
+{
+"version": "2018-05-29",
+"operation": "Invoke",
+#set($phone_address = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.phone_address, null)))
+#set($postal_code = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
+
+"payload": {
+"sql": "insert into \"User\" (email_address, phone_address, postal_code, province) values (:email_address, :phone_address, :postal_code, :province);",
+"variableMapping": {
+":email_address": "'$context.arguments.email_address'",
+":phone_address": $phone_address,
+":postal_code": $postal_code,
+":province": "'$context.arguments.province'"
+},
+"responseSQL": "select * from \"User\" where email_address=:email_address"
+}
+}
+
+#if($ctx.error)
+	$util.error($ctx.error.message, $ctx.error.type)
+#end
+$util.toJson($context.result.rows[0])

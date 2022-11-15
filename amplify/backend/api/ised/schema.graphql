@@ -16,14 +16,14 @@ type Topic {
 }
 
 type CategoryTopic {
-  categoryTopic_id: Int!
-  category_id: Int!
-  topic_id: Int!
+  categorytopic_id: Int!
+  category_acronym: String!
+  topic_acronym: String!
 }
 
 type UserCategoryTopic {
   user_id: Int!
-  categoryTopic_id: Int!
+  categorytopic_id: Int!
   email: Boolean!
   sms: Boolean
 }
@@ -39,15 +39,14 @@ type User {
 
 type Mutation {
   createUser(
-    user_email: String!
-    phone: Int
-    phone_id: Int
+    email_address: String!
+    phone_address: Int
     postal_code: String
     province: Province!
   ): User
   updateUser(
     user_id: Int!
-    user_email: String
+    email_address: String
     phone: Int
     phone_id: Int
     postal_code: String
@@ -72,7 +71,7 @@ type Mutation {
   createTopic(acronym: String!): Topic
   updateTopic(topic_id: Int!, acronym: String): Topic
   deleteTopic(topic_id: Int!): String
-  addCategoryTopic(
+  addTopicToCategory(
     category_acronym: String!
     topic_acronym: String!
   ): CategoryTopic
@@ -81,6 +80,8 @@ type Mutation {
     user_id: Int!
     category_acronym: String!
     topic_acronym: String!
+    email: Boolean!
+    sms: Boolean!
   ): UserCategoryTopic
   userUnfollowCategoryTopic(
     user_id: Int!
@@ -90,11 +91,11 @@ type Mutation {
 }
 
 type Query {
-  getUser(user_id: Int!): User
+  getUserById(user_id: Int!): User
   getUserByEmail(user_email: String!): User
-  getUserCategoryTopicByEmail(user_email: String!): [CategoryTopic]
+  getUserCategoryTopicByUserId(user_id: String!): [CategoryTopic]
   getCategoryByAcronym(acronym: String!): Category
-  getTopicsOfCategory(category_acronym: String!): [Topic]
+  getTopicsOfCategoryByAcronym(category_acronym: String!): [Topic]
   getTopicByAcronym(topic_acronym: String!): Topic
 }
 

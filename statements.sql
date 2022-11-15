@@ -11,7 +11,8 @@ select * from "UserCategoryTopic", "CategoryTopic" where "UserCategoryTopic".use
 select * from "Category" where "Category".acronym = 'HC';
 
 -- getTopicsOfCategoryByAcronym
-select * from "Category", "Topic", "CategoryTopic" where "Category".acronym = "CategoryTopic".acronym and "Topic".acronym = "CategoryTopic".acronym;
+select * from "Topic", "CategoryTopic" where "Topic".acronym = "CategoryTopic".topic_acronym and "CategoryTopic".category_acronym = 'HC';
+-- select * from "CategoryTopic" where "CategoryTopic".category_acronym = 'HC';
 
 -- getTopicByAcronym
 select * from "Topic" where "Topic".acronym = 'tax';
@@ -48,7 +49,7 @@ delete from "Topic" where "Topic".topic_id = 1;
 insert into "CategoryTopic" (category_acronym, topic_acronym) values ('ED', 'covid19');
 
 -- userFollowCategoryTopic
-insert into "UserCategoryTopic" (user_id, categoryTopic_id) select 1, "CategoryTopic".categoryTopic_id from "CategoryTopic" where "CategoryTopic".category_acronym = 'ED' and "CategoryTopic".topic_acronym = 'tax';
+insert into "UserCategoryTopic" (user_id, email_notice, sms_notice, categoryTopic_id) select 1, true, false, "CategoryTopic".categoryTopic_id from "CategoryTopic" where "CategoryTopic".category_acronym = 'ED' and "CategoryTopic".topic_acronym = 'tax';
 
 -- userUnfollowCategoryTopic
 delete from "UserCategoryTopic" where "UserCategoryTopic".user_id = 1 and "UserCategoryTopic".categoryTopic_id in (select categoryTopic_id from "CategoryTopic" where "CategoryTopic".category_acronym = 'ED' and "CategoryTopic".topic_acronym = 'covid19');
