@@ -1303,12 +1303,12 @@ Resources:
       TypeName: Mutation
       FieldName: createCategory
       RequestMappingTemplate: |
-        #set($description = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.category_description, null)))
+        #set($description = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.description, null)))
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `Category` (acronym, title, category_description) values (:acronym, :title, :description);",
+        "sql": "insert into `Category` (acronym, title, description) values (:acronym, :title, :description);",
         "variableMapping": {
         ":acronym": "$context.arguments.acronym",
         ":title": "$context.arguments.title",
@@ -1343,7 +1343,7 @@ Resources:
         "variableMapping": {
         ":acronym": "$context.arguments.acronym"
         },
-        "responseSQL": "select * from `Topic` where acronym=:acronym"
+        "responseSQL": "select * from `Topic` where acronym=:acronym;"
         }
         }
       ResponseMappingTemplate: |
@@ -1428,6 +1428,34 @@ Resources:
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
+
+  KinesisStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      Name: "rdsStream"
+      ShardCount: 1
+      StreamEncryption:
+        EncryptionType: KMS
+        # TODO: figure out what this does
+        KeyId: alias/aws/kinesis
+
+  KinesisServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - dms.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: Role for DMS to publish to Kinesis
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonKinesisFullAccess
+      RoleName: DMSToKinesisRole
+
 
 
 
