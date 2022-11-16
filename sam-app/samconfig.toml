@@ -1,0 +1,13 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "ised"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-g3crlk5470do"
+s3_prefix = "ised"
+region = "ca-central-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_NAMED_IAM"
+disable_rollback = true
+parameter_overrides = "ProjectName=\"ised\" EnvironmentName=\"dev\" DBName=\"sys\" DBUser=\"admin\" DBPassword=\"fwehri23ohqfiewog2rjo10\" DBInstanceClass=\"db.t2.small\" DBEngineVersion=\"5.7.mysql_aurora.2.09.2\" DeletionProtection=\"True\" EncryptDatabase=\"True\" CognitoAdminName=\"admin\" CognitoAdminEmail=\"mminting@mail.ubc.ca\""
+image_repositories = []
