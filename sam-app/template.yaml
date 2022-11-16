@@ -1071,7 +1071,7 @@ Resources:
           "version" : "2017-02-28",
           "operation": "Invoke",
           "payload": {
-            "sql": "select * from \"User\" where \"User\".user_id = :1;",
+            "sql": "select `User`.* from `User` where `User`.user_id = :1;",
             "variableMapping": {
             ":1": $context.arguments.user_id
             }
@@ -1082,7 +1082,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result.rows[0])
+        $util.toJson($context.result[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1100,9 +1100,9 @@ Resources:
         "version" : "2017-02-28",
         "operation": "Invoke",
         "payload": {
-        "sql": "select * from \"User\" where \"User\".email_address = :1;",
+        "sql": "select * from `User` where `User`.email_address = :1;",
         "variableMapping": {
-        ":1": "'$context.arguments.user_email'"
+        ":1": "$context.arguments.user_email"
         }
         }
         }
@@ -1111,7 +1111,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result.rows[0])
+        $util.toJson($context.result[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1129,9 +1129,9 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select * from \"UserCategoryTopic\", \"CategoryTopic\" where \"UserCategoryTopic\".user_id = :1 and \"UserCategoryTopic\".categoryTopic_id = \"CategoryTopic\".categoryTopic_id;",
+        "sql": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :1 and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id;",
         "variableMapping": {
-        ":1": "$context.arguments.user_id"
+        ":1": $context.arguments.user_id
         }
         }
         }
@@ -1140,7 +1140,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result.rows[0])
+        $util.toJson($context.result[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1158,9 +1158,9 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select * from \"Category\" where \"Category\".acronym = :1;",
+        "sql": "select * from `Category` where `Category`.acronym = :1;",
         "variableMapping": {
-        ":1": "'$context.arguments.acronym'"
+        ":1": "$context.arguments.acronym"
         }
         }
         }
@@ -1169,7 +1169,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result.rows[0])
+        $util.toJson($context.result[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1187,9 +1187,9 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select * from \"Topic\", \"CategoryTopic\" where \"Topic\".acronym = \"CategoryTopic\".topic_acronym and \"CategoryTopic\".category_acronym = :1;",
+        "sql": "select * from `Topic`, `CategoryTopic` where `Topic`.acronym = `CategoryTopic`.topic_acronym and `CategoryTopic`.category_acronym = :1;",
         "variableMapping": {
-        ":1": "'$context.arguments.category_acronym'"
+        ":1": "$context.arguments.category_acronym"
         }
         }
         }
@@ -1197,7 +1197,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result.rows)
+        $util.toJson($context.result)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1215,9 +1215,9 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select * from \"Topic\" where \"Topic\".acronym = :1;",
+        "sql": "select * from `Topic` where `Topic`.acronym = :1;",
         "variableMapping": {
-        ":1": "'$context.arguments.topic_acronym'"
+        ":1": "$context.arguments.topic_acronym"
         }
         }
         }
@@ -1226,7 +1226,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result.rows[0])
+        $util.toJson($context.result[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1246,21 +1246,21 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into \"User\" (email_address, phone_address, postal_code, province) values (:email_address, :phone_address, :postal_code, :province);",
+        "sql": "insert into `User` (email_address, phone_address, postal_code, province) values (:email_address, :phone_address, :postal_code, :province);",
         "variableMapping": {
-        ":email_address": "'$context.arguments.email_address'",
+        ":email_address": "$context.arguments.email_address",
         ":phone_address": $phone_address,
         ":postal_code": $postal_code,
-        ":province": "'$context.arguments.province'"
+        ":province": "$context.arguments.province"
         },
-        "responseSQL": "select * from \"User\" where email_address=:email_address"
+        "responseSQL": "select * from `User` where email_address=:email_address"
         }
         }
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result.rows[0])
+        $util.toJson($context.result[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1308,20 +1308,20 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into \"Category\" (acronym, title, category_description) values (:acronym, :title, :description);",
+        "sql": "insert into `Category` (acronym, title, category_description) values (:acronym, :title, :description);",
         "variableMapping": {
-        ":acronym": "'$context.arguments.acronym'",
-        ":title": "'$context.arguments.title'",
+        ":acronym": "$context.arguments.acronym",
+        ":title": "$context.arguments.title",
         ":description": $description
         },
-        "responseSQL": "select * from \"Category\" where acronym=:acronym;"
+        "responseSQL": "select * from `Category` where acronym=:acronym;"
         }
         }
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result.rows[0])
+        $util.toJson($context.result[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1339,18 +1339,18 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into \"Topic\" (acronym) values (:acronym);",
+        "sql": "insert into `Topic` (acronym) values (:acronym);",
         "variableMapping": {
-        ":acronym": "'$context.arguments.acronym'"
+        ":acronym": "$context.arguments.acronym"
         },
-        "responseSQL": "select * from \"Topic\" where acronym=:acronym"
+        "responseSQL": "select * from `Topic` where acronym=:acronym"
         }
         }
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result.rows[0])
+        $util.toJson($context.result[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1368,19 +1368,62 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into \"CategoryTopic\" (category_acronym, topic_acronym) values (:category_acronym, :topic_acronym);",
+        "sql": "insert into `CategoryTopic` (category_acronym, topic_acronym) values (:category_acronym, :topic_acronym);",
         "variableMapping": {
-        ":category_acronym": "'$context.arguments.category_acronym'",
-        ":topic_acronym": "'$context.arguments.topic_acronym'"
+        ":category_acronym": "$context.arguments.category_acronym",
+        ":topic_acronym": "$context.arguments.topic_acronym"
         },
-        "responseSQL": "select * from \"CategoryTopic\" where category_acronym=:category_acronym and topic_acronym=:topic_acronym;"
+        "responseSQL": "select * from `CategoryTopic` where category_acronym=:category_acronym and topic_acronym=:topic_acronym;"
         }
         }
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result.rows[0])
+        $util.toJson($context.result[0])
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
+  userFollowCategoryTopicResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: userFollowCategoryTopic
+      RequestMappingTemplate: |
+        #if($context.arguments.email)
+          #set( $email = true )
+        #else	
+          #set( $email = false )
+        #end
+        #if($context.arguments.sms)
+          #set( $sms = true )
+        #else	
+          #set( $sms = false )
+        #end
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "insert into \"UserCategoryTopic\" (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email, :sms, \"CategoryTopic\".categoryTopic_id from \"CategoryTopic\" where \"CategoryTopic\".category_acronym = :category_acronym and \"CategoryTopic\".topic_acronym = :topic_acronym;",
+        "variableMapping": {
+        ":user_id": $context.arguments.user_id,
+        ":email": $email,
+        ":sms": $sms,
+        ":category_acronym": "$context.arguments.category_acronym",
+        ":topic_acronym": "$context.arguments.topic_acronym"
+        },
+        "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic`` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_acronym=:category_acronym and `CategoryTopic`.topic_acronym=:topic_acronym;"
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        $util.toJson($context.result[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT

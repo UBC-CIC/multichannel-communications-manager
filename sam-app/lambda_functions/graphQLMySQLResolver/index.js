@@ -10,27 +10,27 @@ async function conditionallyCreateDB(connection) {
   let createDBSQL = `
     CREATE TABLE \`User\` (
   \`user_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`email_address\` text UNIQUE NOT NULL,
+  \`email_address\` varchar(50) UNIQUE NOT NULL,
   \`phone_address\` int UNIQUE,
-  \`phone_id\` Int UNIQUE AUTO_INCREMENT,
+  \`phone_id\` Int UNIQUE,
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
   \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL
 );
 
 CREATE TABLE \`Category\` (
-  \`category_id\` int PRIMARY KEY,
+  \`category_id\` int PRIMARY KEY AUTO_INCREMENT,
   \`acronym\` varchar(10) UNIQUE NOT NULL COMMENT 'letters only',
   \`title\` varchar(50) NOT NULL,
   \`description\` text
 );
 
 CREATE TABLE \`Topic\` (
-  \`topic_id\` int PRIMARY KEY,
+  \`topic_id\` int PRIMARY KEY AUTO_INCREMENT,
   \`acronym\` varchar(10) UNIQUE NOT NULL
 );
 
 CREATE TABLE \`CategoryTopic\` (
-  \`categoryTopic_id\` int PRIMARY KEY,
+  \`categoryTopic_id\` int PRIMARY KEY AUTO_INCREMENT,
   \`category_acronym\` varchar(10) NOT NULL,
   \`topic_acronym\` varchar(10) NOT NULL
 );
@@ -49,7 +49,7 @@ CREATE INDEX \`Category_index_1\` ON \`Category\` (\`acronym\`);
 
 CREATE INDEX \`Topic_index_2\` ON \`Topic\` (\`acronym\`);
 
-CREATE INDEX \`CategoryTopic_index_3\` ON \`CategoryTopic\` (\`category_acronym\`, \`topic_acronym\`);
+CREATE UNIQUE INDEX \`CategoryTopic_index_3\` ON \`CategoryTopic\` (\`category_acronym\`, \`topic_acronym\`);
 
 ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`category_acronym\`) REFERENCES \`Category\` (\`acronym\`) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -60,6 +60,7 @@ ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`user_id\`) REFERENCES \`Use
 ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`categoryTopic_id\`) REFERENCES \`CategoryTopic\` (\`categoryTopic_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 `;
 
+  let result;
   let sql_statements = createDBSQL.split(";"); // splits up multiple SQL statements into an array
   for (let sql_statement of sql_statements) {
     // iterate through the SQL statements
@@ -73,7 +74,7 @@ ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`categoryTopic_id\`) REFEREN
 
   result = await executeSQL(
     connection,
-    "INSERT INTO `User` (user_id, username, name, email) VALUES (0, '" +
+    "INSERT INTO `User` (user_id, email_address) VALUES (0, '" +
       adminEmail +
       "')"
   );
@@ -86,10 +87,11 @@ function executeSQL(connection, sql_statement) {
   return new Promise((resolve, reject) => {
     console.log("Executing SQL:", sql_statement);
     connection.query({ sql: sql_statement, timeout: 60000 }, (err, data) => {
-      // if error, gets saved in \`err\`, else response from DB saved in \`data\`
+      // if error, gets saved in \\`err\\`, else response from DB saved in \\`data\\`
       if (err) {
         return reject(err);
       }
+      console.log("executeSQL return: ", data);
       return resolve(data);
     });
   });
@@ -133,6 +135,7 @@ exports.handler = async (event) => {
     try {
       await conditionallyCreateDB(connection);
     } catch (error) {
+      console.log(error);
       console.log(
         "The database has already been made, proceeding with the GQL request"
       );
