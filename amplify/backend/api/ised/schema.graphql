@@ -96,6 +96,8 @@ type Query {
   getCategoryByAcronym(acronym: String!): Category
   getTopicsOfCategoryByAcronym(category_acronym: String!): [Topic]
   getTopicByAcronym(topic_acronym: String!): Topic
+  getAllCategories: [Category]
+  getAllTopics: [Topic]
 }
 
 schema {
