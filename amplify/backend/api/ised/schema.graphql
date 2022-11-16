@@ -16,16 +16,16 @@ type Topic {
 }
 
 type CategoryTopic {
-  categorytopic_id: Int!
+  categoryTopic_id: Int!
   category_acronym: String!
   topic_acronym: String!
 }
 
 type UserCategoryTopic {
   user_id: Int!
-  categorytopic_id: Int!
-  email: Boolean!
-  sms: Boolean
+  categoryTopic_id: Int!
+  email_notice: Boolean!
+  sms_notice: Boolean
 }
 
 type User {
@@ -79,8 +79,8 @@ type Mutation {
     user_id: Int!
     category_acronym: String!
     topic_acronym: String!
-    email: Boolean!
-    sms: Boolean!
+    email_notice: Boolean!
+    sms_notice: Boolean!
   ): UserCategoryTopic
   userUnfollowCategoryTopic(
     user_id: Int!

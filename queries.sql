@@ -45,10 +45,10 @@ CREATE TABLE "CategoryTopic" (
 
 CREATE TABLE "UserCategoryTopic" (
   user_id Int NOT NULL,
-  categorytopic_id int NOT NULL,
+  categoryTopic_id int NOT NULL,
   email_notice boolean NOT NULL,
   sms_notice boolean NOT NULL,
-  PRIMARY KEY (id, categorytopic_id)
+  PRIMARY KEY (id, categoryTopic_id)
 );
 
 CREATE INDEX ON "User" (email_address);
@@ -71,4 +71,4 @@ ALTER TABLE "CategoryTopic" ADD FOREIGN KEY (topic_acronym) REFERENCES "Topic" (
 
 ALTER TABLE "UserCategoryTopic" ADD FOREIGN KEY (id) REFERENCES "User" (user_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "UserCategoryTopic" ADD FOREIGN KEY (categorytopic_id) REFERENCES "CategoryTopic" (categoryTopic_id) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "UserCategoryTopic" ADD FOREIGN KEY (categoryTopic_id) REFERENCES "CategoryTopic" (categoryTopic_id) ON DELETE CASCADE ON UPDATE CASCADE;

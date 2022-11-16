@@ -955,16 +955,16 @@ Resources:
         }
 
         type CategoryTopic {
-          categorytopic_id: Int!
+          categoryTopic_id: Int!
           category_acronym: String!
           topic_acronym: String!
         }
 
         type UserCategoryTopic {
           user_id: Int!
-          categorytopic_id: Int!
-          email: Boolean!
-          sms: Boolean
+          categoryTopic_id: Int!
+          email_notice: Boolean!
+          sms_notice: Boolean
         }
 
         type User {
@@ -1018,8 +1018,8 @@ Resources:
             user_id: Int!
             category_acronym: String!
             topic_acronym: String!
-            email: Boolean!
-            sms: Boolean!
+            email_notice: Boolean!
+            sms_notice: Boolean!
           ): UserCategoryTopic
           userUnfollowCategoryTopic(
             user_id: Int!
@@ -1057,6 +1057,7 @@ Resources:
           SK
           YT
         }
+
 
 
   getUserByIdResolver:
@@ -1140,7 +1141,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result[0])
+        $util.toJson($context.result)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1394,29 +1395,29 @@ Resources:
       TypeName: Mutation
       FieldName: userFollowCategoryTopic
       RequestMappingTemplate: |
-        #if($context.arguments.email)
-          #set( $email = true )
+        #if($context.arguments.email_notice)
+          #set( $email_notice = true )
         #else	
-          #set( $email = false )
+          #set( $email_notice = false )
         #end
-        #if($context.arguments.sms)
-          #set( $sms = true )
+        #if($context.arguments.sms_notice)
+          #set( $sms_notice = true )
         #else	
-          #set( $sms = false )
+          #set( $sms_notice = false )
         #end
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into \"UserCategoryTopic\" (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email, :sms, \"CategoryTopic\".categoryTopic_id from \"CategoryTopic\" where \"CategoryTopic\".category_acronym = :category_acronym and \"CategoryTopic\".topic_acronym = :topic_acronym;",
+        "sql": "insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
         "variableMapping": {
         ":user_id": $context.arguments.user_id,
-        ":email": $email,
-        ":sms": $sms,
+        ":email_notice": $email_notice,
+        ":sms_notice": $sms_notice,
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
         },
-        "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic`` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_acronym=:category_acronym and `CategoryTopic`.topic_acronym=:topic_acronym;"
+        "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_acronym=:category_acronym and `CategoryTopic`.topic_acronym=:topic_acronym;"
         }
         }
       ResponseMappingTemplate: |
