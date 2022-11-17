@@ -399,7 +399,25 @@ Resources:
     Properties:
       GroupDescription: DMS security group. Outbound only traffic.
       VpcId: !Ref VPC
-  
+
+  DMSVPCRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - dms.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: Role for DMS to assume role
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole
+      RoleName: dms-vpc-role
+    
 
 # RDS #########################################
   
@@ -1546,7 +1564,7 @@ Resources:
       EngineName: mysql
       Password: !Ref DBPassword
       Port: 3306
-      ServerName: !GetAtt MainDBinstance.Endpoint.Address
+      ServerName: !GetAtt MainDBInstance.Endpoint.Address
       Username: !Ref DBUser
   TargetEndpoint:
     Type: "AWS::DMS::Endpoint"
@@ -1582,7 +1600,13 @@ Resources:
       SourceEndpointArn: !Ref SourceEndpoint
       TargetEndpointArn: !Ref TargetEndpoint
       TableMappings: "{ \"rules\": [ { \"rule-type\": \"selection\", \"rule-id\": \"1\", \"rule-name\": \"1\", \"object-locator\": { \"schema-name\": \"sys\", \"table-name\": \"%\" }, \"rule-action\": \"include\" } ] }"
-  #Pinpoint Resources
+
+  # SES
+  SESIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+      EmailIdentity: !Ref CognitoAdminEmail
+  Pinpoint Resources
   PinpointApp:
     Type: AWS::Pinpoint::App
     Properties:
@@ -1596,17 +1620,51 @@ Resources:
     Type: AWS::Pinpoint::EmailChannel
     Properties:
       ApplicationId: !Ref PinpointApp
-      # TODO: verify admin email
       FromAddress: !Ref CognitoAdminEmail
-      Identity: !Ref SESIdentity
+      Identity: !GetAtt SESIdentity.Arn
       Enabled: true
-  # SES
-  SESIdentity:
-    Type: AWS::SES::EmailIdentity
-    Properties:
-      EmailIdentity: !Ref CognitoAdminEmail
 
   #Lambda Resources
+  HelperLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: RDSHelperLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+              - pinpoint.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: Role for helper lambda
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
+      - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+
+  HelperLambdaPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: RDSHelperLambdaPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "mobiletargeting:CreateImportJob"
+              - "mobiletargeting:GetImportJobs"
+              - "mobiletargeting:UpdateEndpoint"
+              - "mobiletargeting:DeleteEndpoint"
+              - "mobiletargeting:PhoneNumberValidate"
+              - "iam:GetRole"
+              - "iam:PassRole"
+            Resource: '*'
+      Roles:
+        - !Ref HelperLambdaRole
+  
   RDSPinPointLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -1687,7 +1745,9 @@ Resources:
       Handler: index.lambda_handler
       Runtime: python3.7
       #Timeout: 30
-      Role: !Ref HelperLambdaRoleArn
+      Role: 
+        # !Ref HelperLambdaRoleArn
+        !GetAtt HelperLambdaRole.Arn
       Environment:
         Variables:
           PINPOINT_APPID: !Ref PinpointApp
