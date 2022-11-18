@@ -66,7 +66,8 @@ Parameters:
     Description: The version of Aurora MySQL for the database
     Type: String
     Default: 5.7.mysql_aurora.2.09.2
-    AllowedValues: [5.7.mysql_aurora.2.07.0, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.2, 5.7.mysql_aurora.2.07.3, 5.7.mysql_aurora.2.07.4, 5.7.mysql_aurora.2.07.5, 5.7.mysql_aurora.2.07.6, 5.7.mysql_aurora.2.07.7, 5.7.mysql_aurora.2.08.0, 5.7.mysql_aurora.2.08.1, 5.7.mysql_aurora.2.08.2, 5.7.mysql_aurora.2.08.3, 5.7.mysql_aurora.2.08.4, 5.7.mysql_aurora.2.09.0, 5.7.mysql_aurora.2.09.1, 5.7.mysql_aurora.2.09.2, 5.7.mysql_aurora.2.09.3, 5.7.mysql_aurora.2.10.0, 5.7.mysql_aurora.2.10.1, 5.7.mysql_aurora.2.10.2,  8.0.mysql_aurora.3.01.0, 8.0.mysql_aurora.3.01.1, 8.0.mysql_aurora.3.02.0]
+    AllowedValues: [5.7.mysql_aurora.2.07.0, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.2, 5.7.mysql_aurora.2.07.3, 5.7.mysql_aurora.2.07.4, 5.7.mysql_aurora.2.07.5, 5.7.mysql_aurora.2.07.6, 5.7.mysql_aurora.2.07.7, 5.7.mysql_aurora.2.08.0, 5.7.mysql_aurora.2.08.1, 5.7.mysql_aurora.2.08.2, 5.7.mysql_aurora.2.08.3, 5.7.mysql_aurora.2.08.4, 5.7.mysql_aurora.2.09.0, 5.7.mysql_aurora.2.09.1, 5.7.mysql_aurora.2.09.2, 5.7.mysql_aurora.2.09.3, 5.7.mysql_aurora.2.10.0, 5.7.mysql_aurora.2.10.1, 5.7.mysql_aurora.2.10.2]
+    # ,  8.0.mysql_aurora.3.01.0, 8.0.mysql_aurora.3.01.1, 8.0.mysql_aurora.3.02.0]
   DeletionProtection:
     Description: When deletion proteciton is enabled, when you request the deletion of a database instance in the AWS Console you are blocked and may not continue without first modifying the instance and disabling deletion protection (recommended for production)
     Type: String
@@ -449,6 +450,7 @@ Resources:
     Properties: 
       DatabaseName: !Ref 'DBName'
       DBClusterIdentifier: db-cluster
+      DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
       DBSubnetGroupName: !Ref DBPrivateSubnetGrouping
       DeletionProtection: !Ref 'DeletionProtection'
       EnableCloudwatchLogsExports: 
@@ -481,11 +483,21 @@ Resources:
       DBInstanceClass: !Ref 'DBInstanceClass'
       DBInstanceIdentifier: !Sub '${ProjectName}-${EnvironmentName}-instance'
       PubliclyAccessible: false 
+      # DBParameterGroupName: 
+      #   Ref: RDSDBParameterGroup
       Tags: 
         - Key: "Project"
           Value: !Ref 'ProjectName'
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
+
+  RDSClusterParameterGroup:
+    Type: "AWS::RDS::DBClusterParameterGroup"
+    Properties:
+      Description: "CloudFormation Parameter Group"
+      Family: aurora-mysql5.7
+      Parameters:
+        binlog_format: ROW
 
   RDSCredentialsSecret:
     Type: AWS::SecretsManager::Secret
@@ -1564,7 +1576,7 @@ Resources:
       EngineName: mysql
       Password: !Ref DBPassword
       Port: 3306
-      ServerName: !GetAtt MainDBInstance.Endpoint.Address
+      ServerName: !GetAtt MainDBCluster.Endpoint.Address
       Username: !Ref DBUser
   TargetEndpoint:
     Type: "AWS::DMS::Endpoint"
