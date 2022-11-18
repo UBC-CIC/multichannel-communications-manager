@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AppBar,
+  Box,
   Toolbar,
   Typography,
   IconButton,
@@ -126,52 +127,66 @@ function Navbar(props) {
 
   return (
     <Grid item xs={12}>
-      <AppBar position="static" style={{ backgroundColor: "#012144" }}>
-        <Toolbar>
-          {showSideMenuButton ? (
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleSideMenu}
+      <AppBar
+        position="relative"
+        sx={{
+          backgroundColor: "#012144",
+          zIndex: 1400,
+        }}
+      >
+        <Toolbar
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {showSideMenuButton ? (
+              <IconButton
+                edge="start"
+                color="inherit"
+                aria-label="open drawer"
+                onClick={handleSideMenu}
+              >
+                <MenuIcon />
+              </IconButton>
+            ) : null}
+            <Typography
+              variant="h6"
+              component={"h1"}
+              noWrap
+              sx={{ fontWeight: 200 }}
             >
-              <MenuIcon />
-            </IconButton>
-          ) : null}
-          <Typography
-            variant="h6"
-            component={"h1"}
-            noWrap
-            sx={{ fontWeight: 200 }}
-          >
-            ISED
-          </Typography>
-          <div />
-          <div>
-            <IconButton
-              edge="end"
-              aria-label="account of current user"
-              aria-controls={menuId}
-              aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
-              color="inherit"
-            >
-              <Avatar>{user.charAt(0).toUpperCase()}</Avatar>
-            </IconButton>
-          </div>
-          <div>
-            <IconButton
-              aria-label="show more"
-              aria-controls={mobileMenuId}
-              aria-haspopup="true"
-              onClick={handleMobileMenuOpen}
-              color="inherit"
-            >
-              <More />
-            </IconButton>
-            {renderMobileMenu}
-            {renderMenu}
-          </div>
+              ISED
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <div>
+              <IconButton
+                edge="end"
+                aria-label="account of current user"
+                aria-controls={menuId}
+                aria-haspopup="true"
+                onClick={handleProfileMenuOpen}
+                color="inherit"
+              >
+                <Avatar>{user.charAt(0).toUpperCase()}</Avatar>
+              </IconButton>
+            </div>
+            <div>
+              <IconButton
+                aria-label="show more"
+                aria-controls={mobileMenuId}
+                aria-haspopup="true"
+                onClick={handleMobileMenuOpen}
+                color="inherit"
+              >
+                <More />
+              </IconButton>
+              {renderMobileMenu}
+              {renderMenu}
+            </div>
+          </Box>
         </Toolbar>
       </AppBar>
       <Backdrop open={loadingBackdrop}>

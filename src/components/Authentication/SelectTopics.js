@@ -47,7 +47,7 @@ const StyledImageListItem = styled(ImageListItem)`
 `;
 
 const SelectTopics = ({ handleNextStep }) => {
-  //hard coded for now
+  //hard coded mock data for now, to be replaced with queried data
   const sampleTopics = [
     {
       title: "Health",

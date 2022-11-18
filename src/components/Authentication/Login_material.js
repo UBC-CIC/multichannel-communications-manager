@@ -167,7 +167,6 @@ function Login(props) {
 
   //function for user sign up
   async function signUp() {
-    console.log("in signUp");
     try {
       const { email, province, postal_code } = formState;
 
@@ -180,11 +179,8 @@ function Login(props) {
           "custom:postal_code": postal_code,
         },
       });
-      // console.log(data.user);
       setCognitoUser(data.user);
-      // console.log("cognitoUser: ", cognitoUser);
       updateFormState(() => ({ ...initialFormState, email }));
-      // updateLoginState("confirmSignUp");
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -224,16 +220,10 @@ function Login(props) {
 
   //sends user inputted email confirmation code to user pool to verify
   async function answerCustomChallenge() {
-    console.log("in answerCustomeChallenge()");
-    console.log(formState.authCode);
     // Send the answer to the User Pool
     // This will throw an error if it’s the 3rd wrong answer
     try {
-      let data = await Auth.sendCustomChallengeAnswer(
-        cognitoUser,
-        formState.authCode
-      );
-      console.log("data:", data);
+      await Auth.sendCustomChallengeAnswer(cognitoUser, formState.authCode);
     } catch (e) {
       console.log(e);
     }
@@ -242,7 +232,6 @@ function Login(props) {
     // So we should test if the user is authenticated now
     try {
       // This will throw an error if the user is not yet authenticated:
-      //not sure why the await Auth.currentSession() results in an error
       await Auth.currentSession();
       updateLoginState("signedIn");
     } catch (e) {
@@ -251,6 +240,7 @@ function Login(props) {
   }
 
   const verifyEmail = () => {
+    //the following if block runs during user sign up
     if (loginState === "confirmSignUp" && formState.authCode) {
       // confirm sign up
       // After retrieveing the confirmation code from the user
@@ -261,18 +251,17 @@ function Login(props) {
         .then((data) => console.log(data))
         .catch((err) => console.log(err));
       handleNextStep();
-    } else if (cognitoUser && formState.authCode) {
-      console.log("going to answer custom challenge function");
-      answerCustomChallenge();
     }
-    //confirm signup function will be uncommented after figuring out cognito integration
-    // confirmSignUp();
+    //the following if block runs during user sign in
+    if (loginState === "verifyEmail" && cognitoUser && formState.authCode) {
+      answerCustomChallenge();
+      //the following if block is to be deleted when sign up is finished being configured
+      //it is here for now to be able to see the rest of the steps in the user profile creation process
+      //without have to input an email/user information
+    } else if (loginState === "confirmSignUp") {
+      handleNextStep();
+    }
   };
-
-  //once user is signed in and cognitoUser is set from signIn function, run verifyEmail function
-  useEffect(() => {
-    cognitoUser && verifyEmail();
-  }, [cognitoUser]);
 
   /* functions for user sign in */
   async function signIn() {
@@ -601,9 +590,7 @@ function Login(props) {
                 </Grid>
                 <BackAndSubmitButtons
                   backAction={() => resetStates("signUp")}
-                  submitAction={
-                    loginState === "confirmSignUp" ? verifyEmail : signIn
-                  }
+                  submitAction={verifyEmail}
                   submitMessage={"Verify"}
                   loadingState={loading}
                 />

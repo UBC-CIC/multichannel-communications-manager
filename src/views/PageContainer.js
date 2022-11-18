@@ -10,46 +10,16 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
+  Box,
 } from "@mui/material";
 import { Home } from "@mui/icons-material";
 import Navbar from "../components/Navbar";
 import Landing from "../pages/Landing";
 
-// const theme = createMuiTheme();
-
-// const useStyles = makeStyles((theme) => ({
-//   root: {
-//     display: "flex",
-//   },
-//   list: {
-//     width: 250,
-//   },
-//   fullList: {
-//     width: "auto",
-//   },
-//   drawer: {
-//     width: 240,
-//     flexShrink: 0,
-//   },
-//   drawerContainer: {
-//     overflow: "auto",
-//   },
-//   drawerPaper: {
-//     width: 240,
-//   },
-//   content: {
-//     flexGrow: 1,
-//     [theme.breakpoints.down("sm")]: {
-//       padding: theme.spacing(3),
-//     },
-//   },
-// }));
-
 function PageContainer(props) {
   const { menuEnabled, updateMenuState } = props;
   const navigate = useNavigate();
 
-  // const classes = useStyles();
   /*
    * Handles closing side menu if an event occurs
    * */
@@ -63,14 +33,11 @@ function PageContainer(props) {
     updateMenuState(false);
   };
 
-  //   {
-  //     /* Example side menu is provided below */
-  //   }
   const list = () => (
-    <div
-      // className={classes.drawerContainer}
+    <Box
       onClick={handleSideMenuClose(false)}
       onKeyDown={handleSideMenuClose(false)}
+      sx={{ overflow: "auto" }}
     >
       <List>
         <ListItem button key={"home"} onClick={() => navigate("/")}>
@@ -80,7 +47,7 @@ function PageContainer(props) {
           <ListItemText primary={"Home"} />
         </ListItem>
       </List>
-    </div>
+    </Box>
   );
 
   return (
@@ -95,10 +62,7 @@ function PageContainer(props) {
           anchor={"left"}
           open={menuEnabled}
           onClose={handleSideMenuClose}
-          style={{ zIndex: 2 }}
-          // classes={{
-          //   paper: classes.drawerPaper,
-          // }}
+          sx={{ zIndex: 2, ".MuiDrawer-paper": { width: 240 } }}
           ModalProps={{ onBackdropClick: handleSideMenuClose() }}
         >
           <Toolbar />
@@ -106,9 +70,7 @@ function PageContainer(props) {
           {list()}
         </Drawer>
         <main>
-          {/* Routes are added here if you need multiple page views. otherwise this Switch can be deleted and replaced
-                with your app's contents */}
-
+          {/* Routes are added here if you need multiple page views*/}
           <Routes>
             <Route exact path={"/"} element={<Landing />} />
           </Routes>
