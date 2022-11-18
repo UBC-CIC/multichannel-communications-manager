@@ -18,18 +18,18 @@ const topicStreamARN =
  */
 exports.handler = (event) => {
   console.log(`EVENT: ${JSON.stringify(event)}`);
-  processor(event.Records).forEach((record) => {
+  event.Records.forEach((record) => {
     console.log("printing the record info ...");
     console.log(record);
-    migrateToPinpoint(record)
-      .then((response) => {
-        console.log("migrateToPinpoint response: ");
-        console.log(response);
-      })
-      .catch((err) => {
-        console.log(err);
-        return Promise.reject(err);
-      });
+    // migrateToPinpoint(record)
+    //   .then((response) => {
+    //     console.log("migrateToPinpoint response: ");
+    //     console.log(response);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //     return Promise.reject(err);
+    //   });
   });
   return Promise.resolve("Successfully processed all records");
 };
