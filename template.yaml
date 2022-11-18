@@ -450,7 +450,7 @@ Resources:
       DatabaseName: !Ref 'DBName'
       DBClusterIdentifier: db-cluster
       DBSubnetGroupName: !Ref DBPrivateSubnetGrouping
-      # DeletionProtection: !Ref 'DeletionProtection'
+      DeletionProtection: !Ref 'DeletionProtection'
       EnableCloudwatchLogsExports: 
         - general
         - error

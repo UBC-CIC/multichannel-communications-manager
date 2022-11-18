@@ -74,6 +74,12 @@ function migrateToPinpoint(record) {
 }
 
 /**
+ * insert into db the returned id
+ * @param {Object} ids
+ */
+function updateDB(ids) {}
+
+/**
  * extract table name from the record
  * @param {Object} record
  * @return {String} the table name, one of 'User' or 'Topic'

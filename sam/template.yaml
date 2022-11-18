@@ -450,7 +450,7 @@ Resources:
       DatabaseName: !Ref 'DBName'
       DBClusterIdentifier: db-cluster
       DBSubnetGroupName: !Ref DBPrivateSubnetGrouping
-      # DeletionProtection: !Ref 'DeletionProtection'
+      DeletionProtection: !Ref 'DeletionProtection'
       EnableCloudwatchLogsExports: 
         - general
         - error
@@ -1606,7 +1606,7 @@ Resources:
     Type: AWS::SES::EmailIdentity
     Properties:
       EmailIdentity: !Ref CognitoAdminEmail
-  Pinpoint Resources
+  # Pinpoint Resources
   PinpointApp:
     Type: AWS::Pinpoint::App
     Properties:
@@ -1621,7 +1621,10 @@ Resources:
     Properties:
       ApplicationId: !Ref PinpointApp
       FromAddress: !Ref CognitoAdminEmail
-      Identity: !GetAtt SESIdentity.Arn
+      Identity: 
+        # TODO: replace with parameter
+        # !GetAtt SESIdentity.Arn
+        "arn:aws:ses:ca-central-1:834289487514:identity/mminting@mail.ubc.ca"
       Enabled: true
 
   #Lambda Resources
@@ -1644,7 +1647,21 @@ Resources:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
       - arn:aws:iam::aws:policy/IAMReadOnlyAccess
-
+      Policies:
+        - PolicyName: AllowLambdaLogPolicy
+          PolicyDocument:
+            Version: '2012-10-17'  # in line policies for lambda
+            Statement:
+            - Effect: Allow
+              Action: logs:CreateLogGroup
+              Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+            - Effect: Allow
+              Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              Resource:
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/GraphQL-MySQL-Resolver:*
+        
   HelperLambdaPolicy:
     Type: 'AWS::IAM::Policy'
     Properties:
