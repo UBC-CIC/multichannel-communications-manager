@@ -1,8 +1,7 @@
-const { v4: uuidv4 } = require("uuid");
-const PINPOINTID = "31842758bdd442c18dc6176db7912f57";
+// const { v4: uuidv4 } = require("uuid");
+const PINPOINTID = process.env.PINPOINT_APPID;
 const AWS = require("aws-sdk");
-const pinpoint = new AWS.Pinpoint({ region: "ca-central-1" });
-// const pinpoint = new AWS.Pinpoint({ region: process.env.REGION });
+const pinpoint = new AWS.Pinpoint({ region: process.env.REGION });
 
 /*****************
  * Testing
@@ -35,7 +34,7 @@ function getUserEndpoints(userID) {
   return new Promise((resolve, reject) => {
     var params = {
       ApplicationId: PINPOINTID,
-      UserId: userID,
+      UserId: userID.toString(),
     };
 
     // console.trace(params);
@@ -78,10 +77,11 @@ function upsertUserEndpoint(userID, endpointID, params) {
 
     // insert provided userID into request body
     if (params.User == undefined) {
-      params.User = { UserId: userID };
-    } else if (params.User.UserId != userID) {
-      params.User.UserId = userID;
+      params.User = { UserId: userID.toString() };
     }
+    // else if (params.User.UserId != userID) {
+    //   params.User.UserId = userID;
+    // }
 
     //Remove following attributes...they were part of Get, but the Update doesn't like them
     delete params.ApplicationId;
@@ -91,7 +91,7 @@ function upsertUserEndpoint(userID, endpointID, params) {
 
     var request = {
       ApplicationId: PINPOINTID,
-      EndpointId: endpointID,
+      EndpointId: endpointID.toString(),
       EndpointRequest: params,
     };
 
@@ -172,7 +172,7 @@ function upsertUserProfile(
  */
 function deleteUser(userID) {
   return new Promise((resolve, reject) => {
-    let request = { ApplicationId: PINPOINTID, UserId: userID };
+    let request = { ApplicationId: PINPOINTID, UserId: userID.toString() };
 
     pinpoint.deleteUserEndpoints(request, function (err, response) {
       if (err) {
@@ -292,6 +292,7 @@ function createSegment(categoryTopicID, notifType) {
  * @return {Promise} a promise that contains the user and endpoint id changed
  */
 function updateTopicChannel(userID, categoryTopicID, emailNotice, textNotice) {
+  userID = userID.toString();
   let emailID = userID;
 
   // let request = {
@@ -356,7 +357,7 @@ function deleteTopic(topicID) {
 module.exports = {
   getUserEndpoints,
   upsertUserEndpoint,
-  handleInsertUser: upsertUserProfile,
+  upsertUserProfile,
   deleteUser,
   createSegment,
   updateTopicChannel,
