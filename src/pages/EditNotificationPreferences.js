@@ -4,7 +4,9 @@ import { Box, Typography } from "@mui/material";
 const EditNotificationPreferences = () => {
   return (
     <Box>
-      <Typography>Edit Notification Preferences Page</Typography>
+      <Typography variant="h2" sx={{ mb: "1em" }}>
+        Manage My Notifications
+      </Typography>
     </Box>
   );
 };

@@ -123,7 +123,7 @@ function PageContainer(props) {
             />
             <Route
               exact
-              path={"/edit-account-info"}
+              path={"/edit-account-information"}
               element={<EditAccountInfo />}
             />
           </Routes>

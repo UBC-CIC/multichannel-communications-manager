@@ -14,6 +14,22 @@ const theme = createTheme({
       card: "#4a4f59",
     },
   },
+  components: {
+    MuiTypography: {
+      variants: [
+        {
+          props: {
+            variant: "h1",
+          },
+          style: {
+            fontSize: 40,
+            color: "pink",
+            fontWeight: 300,
+          },
+        },
+      ],
+    },
+  },
 });
 
 export default theme;
