@@ -107,7 +107,7 @@ function PageContainer(props) {
           {/* Side menu items added for rendering */}
           {list()}
         </Drawer>
-        <main>
+        <main style={{ flexGrow: 1, padding: "50px" }}>
           {/* Routes are added here if you need multiple page views*/}
           <Routes>
             <Route exact path={"/"} element={<Landing />} />
