@@ -34,7 +34,7 @@ function getUserEndpoints(userID) {
   return new Promise((resolve, reject) => {
     var params = {
       ApplicationId: PINPOINTID,
-      UserId: userID.toString(),
+      UserId: userID,
     };
 
     // console.trace(params);
@@ -59,43 +59,36 @@ function getUserEndpoints(userID) {
 }
 
 /**
- * upsert a user or one of its endpoints
- * @param  {Int} userID cannot be null
- * @param  {Int} endpointID The id of the email/phone endpoint to modify
- * @param  {Object} params The params for the upsert, format see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-pinpoint/interfaces/endpointrequest.html
+ * upsert an endpoint to an existing user
+ * @param  {Int} userID The id of the user, required
+ * @param  {Int} endpointID The id of the email/phone endpoint to modify, required
+ * @param  {String} endpoint_address The address of the endpoint to upsert, required
+ * @param  {String} endpoint_type The type the endpoint eg. SMS or EMAIL, required
  * @return {Promise} A Promise object that contains the ids of the user and endpoint that was updated
  */
-function upsertUserEndpoint(userID, endpointID, params) {
-  console.log("upsertUserEndpoint...");
+function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
+  console.log("upsertEndpoint...");
   return new Promise((resolve, reject) => {
-    // // if provided null values for endpointID, generate id
-    // if (userID == null) {
-    //   reject("userID cannot be null");
-    // } else {
-    //   endpointID == null ? (endpointID = uuidv4()) : endpointID;
-    // }
-
-    // insert provided userID into request body
-    if (params.User == undefined) {
-      params.User = { UserId: userID.toString() };
-    }
-    // else if (params.User.UserId != userID) {
-    //   params.User.UserId = userID;
-    // }
-
-    //Remove following attributes...they were part of Get, but the Update doesn't like them
-    delete params.ApplicationId;
-    delete params.CohortId;
-    delete params.CreationDate;
-    delete params.Id;
-
     var request = {
       ApplicationId: PINPOINTID,
-      EndpointId: endpointID.toString(),
-      EndpointRequest: params,
+      EndpointId: endpoint_type === "EMAIL" ? userID : endpointID,
+      EndpointRequest: {
+        Address: endpoint_address,
+        ChannelType: endpoint_type,
+        User: {
+          UserId: userID,
+          UserAttributes: {
+            province: [province],
+            postalCode: [postalCode],
+          },
+        },
+      },
     };
 
-    console.log(JSON.stringify(request, null, 2));
+    console.log(
+      "sending request to pinpoint ...",
+      JSON.stringify(request, null, 2)
+    );
 
     // console.log('about to call updateEndpoint ...');
 
@@ -104,13 +97,13 @@ function upsertUserEndpoint(userID, endpointID, params) {
         console.error(err, err.stack);
         reject(err);
       } else {
-        changedAccount = {
-          userId: params.User.UserId,
-          EndpointId: endpointID,
-        };
+        // changedAccount = {
+        //   userId: params.User.UserId,
+        //   EndpointId: endpointID,
+        // };
         console.log("pinpoint.updateEndpoint return: ");
-        console.log(changedAccount);
-        resolve(changedAccount);
+        console.log(data);
+        resolve(data);
       }
     });
   });
@@ -127,42 +120,73 @@ function upsertUserEndpoint(userID, endpointID, params) {
  */
 function upsertUserProfile(
   userID,
-  emailAdress,
-  phoneAddress,
+  // emailAdress,
+  // phoneAddress,
   province,
   postalCode
 ) {
-  return new Promise((resolve, reject) => {
-    upsertUserEndpoint(userID, userID, {
-      Address: emailAdress,
-      ChannelType: "EMAIL",
+  // return new Promise((resolve, reject) => {
+  //   upsertUserEndpoint(userID, userID, {
+  //     Address: emailAdress,
+  //     ChannelType: "EMAIL",
+  //     User: {
+  //       UserAttributes: {
+  //         province: [province],
+  //         postalCode: [postalCode],
+  //       },
+  //     },
+  //   })
+  //     .then((accountsChanged) => {
+  //       if (phoneAddress === undefined) {
+  //         resolve(accountsChanged);
+  //       } else {
+  //         upsertUserEndpoint(userID, null, {
+  //           Address: phoneAddress,
+  //           ChannelType: "SMS",
+  //         })
+  //           .then((accountsChanged2) => {
+  //             resolve([accountsChanged, accountsChanged2]);
+  //           })
+  //           .catch((err) => {
+  //             reject(err);
+  //           });
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       reject(error);
+  //     });
+  // });
+
+  let params = {
+    ApplicationId: PINPOINTID,
+    EndpointId: userID.toString,
+    EndpointRequest: {
       User: {
         UserAttributes: {
           province: [province],
           postalCode: [postalCode],
         },
       },
+    },
+  };
+
+  pinpoint
+    .updateEndpoint(params, function (err, data) {
+      if (err) {
+        log.error(err, err.stack);
+      } else {
+        log.debug(data);
+        resolve(data);
+      }
     })
-      .then((accountsChanged) => {
-        if (phoneAddress === undefined) {
-          resolve(accountsChanged);
-        } else {
-          upsertUserEndpoint(userID, null, {
-            Address: phoneAddress,
-            ChannelType: "SMS",
-          })
-            .then((accountsChanged2) => {
-              resolve([accountsChanged, accountsChanged2]);
-            })
-            .catch((err) => {
-              reject(err);
-            });
-        }
-      })
-      .catch((error) => {
-        reject(error);
-      });
-  });
+    .then((response) => {
+      console.log(response);
+      resolve(response);
+    })
+    .catch((err) => {
+      console.log(err);
+      reject(err);
+    });
 }
 
 /**
@@ -172,7 +196,7 @@ function upsertUserProfile(
  */
 function deleteUser(userID) {
   return new Promise((resolve, reject) => {
-    let request = { ApplicationId: PINPOINTID, UserId: userID.toString() };
+    let request = { ApplicationId: PINPOINTID, UserId: userID };
 
     pinpoint.deleteUserEndpoints(request, function (err, response) {
       if (err) {
@@ -292,7 +316,7 @@ function createSegment(categoryTopicID, notifType) {
  * @return {Promise} a promise that contains the user and endpoint id changed
  */
 function updateTopicChannel(userID, categoryTopicID, emailNotice, textNotice) {
-  userID = userID.toString();
+  userID = userID;
   let emailID = userID;
 
   // let request = {
@@ -321,7 +345,7 @@ function updateTopicChannel(userID, categoryTopicID, emailNotice, textNotice) {
     params.User.UserAttributes[categoryTopicID].push("SMS");
   }
 
-  return upsertUserEndpoint(userID, emailID, params);
+  return upsertEndpoint(userID, emailID, params);
 }
 
 /**
@@ -356,7 +380,7 @@ function deleteTopic(topicID) {
 
 module.exports = {
   getUserEndpoints,
-  upsertUserEndpoint,
+  upsertEndpoint,
   upsertUserProfile,
   deleteUser,
   createSegment,

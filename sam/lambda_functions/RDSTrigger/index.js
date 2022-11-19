@@ -59,11 +59,28 @@ function migrateToPinpoint(record) {
         case "insert":
         case "modify":
           return handler.upsertUserProfile(
-            data.user_id,
+            data.user_id.toString(),
             data.email_address,
-            data.phone_address,
+            data.phone_address.toString,
             data.province,
             data.postal_code
+          );
+          handler.upsertUserProfile(
+            data.user_id,
+            data.province,
+            data.postal_code
+          );
+          handler.upsertEndpoint(
+            data.user_id,
+            null,
+            data.email_address,
+            "EMAIL"
+          );
+          handler.upsertEndpoint(
+            data.user_id,
+            data.phone_id,
+            data.phone_address,
+            "SMS"
           );
           break;
         case "REMOVE":

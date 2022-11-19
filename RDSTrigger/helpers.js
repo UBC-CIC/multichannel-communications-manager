@@ -27,7 +27,7 @@ const pinpoint = new AWS.Pinpoint({ region: "ca-central-1" });
  *****************/
 /**
  * get all the endpoints of a user
- * @param  {Int} userID The User.UserID to retrieve
+ * @param  {String} userID The User.UserID to retrieve
  * @return {Promise} A Promise object that contatins a collection of user endpoints
  */
 function getUserEndpoints(userID) {
@@ -61,8 +61,8 @@ function getUserEndpoints(userID) {
 
 /**
  * upsert a user or one of its endpoints
- * @param  {Int} userID cannot be null
- * @param  {Int} endpointID The id of the email/phone endpoint to modify
+ * @param  {String} userID cannot be null
+ * @param  {String} endpointID The id of the email/phone endpoint to modify
  * @param  {Object} params The params for the upsert, format see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-pinpoint/interfaces/endpointrequest.html
  * @return {Promise} A Promise object that contains the ids of the user and endpoint that was updated
  */
@@ -118,9 +118,9 @@ function upsertUserEndpoint(userID, endpointID, params) {
 
 /**
  * format the upsert request and call upsertUserEndpoint()
- * @param {Int} userID
+ * @param {String} userID
  * @param {String} emailAdress
- * @param {Int} phoneAddress
+ * @param {String} phoneAddress
  * @param {String} province
  * @param {String} postalCode
  * @return {Promise} a promise containing the accounts changed
@@ -167,7 +167,7 @@ function upsertUserProfile(
 
 /**
  * delete all endpoints of a user
- * @param {Int} userID
+ * @param {String} userID
  * @return {Promise} A Promise object that contains information about deleted endpoints
  */
 function deleteUser(userID) {
@@ -188,7 +188,7 @@ function deleteUser(userID) {
 
 /**
  * create a segment for given categoryTopic and notification type
- * @param {Int} categoryTopicID
+ * @param {String} categoryTopicID
  * @param {String} notifType can be one of 'EMAIL' or 'SMS'
  */
 function createSegment(categoryTopicID, notifType) {
@@ -285,8 +285,8 @@ function createSegment(categoryTopicID, notifType) {
 
 /**
  * update the channels through which a user wants to receive notificaiton about a topic
- * @param {Int} userID
- * @param {Int} categoryTopicID
+ * @param {String} userID
+ * @param {String} categoryTopicID
  * @param {Boolean} emailNotice
  * @param {Boolean} textNotice
  * @return {Promise} a promise that contains the user and endpoint id changed
@@ -326,7 +326,7 @@ function updateTopicChannel(userID, categoryTopicID, emailNotice, textNotice) {
 /**
  * remove attribute topicID from all users
  * NOT WORKING cuz of pinpoint bug
- * @param {Int} topicID
+ * @param {String} topicID
  */
 function deleteTopic(topicID) {
   let request = {

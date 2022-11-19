@@ -1354,14 +1354,17 @@ Resources:
       RequestMappingTemplate: |
         #set($phone_address = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.phone_address, null)))
         #set($postal_code = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
+        #if($context.arguments.phone_address)
+          #set( $phone_id = $email_id )
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `User` (email_address, phone_address, postal_code, province) values (:email_address, :phone_address, :postal_code, :province);",
+        "sql": "insert into `User` (email_address, phone_address, phone_id, postal_code, province) values (:email_address, :phone_address, :phone_id, :postal_code, :province);",
         "variableMapping": {
         ":email_address": "$context.arguments.email_address",
         ":phone_address": $phone_address,
+        ":phone_id": $phone_id
         ":postal_code": $postal_code,
         ":province": "$context.arguments.province"
         },
