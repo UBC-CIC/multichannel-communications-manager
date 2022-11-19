@@ -12,9 +12,17 @@ import {
   Toolbar,
   Box,
 } from "@mui/material";
-import { Home } from "@mui/icons-material";
+import {
+  Home,
+  NotificationsNone,
+  EditNotifications,
+  Person,
+} from "@mui/icons-material";
 import Navbar from "../components/Navbar";
 import Landing from "../pages/Landing";
+import SubscribeToTopics from "../pages/SubscribeToTopics";
+import EditNotificationPreferences from "../pages/EditNotificationPreferences";
+import EditAccountInfo from "../pages/EditAccountInfo";
 
 function PageContainer(props) {
   const { menuEnabled, updateMenuState } = props;
@@ -46,6 +54,36 @@ function PageContainer(props) {
           </ListItemIcon>
           <ListItemText primary={"Home"} />
         </ListItem>
+        <ListItem
+          button
+          key={"subscribe-to-topics"}
+          onClick={() => navigate("/subscribe-to-topics")}
+        >
+          <ListItemIcon>
+            <NotificationsNone />
+          </ListItemIcon>
+          <ListItemText primary={"Subscribe to Topics"} />
+        </ListItem>
+        <ListItem
+          button
+          key={"edit-notif-preferences"}
+          onClick={() => navigate("/edit-notif-preferences")}
+        >
+          <ListItemIcon>
+            <EditNotifications />
+          </ListItemIcon>
+          <ListItemText primary={"Edit Notification Preferences"} />
+        </ListItem>
+        <ListItem
+          button
+          key={"edit-account-info"}
+          onClick={() => navigate("/edit-account-information")}
+        >
+          <ListItemIcon>
+            <Person />
+          </ListItemIcon>
+          <ListItemText primary={"Edit Account Information"} />
+        </ListItem>
       </List>
     </Box>
   );
@@ -56,7 +94,7 @@ function PageContainer(props) {
         button updates redux state to show/hide left sidebar */}
       <Navbar showSideMenuButton={true} />
       {/* App content example below with sidebar */}
-      <Grid item xs={12} className="App-header">
+      <Grid item xs={12}>
         {/* Side menu component */}
         <Drawer
           anchor={"left"}
@@ -73,6 +111,21 @@ function PageContainer(props) {
           {/* Routes are added here if you need multiple page views*/}
           <Routes>
             <Route exact path={"/"} element={<Landing />} />
+            <Route
+              exact
+              path={"/subscribe-to-topics"}
+              element={<SubscribeToTopics />}
+            />
+            <Route
+              exact
+              path={"/edit-notif-preferences"}
+              element={<EditNotificationPreferences />}
+            />
+            <Route
+              exact
+              path={"/edit-account-info"}
+              element={<EditAccountInfo />}
+            />
           </Routes>
         </main>
       </Grid>
