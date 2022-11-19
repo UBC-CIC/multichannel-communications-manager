@@ -1,7 +1,9 @@
 // const { v4: uuidv4 } = require("uuid");
-const PINPOINTID = process.env.PINPOINT_APPID;
+// const PINPOINTID = process.env.PINPOINT_APPID;
+const PINPOINTID = "a39c6412c79a4ec2946257bb4c95ca2a";
 const AWS = require("aws-sdk");
-const pinpoint = new AWS.Pinpoint({ region: process.env.REGION });
+// const pinpoint = new AWS.Pinpoint({ region: process.env.REGION });
+const pinpoint = new AWS.Pinpoint({ region: "ca-central-1" });
 
 /*****************
  * Testing
@@ -60,8 +62,8 @@ function getUserEndpoints(userID) {
 
 /**
  * upsert an endpoint to an existing user
- * @param  {Int} userID The id of the user, required
- * @param  {Int} endpointID The id of the email/phone endpoint to modify, required
+ * @param  {String} userID The id of the user, required
+ * @param  {String} endpointID The id of the email/phone endpoint to modify, required
  * @param  {String} endpoint_address The address of the endpoint to upsert, required
  * @param  {String} endpoint_type The type the endpoint eg. SMS or EMAIL, required
  * @return {Promise} A Promise object that contains the ids of the user and endpoint that was updated
@@ -77,10 +79,6 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
         ChannelType: endpoint_type,
         User: {
           UserId: userID,
-          UserAttributes: {
-            province: [province],
-            postalCode: [postalCode],
-          },
         },
       },
     };
@@ -92,18 +90,20 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
 
     // console.log('about to call updateEndpoint ...');
 
-    pinpoint.updateEndpoint(request, function (err, data) {
+    // changedAccount = {
+    //   userId: params.User.UserId,
+    //   EndpointId: endpointID,
+    // };
+
+    pinpoint.updateEndpoint(request, function (err, response) {
       if (err) {
-        console.error(err, err.stack);
+        console.log("ppt.updateEndpoint err:");
+        console.log(err, err.stack);
         reject(err);
       } else {
-        // changedAccount = {
-        //   userId: params.User.UserId,
-        //   EndpointId: endpointID,
-        // };
-        console.log("pinpoint.updateEndpoint return: ");
-        console.log(data);
-        resolve(data);
+        console.log("ppt.updateEndpoint response:");
+        console.log(response);
+        resolve(response);
       }
     });
   });
@@ -118,75 +118,70 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
  * @param {String} postalCode
  * @return {Promise} a promise containing the accounts changed
  */
-function upsertUserProfile(
-  userID,
-  // emailAdress,
-  // phoneAddress,
-  province,
-  postalCode
-) {
-  // return new Promise((resolve, reject) => {
-  //   upsertUserEndpoint(userID, userID, {
-  //     Address: emailAdress,
-  //     ChannelType: "EMAIL",
-  //     User: {
-  //       UserAttributes: {
-  //         province: [province],
-  //         postalCode: [postalCode],
-  //       },
-  //     },
-  //   })
-  //     .then((accountsChanged) => {
-  //       if (phoneAddress === undefined) {
-  //         resolve(accountsChanged);
-  //       } else {
-  //         upsertUserEndpoint(userID, null, {
-  //           Address: phoneAddress,
-  //           ChannelType: "SMS",
-  //         })
-  //           .then((accountsChanged2) => {
-  //             resolve([accountsChanged, accountsChanged2]);
-  //           })
-  //           .catch((err) => {
-  //             reject(err);
-  //           });
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       reject(error);
-  //     });
-  // });
+async function upsertUserProfile(userID, province, postalCode) {
+  console.log("upsertUserProfile ...");
+  return new Promise((resolve, reject) => {
+    //   upsertUserEndpoint(userID, userID, {
+    //     Address: emailAdress,
+    //     ChannelType: "EMAIL",
+    //     User: {
+    //       UserAttributes: {
+    //         province: [province],
+    //         postalCode: [postalCode],
+    //       },
+    //     },
+    //   })
+    //     .then((accountsChanged) => {
+    //       if (phoneAddress === undefined) {
+    //         resolve(accountsChanged);
+    //       } else {
+    //         upsertUserEndpoint(userID, null, {
+    //           Address: phoneAddress,
+    //           ChannelType: "SMS",
+    //         })
+    //           .then((accountsChanged2) => {
+    //             resolve([accountsChanged, accountsChanged2]);
+    //           })
+    //           .catch((err) => {
+    //             reject(err);
+    //           });
+    //       }
+    //     })
+    //     .catch((error) => {
+    //       reject(error);
+    //     });
+    // });
 
-  let params = {
-    ApplicationId: PINPOINTID,
-    EndpointId: userID.toString,
-    EndpointRequest: {
-      User: {
-        UserAttributes: {
-          province: [province],
-          postalCode: [postalCode],
+    let request = {
+      ApplicationId: PINPOINTID,
+      EndpointId: userID,
+      EndpointRequest: {
+        User: {
+          UserAttributes: {
+            province: [province],
+            postalCode: [postalCode],
+          },
         },
       },
-    },
-  };
+    };
 
-  pinpoint
-    .updateEndpoint(params, function (err, data) {
+    console.log(
+      "sending request to pinpoint ...",
+      JSON.stringify(request, null, 2)
+    );
+
+    pinpoint.updateEndpoint(request, function (err, response) {
       if (err) {
-        log.error(err, err.stack);
+        console.log("ppt.updateEndpoint err:");
+        console.log(err, err.stack);
+        reject(err);
       } else {
-        log.debug(data);
-        resolve(data);
+        console.log("ppt.updateEndpoint response:");
+        console.log(response);
+        resolve(response);
       }
-    })
-    .then((response) => {
-      console.log(response);
-      resolve(response);
-    })
-    .catch((err) => {
-      console.log(err);
-      reject(err);
     });
+  });
 }
 
 /**

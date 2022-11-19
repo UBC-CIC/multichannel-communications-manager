@@ -44,7 +44,7 @@ function getUserEndpoints(userID) {
         console.error(err, err.stack);
         reject(err);
       } else {
-        // console.debug(data.EndpointsResponse.Item);
+        // console.log(data.EndpointsResponse.Item);
 
         //Strip off INACTIVE
         var filteredEndpoints = data.EndpointsResponse.Item.filter(
@@ -179,7 +179,7 @@ function deleteUser(userID) {
         console.error(err, err.stack);
       } else {
         console.log("deleteUser return: ");
-        console.debug(JSON.stringify(response));
+        console.log(JSON.stringify(response));
         resolve(response);
       }
     });
@@ -346,7 +346,7 @@ function deleteTopic(topicID) {
         console.error(err, err.stack);
       } else {
         console.log("pinpoint.updateEndpoint return: ");
-        console.debug(data);
+        console.log(data);
         resolve(data);
       }
     });

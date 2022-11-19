@@ -33,7 +33,7 @@ exports.handler = (event) => {
         console.log(response);
       })
       .catch((err) => {
-        console.log(err);
+        console.log("migrateToPpt err:", err);
         return Promise.reject(err);
       });
   });
@@ -46,7 +46,7 @@ exports.handler = (event) => {
  * @return {Promise} a Promise object that contains the ids of the user and/or endpoint changed
  * TODO
  */
-function migrateToPinpoint(record) {
+async function migrateToPinpoint(record) {
   console.log("record: ", record);
   console.log("data: ", record.data);
   console.log("operation: ", record.metadata.operation);
@@ -58,33 +58,39 @@ function migrateToPinpoint(record) {
       switch (operation) {
         case "insert":
         case "modify":
-          return handler.upsertUserProfile(
-            data.user_id.toString(),
-            data.email_address,
-            data.phone_address.toString,
-            data.province,
-            data.postal_code
-          );
-          handler.upsertUserProfile(
-            data.user_id,
-            data.province,
-            data.postal_code
-          );
-          handler.upsertEndpoint(
-            data.user_id,
-            null,
-            data.email_address,
-            "EMAIL"
-          );
-          handler.upsertEndpoint(
-            data.user_id,
-            data.phone_id,
-            data.phone_address,
-            "SMS"
-          );
+          handler
+            .upsertUserProfile(
+              data.user_id.toString(),
+              data.province,
+              data.postal_code
+            )
+            .then((response) => {
+              console.log("upsertUserProfile response: ", response);
+              return handler.upsertEndpoint(
+                data.user_id.toString(),
+                null,
+                data.email_address,
+                "EMAIL"
+              );
+            })
+            .then((response) => {
+              console.log("upsertEndpoint response: ", response);
+              return handler.upsertEndpoint(
+                data.user_id.toString(),
+                null,
+                data.email_address,
+                "EMAIL"
+              );
+            })
+            .then((response) =>
+              console.log("second upsertEndpoint response: ", response)
+            )
+            .catch((err) => {
+              console.log("handler err: ", err);
+            });
           break;
         case "REMOVE":
-          return handler.deleteUser(data.user_id);
+          return handler.deleteUser(data.user_id.toString());
           break;
       }
       break;
