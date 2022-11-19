@@ -14,8 +14,8 @@ import {
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import React, { useState } from "react";
-import NotificationPreferencesDialog from "../NotificationPreferencesDialog";
-import "../TopicCard.css";
+import NotificationPreferencesDialog from "./NotificationPreferencesDialog";
+import "./TopicCard.css";
 
 const TopicCard = ({
   selectedTopic,

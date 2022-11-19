@@ -6,28 +6,14 @@ import {
   Grid,
   Stack,
   Pagination,
-  Button,
   IconButton,
-  Chip,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
 import { styled } from "@mui/material/styles";
-import "./Login.css";
-import theme from "../../themes";
 import TopicCard from "../TopicCard";
-
-const SubmitButton = styled(Button)`
-  border-radius: 50px;
-  width: 30%;
-  font-size: 1em;
-  padding: ${theme.spacing(1.5)};
-  margin: ${theme.spacing(2, "auto")};
-  color: ${theme.palette.getContrastText("#012144")};
-  background-color: #012144;
-`;
 
 const StyledImageListItemBar = styled(ImageListItemBar)`
   .MuiImageListItemBar-title {
@@ -46,7 +32,7 @@ const StyledImageListItem = styled(ImageListItem)`
   }
 `;
 
-const SelectTopics = ({ handleNextStep }) => {
+const ViewTopics = () => {
   //hard coded mock data for now, to be replaced with queried data
   const sampleTopics = [
     {
@@ -69,6 +55,31 @@ const SelectTopics = ({ handleNextStep }) => {
       description:
         "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
     },
+    {
+      title: "Sample 5",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+    },
+    {
+      title: "Sample 6",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+    },
+    {
+      title: "Sample 7",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+    },
+    {
+      title: "Sample 8",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+    },
+    {
+      title: "Sample 9",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+    },
   ];
 
   //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
@@ -78,16 +89,16 @@ const SelectTopics = ({ handleNextStep }) => {
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
-  const topicsPerPage = 3;
+  const topicsPerPage = 8;
 
   //updates pagination
   useEffect(() => {
     //change this to use queried data later
     const topicsPageCount =
       sampleTopics &&
-      (sampleTopics.length % 3 === 0
-        ? Math.round(sampleTopics.length / 3)
-        : Math.floor(sampleTopics.length / 3 + 1));
+      (sampleTopics.length % 8 === 0
+        ? Math.round(sampleTopics.length / 8)
+        : Math.floor(sampleTopics.length / 8 + 1));
     setPageCount(topicsPageCount);
     setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,16 +146,13 @@ const SelectTopics = ({ handleNextStep }) => {
         height: "100%",
       }}
     >
-      <Typography sx={{ my: "0.5em" }} className={"login-wrapper-top-header"}>
-        Select Topics of Interest
-      </Typography>
-      <Typography variant="body2">
+      <Typography variant="body1" sx={{ mb: "2em" }}>
         Select topics of interest that you would like to receive notifications
         from. Your notification preferences can be changed at any time.
       </Typography>
 
       {currentlySelectedTopic ? (
-        <Box sx={{ mt: "1em" }}>
+        <Box>
           <IconButton
             color="primary"
             aria-label="back to topic options"
@@ -164,77 +172,44 @@ const SelectTopics = ({ handleNextStep }) => {
         <>
           <Box
             sx={{
-              height: selectedSubtopics.length > 0 ? "400px" : "200px",
-              overflow: "auto",
+              display: "grid",
+              mt: "2em",
+              gridTemplateColumns: {
+                xs: "repeat(4, 2fr)",
+              },
+              rowGap: 1,
+              [`& .${imageListItemClasses.root}`]: {
+                display: "flex",
+                flexDirection: "column",
+              },
+              justifyItems: "center",
             }}
           >
-            {selectedSubtopics.length > 0 && (
-              <Box sx={{ display: "flex", mt: "2em", flexDirection: "column" }}>
-                <Typography variant="body2">Currently Selected:</Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    my: "1em",
-                    gap: "0.5em",
-                    height: "50px",
-                    overflow: "auto",
-                  }}
-                >
-                  {selectedSubtopics.map((subtopic, index) => (
-                    <Chip key={index} label={subtopic} />
-                  ))}
-                </Box>
-              </Box>
-            )}
-            <Box
-              sx={{
-                display: "grid",
-                mt: "2em",
-                gridTemplateColumns: {
-                  xs: "repeat(3, 1fr)",
-                },
-                rowGap: 1,
-                [`& .${imageListItemClasses.root}`]: {
-                  display: "flex",
-                  flexDirection: "column",
-                },
-                justifyItems: "center",
-              }}
-            >
-              {displayTopicOptions()}
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                flexDirection: "column",
-                mt: "1em",
-              }}
-            >
-              <Stack spacing={2}>
-                <Pagination
-                  showFirstButton
-                  showLastButton
-                  count={pageCount}
-                  page={page}
-                  onChange={(e, newPage) => setPage(newPage)}
-                  size="small"
-                />
-              </Stack>
-            </Box>
+            {displayTopicOptions()}
           </Box>
-          <SubmitButton
-            sx={{ mt: "2em" }}
-            variant="contained"
-            onClick={handleNextStep}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "column",
+              mt: "1em",
+            }}
           >
-            Next
-          </SubmitButton>
+            <Stack spacing={2}>
+              <Pagination
+                showFirstButton
+                showLastButton
+                count={pageCount}
+                page={page}
+                onChange={(e, newPage) => setPage(newPage)}
+                size="small"
+              />
+            </Stack>
+          </Box>
         </>
       )}
     </Grid>
   );
 };
 
-export default SelectTopics;
+export default ViewTopics;
