@@ -1,4 +1,24 @@
+// import { default as fetch, Request } from "node-fetch";
+// const fetch = require("node-fetch");
+// import { resolve } from "path";
+// const _importDynamic = new Function("modulePath", "return import(modulePath)");
+// export const fetch = async function (...args: any) {
+//   const { default: fetch } = await _importDynamic("node-fetch");
+//   return fetch(...args);
+// };
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+// const Request = (...args) =>
+//   import("node-fetch").then(({ default: Request }) => Request(...args));
+
+const GRAPHQL_ENDPOINT =
+  // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIENDPOINTOUTPUT;
+  "https://qxohgzahbvhytksiegrj4macla.appsync-api.ca-central-1.amazonaws.com/graphql";
+const GRAPHQL_API_KEY =
+  // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIKEYOUTPUT;
+  "da2-ghgkjvxhr5dgvgz7iopp2of6pm";
 const handler = require("./helpers.js");
+
 // const userStreamARN =
 //   "arn:aws:dynamodb:ca-central-1:834289487514:table/User-4aq47vftyrf2nmprur3qha4iue-dev/stream/";
 // const topicStreamARN =
@@ -53,48 +73,109 @@ async function migrateToPinpoint(record) {
   let data = record.data;
   let table = record.metadata["table-name"];
   let operation = record.metadata.operation;
-  switch (table) {
-    case "User":
-      switch (operation) {
-        case "insert":
-        case "modify":
-          handler
-            .upsertUserProfile(
-              data.user_id.toString(),
-              data.province,
-              data.postal_code
-            )
-            .then((response) => {
-              console.log("upsertUserProfile response: ", response);
-              return handler.upsertEndpoint(
+  return new Promise((resolve, reject) => {
+    switch (table) {
+      case "User":
+        switch (operation) {
+          case "insert":
+          case "modify":
+            handler
+              .upsertUserProfile(
                 data.user_id.toString(),
-                null,
-                data.email_address,
+                data.province,
+                data.postal_code
+              )
+              .then((response) => {
+                console.log("upsertUserProfile response: ", response);
+                return handler.upsertEndpoint(
+                  data.user_id.toString(),
+                  null,
+                  data.email_address,
+                  "EMAIL"
+                );
+              })
+              .then((response) => {
+                console.log("upsertEndpoint response: ", response);
+                return handler.upsertEndpoint(
+                  data.user_id.toString(),
+                  null,
+                  data.email_address,
+                  "EMAIL"
+                );
+              })
+              .then((response) =>
+                console.log("second upsertEndpoint response: ", response)
+              )
+              .catch((err) => {
+                console.log("handler err: ", err);
+              });
+            break;
+          case "REMOVE":
+            return handler.deleteUser(data.user_id.toString());
+            break;
+        }
+        break;
+      case "CategoryTopic":
+        switch (operation) {
+          case "insert":
+            handler
+              .createSegment(
+                data.category_acronym + "-" + data.topic_acronym,
                 "EMAIL"
-              );
-            })
-            .then((response) => {
-              console.log("upsertEndpoint response: ", response);
-              return handler.upsertEndpoint(
-                data.user_id.toString(),
-                null,
-                data.email_address,
-                "EMAIL"
-              );
-            })
-            .then((response) =>
-              console.log("second upsertEndpoint response: ", response)
-            )
-            .catch((err) => {
-              console.log("handler err: ", err);
-            });
-          break;
-        case "REMOVE":
-          return handler.deleteUser(data.user_id.toString());
-          break;
-      }
-      break;
-  }
+              )
+              .then((response) => {
+                console.log("createSegment response: ", response);
+                return handler.createSegment(
+                  data.category_acronym + "-" + data.topic_acronym,
+                  "SMS"
+                );
+              })
+              .then((response) => {
+                console.log("second createSegment response: ", response);
+                resolve(response);
+              })
+              .catch((err) => {
+                console.log(err);
+                reject(err);
+              });
+            break;
+          case "modify":
+            break;
+          case "remove":
+            break;
+        }
+        break;
+      case "UserCategoryTopic":
+        switch (operation) {
+          case "insert":
+            executeGraphQL(`
+            query MyQuery {
+              getCategoryTopicById(categoryTopic_id: ${data.categoryTopic_id}) {
+                topic_acronym
+                category_acronym
+              }
+            }`)
+              .then((response) => {
+                categorytopic = response.data.getCategoryTopicById;
+                handler.updateTopicChannel(
+                  data.user_id,
+                  categorytopic.category_acronym +
+                    "-" +
+                    categorytopic.topic_acronym,
+                  data.email_notice,
+                  data.sms_notice
+                );
+                resolve(categorytopics);
+              })
+              .catch((err) => reject(err));
+            break;
+          case "modify":
+            break;
+          case "delete":
+            break;
+        }
+    }
+  });
 }
 
 /**
@@ -112,3 +193,29 @@ async function migrateToPinpoint(record) {
 //     return "Topic";
 //   }
 // }
+
+async function executeGraphQL(query, variables) {
+  console.log("executing query: ", query);
+  return new Promise((resolve, reject) => {
+    let options = {
+      method: "POST",
+      headers: {
+        "x-api-key": GRAPHQL_API_KEY,
+      },
+      body: JSON.stringify({ query, variables }),
+    };
+
+    fetch(GRAPHQL_ENDPOINT, options)
+      .then((response) => {
+        console.log("executeGraphQL response:", response);
+        return response.json();
+      })
+      .then((json) => {
+        console.log("executeGraphQL return:", JSON.stringify(json));
+        resolve(json);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}

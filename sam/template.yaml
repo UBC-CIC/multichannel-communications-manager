@@ -993,6 +993,7 @@ Resources:
     Type: AWS::AppSync::GraphQLSchema
     Properties:
       ApiId: !GetAtt GraphQlApiIdParameter.Value
+      # TODO: replace this w reference
       Definition: |
         type Category {
           category_id: Int!
@@ -1201,6 +1202,35 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0   
 
+  getCategoryTopicByIdResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Query
+      FieldName: getCategoryTopicById
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "select * from `CategoryTopic` where categoryTopic_id = :id;",
+        "variableMapping": {
+        ":id": $context.arguments.categoryTopic_id
+        }
+        }
+        }
+        
+      ResponseMappingTemplate: |
+        #if($ctx.error) 
+          $util.error($ctx.error.message, $ctx.error.type) 
+        #end 
+        $util.toJson($context.result[0])
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0   
+
   getCategoryByAcronymResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -1356,6 +1386,9 @@ Resources:
         #set($postal_code = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
         #if($context.arguments.phone_address)
           #set( $phone_id = $email_id )
+        #else 
+          #set( $phone_id = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.phone_id, null)))
+        #end
         {
         "version": "2018-05-29",
         "operation": "Invoke",
@@ -1364,7 +1397,7 @@ Resources:
         "variableMapping": {
         ":email_address": "$context.arguments.email_address",
         ":phone_address": $phone_address,
-        ":phone_id": $phone_id
+        ":phone_id": $phone_id,
         ":postal_code": $postal_code,
         ":province": "$context.arguments.province"
         },
@@ -1519,11 +1552,13 @@ Resources:
         #else	
           #set( $sms_notice = false )
         #end
+        ## "insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic`, `UserCategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
+        "sql": 
+          "insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
         "variableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_notice": $email_notice,
@@ -1797,6 +1832,8 @@ Resources:
       Environment:
         Variables:
           PINPOINT_APPID: !Ref PinpointApp
+        # TODO: Add graphql endpoint variable here
+        # - GRAPHQL_ENDPOINT: 
       Events:
         # Properties: Kinesis
         # Type: Kinesis

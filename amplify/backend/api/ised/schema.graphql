@@ -92,7 +92,8 @@ type Mutation {
 type Query {
   getUserById(user_id: Int!): User
   getUserByEmail(user_email: String!): User
-  getUserCategoryTopicByUserId(user_id: String!): [CategoryTopic]
+  getUserCategoryTopicByUserId(user_id: Int!): [CategoryTopic]
+  getCategoryTopicById(categoryTopic_id: Int!): CategoryTopic
   getCategoryByAcronym(acronym: String!): Category
   getTopicsOfCategoryByAcronym(category_acronym: String!): [Topic]
   getTopicByAcronym(topic_acronym: String!): Topic

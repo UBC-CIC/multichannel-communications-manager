@@ -305,13 +305,18 @@ function createSegment(categoryTopicID, notifType) {
 /**
  * update the channels through which a user wants to receive notificaiton about a topic
  * @param {Int} userID
- * @param {Int} categoryTopicID
+ * @param {Int} categoryTopicName
  * @param {Boolean} emailNotice
  * @param {Boolean} textNotice
  * @return {Promise} a promise that contains the user and endpoint id changed
  */
-function updateTopicChannel(userID, categoryTopicID, emailNotice, textNotice) {
-  userID = userID;
+function updateTopicChannel(
+  userID,
+  categoryTopicName,
+  emailNotice,
+  textNotice
+) {
+  userID = userID.toString();
   let emailID = userID;
 
   // let request = {
@@ -327,20 +332,21 @@ function updateTopicChannel(userID, categoryTopicID, emailNotice, textNotice) {
   let params = {
     User: {
       UserAttributes: {
-        [categoryTopicID]: [],
+        [categoryTopicName]: [],
       },
     },
   };
 
   if (emailNotice === true) {
-    params.User.UserAttributes[categoryTopicID].push("EMAIL");
+    params.User.UserAttributes[categoryTopicName].push("EMAIL");
   }
 
   if (textNotice === true) {
-    params.User.UserAttributes[categoryTopicID].push("SMS");
+    params.User.UserAttributes[categoryTopicName].push("SMS");
   }
 
-  return upsertEndpoint(userID, emailID, params);
+  // return upsertEndpoint(userID, emailID, params);
+  return upsertUserProfile(userID);
 }
 
 /**

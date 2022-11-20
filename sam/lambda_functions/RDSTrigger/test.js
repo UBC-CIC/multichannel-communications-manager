@@ -11,7 +11,7 @@ let e = {
       kinesis: {
         partitionKey: "partitionKey-03",
         kinesisSchemaVersion: "1.0",
-        data: "ewoJImRhdGEiOgl7CgkJInVzZXJfaWQiOgk4LAoJCSJlbWFpbF9hZGRyZXNzIjoJIjJwaW9ydTJAbWFpbC5jb20iLAoJCSJwcm92aW5jZSI6CSJBQiIsCiJwaG9uZV9hZGRyZXNzIjogNDI0NTY3MTA1LAoicGhvbmVfaWQiOiA3LAoicG9zdGFsX2NvZGUiOiAiZndyMzJyIgoJfSwKCSJtZXRhZGF0YSI6CXsKCQkidGltZXN0YW1wIjoJIjIwMjItMTEtMThUMjE6MzU6MTguMzE0OTU5WiIsCgkJInJlY29yZC10eXBlIjoJImRhdGEiLAoJCSJvcGVyYXRpb24iOgkiaW5zZXJ0IiwKCQkicGFydGl0aW9uLWtleS10eXBlIjoJInNjaGVtYS10YWJsZSIsCgkJInNjaGVtYS1uYW1lIjoJInN5cyIsCgkJInRhYmxlLW5hbWUiOgkiVXNlciIsCgkJInRyYW5zYWN0aW9uLWlkIjoJODU4OTkzNjI2MwoJfQp9==",
+        data: "ewoJImRhdGEiOgl7CgkJInVzZXJfaWQiOgk2LAoJCSJjYXRlZ29yeVRvcGljX2lkIjoJMywKCQkiZW1haWxfbm90aWNlIjoJMCwKCQkic21zX25vdGljZSI6CTAKCX0sCgkibWV0YWRhdGEiOgl7CgkJInRpbWVzdGFtcCI6CSIyMDIyLTExLTIwVDA2OjUzOjAzLjk2NjQxOFoiLAoJCSJyZWNvcmQtdHlwZSI6CSJkYXRhIiwKCQkib3BlcmF0aW9uIjoJImluc2VydCIsCgkJInBhcnRpdGlvbi1rZXktdHlwZSI6CSJzY2hlbWEtdGFibGUiLAoJCSJzY2hlbWEtbmFtZSI6CSJzeXMiLAoJCSJ0YWJsZS1uYW1lIjoJIlVzZXJDYXRlZ29yeVRvcGljIiwKCQkidHJhbnNhY3Rpb24taWQiOgk4NTg5OTM4NzczCgl9Cn0",
         sequenceNumber:
           "49545115243490985018280067714973144582180062593244200961",
         approximateArrivalTimestamp: 1428537600,
@@ -28,12 +28,12 @@ let e = {
   ],
 };
 
-// index.handler(e);
-handler
-  .getUserEndpoints("8")
-  .then((response) => {
-    console.log(response);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+index.handler(e);
+// handler
+//   .getUserEndpoints("8")
+//   .then((response) => {
+//     console.log(response);
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
