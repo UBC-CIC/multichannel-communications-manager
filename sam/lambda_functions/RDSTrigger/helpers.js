@@ -337,16 +337,43 @@ function updateTopicChannel(
     },
   };
 
+  let request = {
+    ApplicationId: PINPOINTID,
+    EndpointId: userID,
+    EndpointRequest: {
+      User: {
+        UserAttributes: { [categoryTopicName]: [] },
+      },
+    },
+  };
+
   if (emailNotice === true) {
-    params.User.UserAttributes[categoryTopicName].push("EMAIL");
+    request.User.UserAttributes[categoryTopicName].push("EMAIL");
   }
 
   if (textNotice === true) {
-    params.User.UserAttributes[categoryTopicName].push("SMS");
+    request.User.UserAttributes[categoryTopicName].push("SMS");
   }
 
   // return upsertEndpoint(userID, emailID, params);
-  return upsertUserProfile(userID);
+  console.log(
+    "sending request to pinpoint ...",
+    JSON.stringify(request, null, 2)
+  );
+
+  return new Promise((resolve, reject) => {
+    pinpoint.updateEndpoint(request, function (err, response) {
+      if (err) {
+        console.log("ppt.updateEndpoint err:");
+        console.log(err, err.stack);
+        reject(err);
+      } else {
+        console.log("ppt.updateEndpoint response:");
+        console.log(response);
+        resolve(response);
+      }
+    });
+  });
 }
 
 /**

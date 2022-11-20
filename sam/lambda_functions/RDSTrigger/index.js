@@ -148,6 +148,7 @@ async function migrateToPinpoint(record) {
       case "UserCategoryTopic":
         switch (operation) {
           case "insert":
+          case "modify":
             executeGraphQL(`
             query MyQuery {
               getCategoryTopicById(categoryTopic_id: ${data.categoryTopic_id}) {
@@ -165,15 +166,14 @@ async function migrateToPinpoint(record) {
                   data.email_notice,
                   data.sms_notice
                 );
-                resolve(categorytopics);
+                resolve("pinpoint update channel preference succeeded");
               })
               .catch((err) => reject(err));
-            break;
-          case "modify":
             break;
           case "delete":
             break;
         }
+        break;
     }
   });
 }
