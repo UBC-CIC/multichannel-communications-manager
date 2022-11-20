@@ -1414,6 +1414,61 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
+  updateUserResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: updateUser
+      RequestMappingTemplate: |
+        #if( $context.arguments.email_address )
+          #set( $email_address = "email_address=:email_address" )
+        #else
+          #set( $email_address = "" )
+        #end
+        #if( $context.arguments.phone_address )
+          #set( $phone_address = "phone_address=:phone_address" )
+          #set( $phone_id = "phone_id=:user_id" )
+        #else
+          #set( $phone_address = "" )
+        #end
+        #if( $context.arguments.province )
+          #set( $province = "province=:province" )
+        #else
+          #set( $province = "" )
+        #end
+        #if( $context.arguments.postal_code )
+          #set( $postal_code = "postal_code=:postal_code" )
+        #else
+          #set( $postal_code = "" )
+        #end
+
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "UPDATE `User` SET $user_id $email_address $phone_address $phone_id $province $postal_code WHERE `User`.user_id = :user_id;",
+        "variableMapping": {
+        ":user_id": $context.arguments.user_id,
+        ":email_address": "$context.arguments.email_address",
+        ":phone_address": $phone_address,
+        ":postal_code": $postal_code,
+        ":province": "$context.arguments.province"
+        },
+        "responseSQL": "select * from `User` where email_address=:email_address"
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        $util.toJson($context.result[0])
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
 
   deleteUserResolver:
     Type: AWS::AppSync::Resolver
@@ -1833,7 +1888,8 @@ Resources:
         Variables:
           PINPOINT_APPID: !Ref PinpointApp
         # TODO: Add graphql endpoint variable here
-        # - GRAPHQL_ENDPOINT: 
+          # GRAPHQL_ENDPOINT: !Ref 
+          REGION: "ca-central-1"
       Events:
         # Properties: Kinesis
         # Type: Kinesis
