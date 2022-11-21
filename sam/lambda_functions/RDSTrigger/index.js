@@ -1,15 +1,15 @@
 // import { default as fetch, Request } from "node-fetch";
 // const fetch = require("node-fetch");
-// import { resolve } from "path";
-// const _importDynamic = new Function("modulePath", "return import(modulePath)");
 // export const fetch = async function (...args: any) {
 //   const { default: fetch } = await _importDynamic("node-fetch");
 //   return fetch(...args);
 // };
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+// const fetch = (...args) =>
+//   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 // const Request = (...args) =>
 //   import("node-fetch").then(({ default: Request }) => Request(...args));
+// import { request, gql } from "graphql-request";
+const gqlRequest = require("graphql-request");
 
 const GRAPHQL_ENDPOINT =
   // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIENDPOINTOUTPUT;
@@ -177,6 +177,26 @@ async function migrateToPinpoint(record) {
               .catch((err) => reject(err));
             break;
           case "delete":
+            executeGraphQL(`
+            query MyQuery {
+              getCategoryTopicById(categoryTopic_id: ${data.categoryTopic_id}) {
+                topic_acronym
+                category_acronym
+              }
+            }`)
+              .then((response) => {
+                categorytopic = response.data.getCategoryTopicById;
+                handler.updateTopicChannel(
+                  data.user_id,
+                  categorytopic.category_acronym +
+                    "-" +
+                    categorytopic.topic_acronym,
+                  false,
+                  false
+                );
+                resolve("pinpoint unfollow email and phone succeeded");
+              })
+              .catch((err) => reject(err));
             break;
         }
         break;
@@ -200,18 +220,25 @@ async function migrateToPinpoint(record) {
 //   }
 // }
 
-async function executeGraphQL(query, variables) {
+async function executeGraphQL(query) {
   console.log("executing query: ", query);
   return new Promise((resolve, reject) => {
-    let options = {
-      method: "POST",
+    // let options = {
+    //   method: "POST",
+    //   headers: {
+    //     "x-api-key": GRAPHQL_API_KEY,
+    //   },
+    //   body: JSON.stringify({ query, variables }),
+    // };
+    let gqlQuery = gqlRequest.gql([query]);
+    const gqlClient = new gqlRequest.GraphQLClient(GRAPHQL_ENDPOINT, {
       headers: {
         "x-api-key": GRAPHQL_API_KEY,
       },
-      body: JSON.stringify({ query, variables }),
-    };
+    });
 
-    fetch(GRAPHQL_ENDPOINT, options)
+    gqlClient
+      .request(gqlQuery)
       .then((response) => {
         console.log("executeGraphQL response:", response);
         return response.json();

@@ -1768,6 +1768,37 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
+  userUnfollowCategoryTopicResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: userUnfollowCategoryTopic
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": 
+          "delete from `UserCategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id in (select categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym);",
+        "variableMapping": {
+        ":user_id": $context.arguments.user_id,
+        ":category_acronym": "$context.arguments.category_acronym",
+        ":topic_acronym": "$context.arguments.topic_acronym"
+        }
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        "Delete succeeded"
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
 
   # need #############
   #Kinesis Resource
@@ -2037,14 +2068,14 @@ Resources:
     Properties:
       CodeUri: ./lambda_functions/RDSTrigger/
       Handler: index.handler
-      Runtime: nodejs16.x
+      Runtime: nodejs14.x
       Timeout: 30
       MemorySize: 3008
       Role: 
         # !Ref HelperLambdaRoleArn
         !GetAtt HelperLambdaRole.Arn
-      Layers:
-      - !Ref RDSPinpointLambdaLayers
+      # Layers:
+      # - !Ref RDSPinpointLambdaLayers
       Environment:
         Variables:
           PINPOINT_APPID: !Ref PinpointApp
@@ -2063,12 +2094,12 @@ Resources:
             MaximumRecordAgeInSeconds: 60
             StartingPosition: "LATEST"
 
-  RDSPinpointLambdaLayers:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: RDSPinpointLambdaLayers
-      Description: Dependency for RDS Pinpoint Lambda
-      ContentUri: ./lambda_functions/RDSTrigger/node_modules/
+  # RDSPinpointLambdaLayers:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     LayerName: RDSPinpointLambdaLayers
+  #     Description: Dependency for RDS Pinpoint Lambda
+  #     ContentUri: ./lambda_functions/RDSTrigger/nodejs/node_modules/
 
   #Lambda Event Source
   # LambdaEventSource:
