@@ -1826,7 +1826,9 @@ Resources:
             - Effect: Allow
               Action:
               - mobiletargeting:*
-              Resource: arn:aws:mobiletargeting:region:accountId:*
+              Resource: 
+              - !GetAtt PinpointApp.Arn
+              # arn:aws:mobiletargeting:region:accountId:*
         # - policyName: PinpointAdminPolicy
 
   # PinpointAdminPolicy:
