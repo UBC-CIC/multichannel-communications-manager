@@ -163,7 +163,7 @@ async function migrateToPinpoint(record) {
               }
             }`)
               .then((response) => {
-                categorytopic = response.data.getCategoryTopicById;
+                categorytopic = response.getCategoryTopicById;
                 handler.updateTopicChannel(
                   data.user_id,
                   categorytopic.category_acronym +
@@ -241,7 +241,7 @@ async function executeGraphQL(query) {
       .request(gqlQuery)
       .then((response) => {
         console.log("executeGraphQL response:", response);
-        return response.json();
+        return response;
       })
       .then((json) => {
         console.log("executeGraphQL return:", JSON.stringify(json));
