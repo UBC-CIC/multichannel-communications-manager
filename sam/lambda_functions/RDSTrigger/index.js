@@ -80,7 +80,7 @@ async function migrateToPinpoint(record) {
       case "User":
         switch (operation) {
           case "insert":
-          case "modify":
+          case "update":
             handler
               .upsertUserProfile(
                 data.user_id.toString(),
@@ -91,19 +91,23 @@ async function migrateToPinpoint(record) {
                 console.log("upsertUserProfile response: ", response);
                 return handler.upsertEndpoint(
                   data.user_id.toString(),
-                  null,
+                  "EMAIL" + "_" + data.user_id.toString(),
                   data.email_address,
                   "EMAIL"
                 );
               })
               .then((response) => {
                 console.log("upsertEndpoint response: ", response);
-                return handler.upsertEndpoint(
-                  data.user_id.toString(),
-                  null,
-                  data.email_address,
-                  "EMAIL"
-                );
+                if (data.phone_address) {
+                  return handler.upsertEndpoint(
+                    data.user_id.toString(),
+                    "PHONE" + "_" + data.user_id.toString(),
+                    data.phone_address,
+                    "SMS"
+                  );
+                } else {
+                  return "success";
+                }
               })
               .then((response) =>
                 console.log("second upsertEndpoint response: ", response)
@@ -141,7 +145,7 @@ async function migrateToPinpoint(record) {
                 reject(err);
               });
             break;
-          case "modify":
+          case "update":
             break;
           case "remove":
             break;
@@ -150,7 +154,7 @@ async function migrateToPinpoint(record) {
       case "UserCategoryTopic":
         switch (operation) {
           case "insert":
-          case "modify":
+          case "update":
             executeGraphQL(`
             query MyQuery {
               getCategoryTopicById(categoryTopic_id: ${data.categoryTopic_id}) {

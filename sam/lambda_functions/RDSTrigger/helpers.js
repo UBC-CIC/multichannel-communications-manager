@@ -319,16 +319,6 @@ function updateTopicChannel(
   userID = userID.toString();
   let emailID = userID;
 
-  // let request = {
-  //   ApplicationId: PINPOINTID,
-  //   endpointID: emailID,
-
-  // }
-
-  // pinpoint.updateEndpoint(request, function(err, data){
-
-  // })
-
   let params = {
     User: {
       UserAttributes: {
@@ -341,25 +331,17 @@ function updateTopicChannel(
     ApplicationId: PINPOINTID,
     EndpointId: userID,
     EndpointRequest: {
+      OptOut: "NONE",
       User: {
         UserAttributes: { [categoryTopicName]: [] },
       },
     },
   };
 
-  console.log("email notice:", emailNotice);
-  console.log("sms notice:", textNotice);
-
-  console.log(
-    "350",
-    request.EndpointRequest.User.UserAttributes[categoryTopicName]
-  );
-
   if (emailNotice === 1) {
     request.EndpointRequest.User.UserAttributes[categoryTopicName].push(
       "EMAIL"
     );
-    console.log(request);
   }
 
   if (textNotice === 1) {
