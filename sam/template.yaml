@@ -1383,27 +1383,29 @@ Resources:
       FieldName: createUser
       RequestMappingTemplate: |
         #set($phone_address = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.phone_address, null)))
+        ## #set($phone_id = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.phone_id, null)))
         #set($postal_code = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
-        #if($context.arguments.phone_address)
-          #set( $phone_id = $user_id )
-        #else 
-          #set( $phone_id = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.phone_id, null)))
-        #end
+        ## #if($context.arguments.phone_address)
+        ##   #set( $phone_id = $user_id )
+        ## #else 
+        ##   #set( $phone_id = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.phone_id, null)))
+        ## #end
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `User` (email_address, phone_address, phone_id, postal_code, province) values (:email_address, :phone_address, $phone_id, :postal_code, :province);",
+        "sql": "insert into `User` (email_address, phone_address, phone_id, postal_code, province) values (:email_address, :phone_address, null, :postal_code, :province);",
         "variableMapping": {
         ":email_address": "$context.arguments.email_address",
         ":phone_address": $phone_address,
-        ":phone_id": $phone_id,
+        ## ":phone_id": $phone_id,
         ":postal_code": $postal_code,
         ":province": "$context.arguments.province"
         },
         "responseSQL": "select * from `User` where email_address=:email_address"
         }
         }
+
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
@@ -1429,7 +1431,7 @@ Resources:
         #end
         #if( $context.arguments.phone_address )
           #set( $phone_address = "phone_address=:phone_address" )
-          #set( $phone_id = "phone_id=:user_id" )
+          ##set( $phone_id = "phone_id=:user_id" )
         #else
           #set( $phone_address = "" )
         #end

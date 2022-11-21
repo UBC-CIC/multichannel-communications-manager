@@ -32,7 +32,7 @@ type User {
   user_id: Int!
   email_address: String!
   phone_address: Int
-  phone_id: Int
+  # phone_id: Int
   postal_code: String
   province: Province!
 }
