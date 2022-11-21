@@ -1492,7 +1492,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        '"Deleted user"'
+        "'Delete succeeded'"
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1530,6 +1530,35 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
+  deleteCategoryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: deleteCategory
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "delete from `Category` where category_id=:category_id;",
+        "variableMapping": {
+          ":category_id": $context.arguments.category_id
+        }
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        "'delete succeeded'"
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
+
   createTopicResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -1554,6 +1583,34 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result[0])
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
+  deleteTopicResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: deleteTopic
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "delete from `Topic` where topic_id=:topic_id;",
+        "variableMapping": {
+        ":topic_id": "$context.arguments.topic_id"
+        }
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        "'Delete succeeded'"
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1753,7 +1810,7 @@ Resources:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
       - arn:aws:iam::aws:policy/IAMReadOnlyAccess
       Policies:
-        - PolicyName: AllowLambdaLogPolicy
+        - PolicyName: RDSPinpointLambdaPolicy
           PolicyDocument:
             Version: '2012-10-17'  # in line policies for lambda
             Statement:
@@ -1766,7 +1823,28 @@ Resources:
               - logs:PutLogEvents
               Resource:
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/GraphQL-MySQL-Resolver:*
-        
+            - Effect: Allow
+              Action:
+              - mobiletargeting:*
+              Resource: arn:aws:mobiletargeting:region:accountId:*
+        # - policyName: PinpointAdminPolicy
+
+  # PinpointAdminPolicy:
+  #   Type: AWS::IAM::Policy
+  #     Properties: 
+  #       PolicyName: PinpointAdminPolicy
+  #       PolicyDocument: 
+  #         Version: '2012-10-17'
+  #         Statement:
+  #         - Sid: FullAccess
+  #           Effect: Allow
+  #           Action:
+  #           - mobiletargeting:*
+  #           Resource: arn:aws:mobiletargeting:region:accountId:*
+  #       Users: 
+  #         - String
+
+
   HelperLambdaPolicy:
     Type: 'AWS::IAM::Policy'
     Properties:
@@ -1880,7 +1958,8 @@ Resources:
       CodeUri: ./lambda_functions/RDSTrigger/
       Handler: index.handler
       Runtime: nodejs16.x
-      #Timeout: 30
+      Timeout: 30
+      MemorySize: 3008
       Role: 
         # !Ref HelperLambdaRoleArn
         !GetAtt HelperLambdaRole.Arn

@@ -1,9 +1,9 @@
 // const { v4: uuidv4 } = require("uuid");
-const PINPOINTID = process.env.PINPOINT_APPID;
-// const PINPOINTID = "a39c6412c79a4ec2946257bb4c95ca2a";
+// const PINPOINTID = process.env.PINPOINT_APPID;
+const PINPOINTID = "a39c6412c79a4ec2946257bb4c95ca2a";
 const AWS = require("aws-sdk");
-const pinpoint = new AWS.Pinpoint({ region: process.env.REGION });
-// const pinpoint = new AWS.Pinpoint({ region: "ca-central-1" });
+// const pinpoint = new AWS.Pinpoint({ region: process.env.REGION });
+const pinpoint = new AWS.Pinpoint({ region: "ca-central-1" });
 
 /*****************
  * Testing

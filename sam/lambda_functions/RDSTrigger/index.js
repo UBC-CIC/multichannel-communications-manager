@@ -35,29 +35,31 @@ const handler = require("./helpers.js");
 /**
  * @type {import('@types/aws-lambda').APIGatewayProxyHandler}
  */
-exports.handler = (event) => {
+exports.handler = async (event) => {
   console.log(`EVENT: ${JSON.stringify(event)}`);
-  event.Records.forEach((record) => {
-    let payload = record.kinesis;
-    console.log("printing the raw payload info ...");
-    // console.log(payload);
-    // console.log("partitionKey: ");
-    console.log(payload.partitionKey);
-    // console.log("decoded data: ");
-    let data = Buffer.from(payload.data, "base64").toString();
-    // console.log(data);
+  return new Promise((resolve, reject) => {
+    event.Records.forEach((record) => {
+      let payload = record.kinesis;
+      console.log("printing the raw payload info ...");
+      console.log(payload.partitionKey);
+      let data = Buffer.from(payload.data, "base64").toString();
 
-    migrateToPinpoint(JSON.parse(data))
-      .then((response) => {
-        console.log("migrateToPinpoint response: ");
-        console.log(response);
-      })
-      .catch((err) => {
-        console.log("migrateToPpt err:", err);
-        return Promise.reject(err);
-      });
+      // try
+
+      return migrateToPinpoint(JSON.parse(data));
+      //     .then((response) => {
+      //       console.log("migrateToPinpoint response: ");
+      //       console.log(response);
+      //     })
+      //     .catch((err) => {
+      //       console.log("migrateToPpt err:", err);
+      //       reject(err);
+      //     });
+      // });
+
+      // resolve("Successfully processed all records");
+    });
   });
-  return Promise.resolve("Successfully processed all records");
 };
 
 /**
