@@ -347,12 +347,23 @@ function updateTopicChannel(
     },
   };
 
-  if (emailNotice === true) {
-    request.User.UserAttributes[categoryTopicName].push("EMAIL");
+  console.log("email notice:", emailNotice);
+  console.log("sms notice:", textNotice);
+
+  console.log(
+    "350",
+    request.EndpointRequest.User.UserAttributes[categoryTopicName]
+  );
+
+  if (emailNotice === 1) {
+    request.EndpointRequest.User.UserAttributes[categoryTopicName].push(
+      "EMAIL"
+    );
+    console.log(request);
   }
 
-  if (textNotice === true) {
-    request.User.UserAttributes[categoryTopicName].push("SMS");
+  if (textNotice === 1) {
+    request.EndpointRequest.User.UserAttributes[categoryTopicName].push("SMS");
   }
 
   // return upsertEndpoint(userID, emailID, params);
