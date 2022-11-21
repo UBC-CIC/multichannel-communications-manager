@@ -1648,6 +1648,34 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
+  testSQLResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Query
+      FieldName: testSQL
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": 
+          "alter table `User` modify phone_address varchar(50);",
+        "variableMapping": {
+        }
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        "succeeded"
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
   userFollowCategoryTopicResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -1692,6 +1720,7 @@ Resources:
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
+
 
   # need #############
   #Kinesis Resource

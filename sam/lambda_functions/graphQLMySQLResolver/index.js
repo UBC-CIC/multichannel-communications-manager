@@ -11,8 +11,7 @@ async function conditionallyCreateDB(connection) {
     CREATE TABLE \`User\` (
   \`user_id\` int PRIMARY KEY AUTO_INCREMENT,
   \`email_address\` varchar(50) UNIQUE NOT NULL,
-  \`phone_address\` int UNIQUE,
-  \`phone_id\` Int UNIQUE,
+  \`phone_address\` varchar(50) UNIQUE,
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
   \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL
 );

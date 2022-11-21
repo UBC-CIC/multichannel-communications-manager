@@ -31,7 +31,7 @@ type UserCategoryTopic {
 type User {
   user_id: Int!
   email_address: String!
-  phone_address: Int
+  phone_address: String
   # phone_id: Int
   postal_code: String
   province: Province!
@@ -40,14 +40,14 @@ type User {
 type Mutation {
   createUser(
     email_address: String!
-    phone_address: Int
+    phone_address: String
     postal_code: String
     province: Province!
   ): User
   updateUser(
     user_id: Int!
     email_address: String
-    phone_address: Int
+    phone_address: String
     postal_code: String
     province: Province
   ): User
@@ -99,6 +99,7 @@ type Query {
   getTopicByAcronym(topic_acronym: String!): Topic
   getAllCategories: [Category]
   getAllTopics: [Topic]
+  testSQL: String
 }
 
 schema {

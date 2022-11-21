@@ -101,7 +101,7 @@ async function migrateToPinpoint(record) {
                 if (data.phone_address) {
                   return handler.upsertEndpoint(
                     data.user_id.toString(),
-                    "PHONE" + "_" + data.phone_address.toString(),
+                    "PHONE" + "_" + data.phone_address,
                     data.phone_address,
                     "SMS"
                   );
