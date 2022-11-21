@@ -13,7 +13,7 @@ let e = {
         partitionKey: "sys.User",
         sequenceNumber:
           "49635282510291549795472904832465031055947861467777204226",
-        data: "ewoJImRhdGEiOgl7CgkJInVzZXJfaWQiOgkxMiwKCQkiY2F0ZWdvcnlUb3BpY19pZCI6CTUsCgkJImVtYWlsX25vdGljZSI6CTEsCgkJInNtc19ub3RpY2UiOgkwCgl9LAoJIm1ldGFkYXRhIjoJewoJCSJ0aW1lc3RhbXAiOgkiMjAyMi0xMS0yMVQwMTo1MDoxMy4xNDUyNjJaIiwKCQkicmVjb3JkLXR5cGUiOgkiZGF0YSIsCgkJIm9wZXJhdGlvbiI6CSJpbnNlcnQiLAoJCSJwYXJ0aXRpb24ta2V5LXR5cGUiOgkic2NoZW1hLXRhYmxlIiwKCQkic2NoZW1hLW5hbWUiOgkic3lzIiwKCQkidGFibGUtbmFtZSI6CSJVc2VyQ2F0ZWdvcnlUb3BpYyIsCgkJInRyYW5zYWN0aW9uLWlkIjoJODU4OTk0NjY2NwoJfQp9",
+        data: "ewoJImRhdGEiOiB7ICJ1c2VyX2lkIjogMTUsICJjYXRlZ29yeVRvcGljX2lkIjogNSwgImVtYWlsX25vdGljZSI6IDEsICJzbXNfbm90aWNlIjogMSB9LAoJIm1ldGFkYXRhIjoJewoJCSJ0aW1lc3RhbXAiOgkiMjAyMi0xMS0yMVQwMTo1MDoxMy4xNDUyNjJaIiwKCQkicmVjb3JkLXR5cGUiOgkiZGF0YSIsCgkJIm9wZXJhdGlvbiI6CSJpbnNlcnQiLAoJCSJwYXJ0aXRpb24ta2V5LXR5cGUiOgkic2NoZW1hLXRhYmxlIiwKCQkic2NoZW1hLW5hbWUiOgkic3lzIiwKCQkidGFibGUtbmFtZSI6CSJVc2VyQ2F0ZWdvcnlUb3BpYyIsCgkJInRyYW5zYWN0aW9uLWlkIjoJODU4OTk0NjY2NwoJfQp9",
         approximateArrivalTimestamp: 1668981392.555,
       },
       eventSource: "aws:kinesis",

@@ -2043,6 +2043,8 @@ Resources:
       Role: 
         # !Ref HelperLambdaRoleArn
         !GetAtt HelperLambdaRole.Arn
+      Layers:
+      - !Ref RDSPinpointLambdaLayers
       Environment:
         Variables:
           PINPOINT_APPID: !Ref PinpointApp
@@ -2061,6 +2063,12 @@ Resources:
             MaximumRecordAgeInSeconds: 60
             StartingPosition: "LATEST"
 
+  RDSPinpointLambdaLayers:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: RDSPinpointLambdaLayers
+      Description: Dependency for RDS Pinpoint Lambda
+      ContentUri: ./lambda_functions/RDSTrigger/node_modules/
 
   #Lambda Event Source
   # LambdaEventSource:
