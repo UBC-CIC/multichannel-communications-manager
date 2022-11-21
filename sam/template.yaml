@@ -1721,6 +1721,53 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
+  userUpdateChannelPrefenceResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: userUpdateChannelPrefence
+      RequestMappingTemplate: |
+        #if($context.arguments.email_notice)
+          #set( $email_notice = true )
+        #else	
+          #set( $email_notice = false )
+        #end
+        #if($context.arguments.sms_notice)
+          #set( $sms_notice = true )
+        #else	
+          #set( $sms_notice = false )
+        #end
+        ## "update table `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic`, `UserCategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": 
+          "update `UserCategoryTopic`,`CategoryTopic` set `UserCategoryTopic`.email_notice = :email_notice, `UserCategoryTopic`.sms_notice = :sms_notice where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id;",
+          ##"update `UserCategoryTopic` set email_notice=:email_notice, sms_notice=:sms_notice from (select categoryTopic_id from `CategoryTopic`) as CategoryTopic where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym and `UserCategoryTopic`.categoryTopic_id=`CategoryTopic`.categoryTopic_id;",
+          ##"insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
+        "variableMapping": {
+        ":user_id": $context.arguments.user_id,
+        ":email_notice": $email_notice,
+        ":sms_notice": $sms_notice,
+        ":category_acronym": "$context.arguments.category_acronym",
+        ":topic_acronym": "$context.arguments.topic_acronym"
+        },
+        "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_acronym=:category_acronym and `CategoryTopic`.topic_acronym=:topic_acronym;"
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        $util.toJson($context.result[0])
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
 
   # need #############
   #Kinesis Resource

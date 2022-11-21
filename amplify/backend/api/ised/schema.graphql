@@ -82,6 +82,13 @@ type Mutation {
     email_notice: Boolean!
     sms_notice: Boolean!
   ): UserCategoryTopic
+  userUpdateChannelPrefence(
+    user_id: Int!
+    category_acronym: String!
+    topic_acronym: String!
+    email_notice: Boolean!
+    sms_notice: Boolean!
+  ): UserCategoryTopic
   userUnfollowCategoryTopic(
     user_id: Int!
     category_acronym: String!
