@@ -1431,7 +1431,6 @@ Resources:
         #end
         #if( $context.arguments.phone_address )
           #set( $phone_address = "phone_address=:phone_address" )
-          ##set( $phone_id = "phone_id=:user_id" )
         #else
           #set( $phone_address = "" )
         #end
@@ -1450,17 +1449,18 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `User` SET $user_id $email_address $phone_address $phone_id $province $postal_code WHERE `User`.user_id = :user_id;",
+        "sql": "UPDATE `User` SET $email_address $phone_address $province $postal_code WHERE `User`.user_id = :user_id;",
         "variableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_address": "$context.arguments.email_address",
-        ":phone_address": $phone_address,
-        ":postal_code": $postal_code,
-        ":province": "$context.arguments.province"
+        ":phone_address": "$context.arguments.phone_address",
+        ":province": "$context.arguments.province",
+        ":postal_code": "$context.arguments.postal_code",
         },
-        "responseSQL": "select * from `User` where email_address=:email_address"
+        "responseSQL": "select * from `User` where user_id=:user_id;"
         }
         }
+
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
