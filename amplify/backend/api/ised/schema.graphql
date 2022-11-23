@@ -68,7 +68,7 @@ type Mutation {
   deleteCategory(category_id: Int!): String
 
   createTopic(acronym: String!): Topic
-  updateTopic(topic_id: Int!, acronym: String): Topic
+  # updateTopic(topic_id: Int!, acronym: String): Topic
   deleteTopic(topic_id: Int!): String
   addTopicToCategory(
     category_acronym: String!

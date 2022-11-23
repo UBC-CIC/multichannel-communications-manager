@@ -1425,17 +1425,29 @@ Resources:
       FieldName: updateUser
       RequestMappingTemplate: |
         #if( $context.arguments.email_address )
-          #set( $email_address = "email_address=:email_address" )
+          #if( $context.arguments.phone_address || $context.arguments.province || $context.arguments.postal_code)
+            #set( $email_address = "email_address=:email_address," )
+          #else
+            #set( $email_address = "email_address=:email_address" )
+          #end        
         #else
           #set( $email_address = "" )
         #end
         #if( $context.arguments.phone_address )
-          #set( $phone_address = "phone_address=:phone_address" )
+          #if( $context.arguments.province || $context.arguments.postal_code)
+            #set( $phone_address = "phone_address=:phone_address," )
+          #else
+            #set( $phone_address = "phone_address=:phone_address" )
+          #end           
         #else
           #set( $phone_address = "" )
         #end
         #if( $context.arguments.province )
-          #set( $province = "province=:province" )
+          #if( $context.arguments.postal_code)
+            #set( $province = "province=:province," )
+          #else
+            #set( $province = "province=:province" )
+          #end          
         #else
           #set( $province = "" )
         #end
@@ -1531,6 +1543,63 @@ Resources:
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
+
+  updateCategoryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: updateCategory
+      RequestMappingTemplate: |
+        #if( $context.arguments.acronym )
+          #if( $context.arguments.title || $context.arguments.description)
+            #set( $acronym = "acronym=:acronym," )
+          #else
+            #set( $acronym = "acronym=:acronym" )
+          #end
+        #else
+          #set( $acronym = "" )
+        #end
+        #if( $context.arguments.title )
+          #if( $context.arguments.description)
+            #set( $title = "title=:title," )
+          #else
+            #set( $title = "title=:title" )
+          #end
+        #else
+          #set( $title = "" )
+        #end
+        #if( $context.arguments.description )
+          #set( $description = "description=:description" )
+        #else
+          #set( $description = "" )
+        #end
+
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "UPDATE `Category` SET $acronym $title $description WHERE `Category`.category_id = :category_id;",
+        "variableMapping": {
+        ":category_id": $context.arguments.category_id,
+        ":acronym": "$context.arguments.acronym",
+        ":title": "$context.arguments.title",
+        ":description": "$context.arguments.description"
+        },
+        "responseSQL": "select * from `Category` where category_id=:category_id;"
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        $util.toJson($context.result[0])
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
 
   deleteCategoryResolver:
     Type: AWS::AppSync::Resolver
@@ -1647,6 +1716,35 @@ Resources:
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
+
+  deleteCategoryTopicResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: deleteCategoryTopic
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "delete from `CategoryTopic` where category_acronym=:category_acronym and topic_acronym=:topic_acronym";
+        "variableMapping": {
+        ":category_acronym": "$context.arguments.category_acronym",
+        ":topic_acronym": "$context.arguments.topic_acronym"
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        "Delete succeeded"
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
 
   testSQLResolver:
     Type: AWS::AppSync::Resolver
