@@ -1729,10 +1729,11 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "delete from `CategoryTopic` where category_acronym=:category_acronym and topic_acronym=:topic_acronym";
+        "sql": "delete from `CategoryTopic` where category_acronym=:category_acronym and topic_acronym=:topic_acronym;",
         "variableMapping": {
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
+        }
         }
         }
       ResponseMappingTemplate: |
