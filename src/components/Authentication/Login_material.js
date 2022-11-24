@@ -12,7 +12,6 @@ import { Alert } from "@mui/lab";
 import { ArrowBack, AlternateEmail, Dialpad } from "@mui/icons-material";
 import theme from "../../themes";
 import { Auth } from "aws-amplify";
-import { CognitoUser } from "amazon-cognito-identity-js";
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { updateLoginState } from "../../actions/loginAction";
@@ -75,8 +74,11 @@ function Login(props) {
   const [newVerification, setNewVerification] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [emptyInputError, setEmptyInputError] = useState(false);
+  const [inputsNotFilled, setInputsNotFilled] = useState(false);
+  const [userExistError, setUserExistError] = useState(false);
+  const [invalidPostalCodeError, setInvalidPostalCodeError] = useState(false);
   const [invalidEmailError, setInvalidEmailError] = useState(false);
+  const [emptyAuthCode, setEmptyAuthCode] = useState(false);
   const [timeLimitError, setTimeLimitError] = useState("");
   const [cognitoUser, setCognitoUser] = useState();
 
@@ -110,14 +112,22 @@ function Login(props) {
     setActiveStep(0);
   };
 
+  function checkPostal(postal) {
+    var regex = new RegExp(/^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ]( )?\d[ABCEGHJKLMNPRSTVWXYZ]\d$/i);
+    if (regex.test(postal))
+      return true;
+    else return false;
+  }
+
   const handleDisplayStep2 = () => {
-    //add checks here to make sure form is filled out
-
-    //sign user up
-    signUp();
-
-    updateLoginState("confirmSignUp");
-    handleNextStep();
+    if (formState.email === "" || formState.postal_code === "" || formState.province === "") {
+      setInputsNotFilled(true)
+    } else if (!checkPostal(formState.postal_code)) {
+      setInvalidPostalCodeError(true)
+    } else {
+      //sign user up
+      signUp();
+    }
   };
 
   function clearErrors() {
@@ -126,8 +136,13 @@ function Login(props) {
     setVerificationError(false);
     setNewVerification(false);
     setInvalidEmailError(false);
+    setInvalidPostalCodeError(false)
+    setInputsNotFilled(false)
+    setEmptyAuthCode(false)
+    setUserExistError(false)
   }
 
+  //updates province dropdown value or text box input fields for the General Information form step
   function onChange(e, value) {
     e.persist();
     clearErrors();
@@ -142,16 +157,23 @@ function Login(props) {
 
   function onKeyDownSignIn(e) {
     if (e.keyCode === 13) {
-      signIn();
+      if (e.target.value === "") {
+        setInvalidEmailError(true)
+      } else {
+        signIn();
+      }
     }
   }
 
-  function onKeyDownSignUp(e) {
-    if (e.keyCode === 13) {
-      signUp();
-    }
-  }
+  // function onKeyDownSignUp(e) {
+  //   if (e.keyCode === 13) {
+  //     signUp()
+  //   }
+  // }
 
+  /*functions for user sign up process*/
+
+  /*functions for creating randomly generated password*/
   function getRandomString(bytes) {
     const randomValues = new Uint8Array(bytes);
     window.crypto.getRandomValues(randomValues);
@@ -162,8 +184,8 @@ function Login(props) {
     return nr.toString(16).padStart(2, "0");
   }
 
+  //function for user sign up
   async function signUp() {
-    console.log("in signUp");
     try {
       const { email, province, postal_code } = formState;
 
@@ -175,21 +197,23 @@ function Login(props) {
           "custom:province": province,
           "custom:postal_code": postal_code,
         },
+        autoSignIn: {
+          enabled: true
+        }
       });
-      // console.log(data.user);
       setCognitoUser(data.user);
-      // console.log("cognitoUser: ", cognitoUser);
       updateFormState(() => ({ ...initialFormState, email }));
-      // updateLoginState("confirmSignUp");
       setLoading(false);
+      
+      updateLoginState("confirmSignUp");
+      handleNextStep();
     } catch (e) {
       setLoading(false);
-      setEmptyInputError(false);
 
       const errorMsg = e.message;
 
       if (errorMsg.includes("empty")) {
-        setEmptyInputError(true);
+        setInputsNotFilled(true);
       } else if (errorMsg.includes("Username should be an email.")) {
         setInvalidEmailError(true);
       } else if (errorMsg.includes("given email already exists")) {
@@ -198,113 +222,103 @@ function Login(props) {
     }
   }
 
-  // async function resendConfirmationCode() {
-  //   try {
-  //     const { email } = formState;
-  //     setVerificationError(false);
-  //     await Auth.resendSignUp(email);
-  //     setNewVerification(true);
-  //   } catch (err) {
-  //     setNewVerification(false);
+  //function to finish implementing after sign up is working properly
+  //to resend confirmation code if user did not receive it or if the email timed out
+  async function resendConfirmationCode() {
+    try {
+      const { email } = formState;
+      setVerificationError(false);
+      await Auth.resendSignUp(email);
+      setNewVerification(true);
+    } catch (err) {
+      setNewVerification(false);
 
-  //     const errorMsg = err.message;
-  //     if (errorMsg.includes("time")) {
-  //       setTimeLimitError(errorMsg);
-  //     }
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   if (cognitoUser && formState.authCode) {
-  //     console.log(cognitoUser, formState.authCode);
-  //     answerCustomChallenge(cognitoUser);
-  //   }
-  // }, [cognitoUser, formState.authCode]);
-
-  useEffect(() => {
-    async function retrieveUser() {
-      try {
-        Auth.currentAuthenticatedUser()
-          .then((user) => {
-            updateLoginState("signedIn");
-          })
-          .catch((err) => {
-            updateLoginState("signIn");
-          });
-      } catch (e) {}
+      const errorMsg = err.message;
+      if (errorMsg.includes("time")) {
+        setTimeLimitError(errorMsg);
+      }
     }
-    retrieveUser();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }
 
+  /* functions for user email verification */
+
+  //sends user inputted email confirmation code to user pool to verify
   async function answerCustomChallenge() {
-    console.log("in answerCustomeChallenge()");
     // Send the answer to the User Pool
     // This will throw an error if it’s the 3rd wrong answer
-    console.log(formState.authCode);
     try {
-      let data = await Auth.sendCustomChallengeAnswer(
-        cognitoUser,
-        formState.authCode
-      );
-      console.log("data:", data);
+      await Auth.sendCustomChallengeAnswer(cognitoUser, formState.authCode);
     } catch (e) {
-      console.log(e);
+      const errorMsg = e.message
+      if (errorMsg.includes("Incorrect username or password.")) {
+        updateLoginState("signIn")
+        setAccountLoginError(true)
+      }
     }
     // It we get here, the answer was sent successfully,
     // but it might have been wrong (1st or 2nd time)
     // So we should test if the user is authenticated now
     try {
       // This will throw an error if the user is not yet authenticated:
-      //not sure why the await Auth.currentSession() results in an error
       await Auth.currentSession();
       updateLoginState("signedIn");
     } catch (e) {
-      // console.log("The user did not enter the right code");
-      console.log(e);
+      if (e.includes("No current user")) {
+        setVerificationError(true)
+      }
     }
   }
 
   const verifyEmail = () => {
-    console.log("in verifyEmail function", cognitoUser);
-    console.log(cognitoUser);
+    if (formState.authCode === "") {
+      setEmptyAuthCode(true)
+    } else {
+      //the following if block runs during user sign up
+      if (loginState === "confirmSignUp" && formState.authCode) {
+        // confirm sign up
+        // After retrieveing the confirmation code from the user
+        Auth.confirmSignUp(cognitoUser.username, formState.authCode, {
+          // Optional. Force user confirmation irrespective of existing alias. By default set to True.
+          forceAliasCreation: true,
+        })
+          .then((data) => handleNextStep())
+          .catch((e) => {
+            const errorMsg = e.message;
 
-    if (loginState === "confirmSignUp" && formState.authCode) {
-      // confirm sign up
-      // After retrieveing the confirmation code from the user
-      Auth.confirmSignUp(cognitoUser.username, formState.authCode, {
-        // Optional. Force user confirmation irrespective of existing alias. By default set to True.
-        forceAliasCreation: true,
-      })
-        .then((data) => console.log(data))
-        .catch((err) => console.log(err));
-      handleNextStep();
-    } else if (cognitoUser && formState.authCode) {
-      console.log("going to answer custom challenge function");
-      answerCustomChallenge();
+            if (errorMsg.includes("Invalid verification code provided, please try again.")) {
+              setVerificationError(true)
+            }
+          });
+      }
+      //the following if block runs during user sign in
+      if (loginState === "verifyEmail" && cognitoUser && formState.authCode) {
+        answerCustomChallenge();
+      }
     }
-    //confirm signup function will be uncommented after figuring out cognito integration
-    // confirmSignUp();
   };
 
-  useEffect(() => {
-    cognitoUser && verifyEmail();
-  }, [cognitoUser]);
-
+  /* functions for user sign in */
   async function signIn() {
     try {
-      console.log("in signIn()");
       const { email } = formState;
-      updateLoginState("verifyEmail");
-      setActiveStep(1);
-      let currentUser = await Auth.signIn(email);
-      setCognitoUser(currentUser);
+      if (email === "") {
+        setInvalidEmailError(true)
+      } else {
+        let currentUser = await Auth.signIn(email);
+        setCognitoUser(currentUser);
+        updateLoginState("verifyEmail");
+        setActiveStep(1);
+      }
     } catch (e) {
       setLoading(false);
-      const errorMsg = e.code;
+      const errorMsg = e.message;
+      if (errorMsg.includes("User does not exist.")) {
+        setUserExistError(true)
+      }
     }
   }
 
+  //to add in later for user input sanitization
   // function checkEmptyString(str) {
   //   // check if string is empty after space trimmed
   //   if (str.replace(/\s+/g, "") === "") {
@@ -312,6 +326,7 @@ function Login(props) {
   //   }
   // }
 
+  //resets progress bar and form states
   function resetStates(state) {
     // resets the progress bar
     handleResetSteps();
@@ -320,7 +335,6 @@ function Login(props) {
     clearErrors();
 
     // the following were not removed during onChange() so need to be cleared here
-    setEmptyInputError(false);
     setTimeLimitError("");
 
     updateLoginState(state);
@@ -441,10 +455,6 @@ function Login(props) {
                     <span>Verify Account</span>
                   ) : loginState === "forgotPassword" ? (
                     <span>Forgot your password?</span>
-                  ) : loginState === "resetPassword" ? (
-                    <span>Password Reset</span>
-                  ) : loginState === "newUserPassword" ? (
-                    <span>Set New Password</span>
                   ) : (
                     <span></span>
                   )}
@@ -453,8 +463,11 @@ function Login(props) {
             )}
             {loginState === "signIn" && (
               <Grid>
+                <BannerMessage type={"error"} typeCheck={userExistError}>
+                  User does not exist.
+                </BannerMessage>
                 <BannerMessage type={"error"} typeCheck={accountLoginError}>
-                  Incorrect username or password.
+                  Too many incorrect attempts.
                 </BannerMessage>
                 {/* username */}
                 <TextFieldStartAdornment
@@ -462,6 +475,10 @@ function Login(props) {
                   placeholder={"Email"}
                   name={"email"}
                   type={"email"}
+                  error={accountCreationEmailExistError || invalidEmailError}
+                  helperText={
+                    (!!invalidEmailError && "Please enter a valid email.")
+                  }
                   onChange={onChange}
                   onKeyDown={onKeyDownSignIn}
                 />
@@ -503,7 +520,7 @@ function Login(props) {
               </Grid>
             )}
 
-            {!!forgotPasswordError && (
+            {/* {!!forgotPasswordError && (
               <Grid container item xs={12} sx={{ color: "red" }}>
                 <span>
                   Please enter a valid email or create an account&nbsp;
@@ -517,11 +534,12 @@ function Login(props) {
                   <span>.</span>
                 </span>
               </Grid>
-            )}
+            )} */}
+
             {/* General Information Sign Up Step */}
             {loginState === "signUp" && activeStep === 0 && (
               <Grid>
-                <BannerMessage type={"error"} typeCheck={emptyInputError}>
+                <BannerMessage type={"error"} typeCheck={inputsNotFilled}>
                   Please fill in all fields.
                 </BannerMessage>
                 <Box
@@ -544,7 +562,6 @@ function Login(props) {
                       (!!invalidEmailError && "Please enter a valid email.")
                     }
                     onChange={onChange}
-                    onKeyDown={onKeyDownSignUp}
                   />
                   <Autocomplete
                     disablePortal
@@ -560,9 +577,12 @@ function Login(props) {
                     startIcon={false}
                     label={"Postal Code"}
                     name={"postal_code"}
+                    error={invalidPostalCodeError}
+                    helperText={
+                      (!!invalidPostalCodeError && "Please enter a valid postal code.")
+                    }
                     type="text"
                     onChange={onChange}
-                    onKeyDown={onKeyDownSignUp}
                   />
                 </Box>
                 <BackAndSubmitButtons
@@ -603,6 +623,11 @@ function Login(props) {
                     startIcon={<Dialpad />}
                     placeholder="Enter your confirmation code."
                     name={"authCode"}
+                    error={emptyAuthCode}
+                    helperText={
+                      (!!emptyAuthCode &&
+                        "This field must be filled out.")
+                    }
                     type="text"
                     autoComplete={"new-password"}
                     onChange={onChange}
@@ -610,18 +635,16 @@ function Login(props) {
                 </Grid>
                 <Grid>
                   <span>Didn't receive your verification code?</span>
-                  {/* <Button onClick={resendConfirmationCode}>
-                    <span>Resend Code</span>
-                  </Button> */}
-                  <Button>
+                  <Button onClick={resendConfirmationCode}>
                     <span>Resend Code</span>
                   </Button>
+                  {/* <Button>
+                    <span>Resend Code</span>
+                  </Button> */}
                 </Grid>
                 <BackAndSubmitButtons
                   backAction={() => resetStates("signUp")}
-                  submitAction={
-                    loginState === "confirmSignUp" ? verifyEmail : signIn
-                  }
+                  submitAction={verifyEmail}
                   submitMessage={"Verify"}
                   loadingState={loading}
                 />
@@ -633,7 +656,7 @@ function Login(props) {
             )}
 
             {/* Redirect to Homepage Step*/}
-            {activeStep === 3 && <ProfileCreationSuccess />}
+            {activeStep === 3 && <ProfileCreationSuccess login={() => updateLoginState("signedIn")} />}
           </Grid>
         </Grid>
       </Grid>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AppBar,
+  Box,
   Toolbar,
   Typography,
   IconButton,
@@ -33,22 +34,22 @@ function Navbar(props) {
   const [loadingBackdrop, setLoadingBackdrop] = React.useState(false);
 
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
+  // const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
 
   const isMenuOpen = Boolean(anchorEl);
-  const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+  // const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMobileMenuClose = () => {
-    setMobileMoreAnchorEl(null);
-  };
+  // const handleMobileMenuClose = () => {
+  //   setMobileMoreAnchorEl(null);
+  // };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-    handleMobileMenuClose();
+    // handleMobileMenuClose();
   };
 
   const handleLogout = async () => {
@@ -59,18 +60,18 @@ function Navbar(props) {
     setLoadingBackdrop(false);
   };
 
-  const handleMobileMenuOpen = (event) => {
-    setMobileMoreAnchorEl(event.currentTarget);
-  };
+  // const handleMobileMenuOpen = (event) => {
+  //   setMobileMoreAnchorEl(event.currentTarget);
+  // };
 
   const menuId = "primary-search-account-menu";
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       id={menuId}
       keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
+      transformOrigin={{ vertical: "top", horizontal: "center" }}
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
@@ -81,26 +82,26 @@ function Navbar(props) {
     </Menu>
   );
 
-  const mobileMenuId = "primary-search-account-menu-mobile";
-  const renderMobileMenu = (
-    <Menu
-      anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      id={mobileMenuId}
-      keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
-      open={isMobileMenuOpen}
-      onClose={handleMobileMenuClose}
-    >
-      <MenuItem disabled>
-        <Avatar>{user.charAt(0).toUpperCase()}</Avatar>
-      </MenuItem>
-      <MenuItem onClick={handleLogout}>
-        <span>Logout </span>
-        <ExitToApp color={"secondary"} />
-      </MenuItem>
-    </Menu>
-  );
+  // const mobileMenuId = "primary-search-account-menu-mobile";
+  // const renderMobileMenu = (
+  //   <Menu
+  //     anchorEl={mobileMoreAnchorEl}
+  //     anchorOrigin={{ vertical: "top", horizontal: "right" }}
+  //     id={mobileMenuId}
+  //     keepMounted
+  //     transformOrigin={{ vertical: "top", horizontal: "right" }}
+  //     open={isMobileMenuOpen}
+  //     onClose={handleMobileMenuClose}
+  //   >
+  //     <MenuItem disabled>
+  //       <Avatar>{user.charAt(0).toUpperCase()}</Avatar>
+  //     </MenuItem>
+  //     <MenuItem onClick={handleLogout}>
+  //       <span>Logout </span>
+  //       <ExitToApp color={"secondary"} />
+  //     </MenuItem>
+  //   </Menu>
+  // );
 
   useEffect(() => {
     async function retrieveUser() {
@@ -126,52 +127,66 @@ function Navbar(props) {
 
   return (
     <Grid item xs={12}>
-      <AppBar position="static" style={{ backgroundColor: "#012144" }}>
-        <Toolbar>
-          {showSideMenuButton ? (
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleSideMenu}
+      <AppBar
+        position="relative"
+        sx={{
+          backgroundColor: "#012144",
+          zIndex: 1400,
+        }}
+      >
+        <Toolbar
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {showSideMenuButton ? (
+              <IconButton
+                edge="start"
+                color="inherit"
+                aria-label="open drawer"
+                onClick={handleSideMenu}
+              >
+                <MenuIcon />
+              </IconButton>
+            ) : null}
+            <Typography
+              variant="h6"
+              component={"h1"}
+              noWrap
+              sx={{ fontWeight: 200 }}
             >
-              <MenuIcon />
-            </IconButton>
-          ) : null}
-          <Typography
-            variant="h6"
-            component={"h1"}
-            noWrap
-            sx={{ fontWeight: 200 }}
-          >
-            ISED
-          </Typography>
-          <div />
-          <div>
-            <IconButton
-              edge="end"
-              aria-label="account of current user"
-              aria-controls={menuId}
-              aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
-              color="inherit"
-            >
-              <Avatar>{user.charAt(0).toUpperCase()}</Avatar>
-            </IconButton>
-          </div>
-          <div>
-            <IconButton
-              aria-label="show more"
-              aria-controls={mobileMenuId}
-              aria-haspopup="true"
-              onClick={handleMobileMenuOpen}
-              color="inherit"
-            >
-              <More />
-            </IconButton>
-            {renderMobileMenu}
-            {renderMenu}
-          </div>
+              ISED
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <div>
+              <IconButton
+                edge="end"
+                aria-label="account of current user"
+                aria-controls={menuId}
+                aria-haspopup="true"
+                onClick={handleProfileMenuOpen}
+                color="inherit"
+              >
+                <Avatar>{user.charAt(0).toUpperCase()}</Avatar>
+              </IconButton>
+            </div>
+            <div>
+              {/* <IconButton
+                aria-label="show more"
+                aria-controls={mobileMenuId}
+                aria-haspopup="true"
+                onClick={handleMobileMenuOpen}
+                color="inherit"
+              >
+                <More />
+              </IconButton>
+              {renderMobileMenu} */}
+              {renderMenu}
+            </div>
+          </Box>
         </Toolbar>
       </AppBar>
       <Backdrop open={loadingBackdrop}>

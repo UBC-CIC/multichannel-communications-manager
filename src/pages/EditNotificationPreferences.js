@@ -1,16 +1,14 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
-import NotificationLogTable from "../components/landingPage/NotificationLogTable";
 
-const Landing = () => {
+const EditNotificationPreferences = () => {
   return (
     <Box>
       <Typography variant="h2" sx={{ mb: "1em" }}>
-        Welcome!
+        Manage My Notifications
       </Typography>
-      <NotificationLogTable />
     </Box>
   );
 };
 
-export default Landing;
+export default EditNotificationPreferences;

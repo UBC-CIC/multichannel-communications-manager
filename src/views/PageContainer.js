@@ -10,46 +10,24 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
+  Box,
 } from "@mui/material";
-import { Home } from "@mui/icons-material";
+import {
+  Home,
+  NotificationsNone,
+  EditNotifications,
+  Person,
+} from "@mui/icons-material";
 import Navbar from "../components/Navbar";
 import Landing from "../pages/Landing";
-
-// const theme = createMuiTheme();
-
-// const useStyles = makeStyles((theme) => ({
-//   root: {
-//     display: "flex",
-//   },
-//   list: {
-//     width: 250,
-//   },
-//   fullList: {
-//     width: "auto",
-//   },
-//   drawer: {
-//     width: 240,
-//     flexShrink: 0,
-//   },
-//   drawerContainer: {
-//     overflow: "auto",
-//   },
-//   drawerPaper: {
-//     width: 240,
-//   },
-//   content: {
-//     flexGrow: 1,
-//     [theme.breakpoints.down("sm")]: {
-//       padding: theme.spacing(3),
-//     },
-//   },
-// }));
+import SubscribeToTopics from "../pages/SubscribeToTopics";
+import EditNotificationPreferences from "../pages/EditNotificationPreferences";
+import EditAccountInfo from "../pages/EditAccountInfo";
 
 function PageContainer(props) {
   const { menuEnabled, updateMenuState } = props;
   const navigate = useNavigate();
 
-  // const classes = useStyles();
   /*
    * Handles closing side menu if an event occurs
    * */
@@ -63,14 +41,11 @@ function PageContainer(props) {
     updateMenuState(false);
   };
 
-  //   {
-  //     /* Example side menu is provided below */
-  //   }
   const list = () => (
-    <div
-      // className={classes.drawerContainer}
+    <Box
       onClick={handleSideMenuClose(false)}
       onKeyDown={handleSideMenuClose(false)}
+      sx={{ overflow: "auto" }}
     >
       <List>
         <ListItem button key={"home"} onClick={() => navigate("/")}>
@@ -79,8 +54,38 @@ function PageContainer(props) {
           </ListItemIcon>
           <ListItemText primary={"Home"} />
         </ListItem>
+        <ListItem
+          button
+          key={"subscribe-to-topics"}
+          onClick={() => navigate("/subscribe-to-topics")}
+        >
+          <ListItemIcon>
+            <NotificationsNone />
+          </ListItemIcon>
+          <ListItemText primary={"Subscribe to Topics"} />
+        </ListItem>
+        <ListItem
+          button
+          key={"edit-notif-preferences"}
+          onClick={() => navigate("/edit-notif-preferences")}
+        >
+          <ListItemIcon>
+            <EditNotifications />
+          </ListItemIcon>
+          <ListItemText primary={"Edit Notification Preferences"} />
+        </ListItem>
+        <ListItem
+          button
+          key={"edit-account-info"}
+          onClick={() => navigate("/edit-account-information")}
+        >
+          <ListItemIcon>
+            <Person />
+          </ListItemIcon>
+          <ListItemText primary={"Edit Account Information"} />
+        </ListItem>
       </List>
-    </div>
+    </Box>
   );
 
   return (
@@ -89,28 +94,38 @@ function PageContainer(props) {
         button updates redux state to show/hide left sidebar */}
       <Navbar showSideMenuButton={true} />
       {/* App content example below with sidebar */}
-      <Grid item xs={12} className="App-header">
+      <Grid item xs={12}>
         {/* Side menu component */}
         <Drawer
           anchor={"left"}
           open={menuEnabled}
           onClose={handleSideMenuClose}
-          style={{ zIndex: 2 }}
-          // classes={{
-          //   paper: classes.drawerPaper,
-          // }}
+          sx={{ zIndex: 2, ".MuiDrawer-paper": { width: 240 } }}
           ModalProps={{ onBackdropClick: handleSideMenuClose() }}
         >
           <Toolbar />
           {/* Side menu items added for rendering */}
           {list()}
         </Drawer>
-        <main>
-          {/* Routes are added here if you need multiple page views. otherwise this Switch can be deleted and replaced
-                with your app's contents */}
-
+        <main style={{ flexGrow: 1, padding: "50px" }}>
+          {/* Routes are added here if you need multiple page views*/}
           <Routes>
             <Route exact path={"/"} element={<Landing />} />
+            <Route
+              exact
+              path={"/subscribe-to-topics"}
+              element={<SubscribeToTopics />}
+            />
+            <Route
+              exact
+              path={"/edit-notif-preferences"}
+              element={<EditNotificationPreferences />}
+            />
+            <Route
+              exact
+              path={"/edit-account-information"}
+              element={<EditAccountInfo />}
+            />
           </Routes>
         </main>
       </Grid>

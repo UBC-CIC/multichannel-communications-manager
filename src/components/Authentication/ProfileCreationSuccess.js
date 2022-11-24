@@ -1,7 +1,7 @@
 import { Typography, Grid, Button } from "@mui/material";
 import React from "react";
 
-const ProfileCreationSuccess = () => {
+const ProfileCreationSuccess = ( {login} ) => {
   return (
     <Grid
       sx={{
@@ -22,6 +22,7 @@ const ProfileCreationSuccess = () => {
       <Button
         variant="contained"
         sx={{ width: "20%", alignSelf: "flex-end", mt: "5em" }}
+        onClick={login}
       >
         Continue
       </Button>

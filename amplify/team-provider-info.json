@@ -21,6 +21,24 @@
       }
     }
   },
+  "rds": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-ised-rds-210447-authRole",
+      "UnauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-rds-210447-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-rds-210447-authRole",
+      "Region": "ca-central-1",
+      "DeploymentBucketName": "amplify-ised-rds-210447-deployment",
+      "UnauthRoleName": "amplify-ised-rds-210447-unauthRole",
+      "StackName": "amplify-ised-rds-210447",
+      "StackId": "arn:aws:cloudformation:ca-central-1:834289487514:stack/amplify-ised-rds-210447/296f69d0-58d1-11ed-87da-02b919c3d7e0",
+      "AmplifyAppId": "d3r4k2lt45dkzj"
+    },
+    "categories": {
+      "auth": {
+        "ised012c959f": {}
+      }
+    }
+  },
   "newdev": {
 =======
   "rds": {

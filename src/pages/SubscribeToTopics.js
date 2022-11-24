@@ -1,16 +1,16 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
-import NotificationLogTable from "../components/landingPage/NotificationLogTable";
+import ViewTopics from "../components/subscribeToTopics/ViewTopics";
 
-const Landing = () => {
+const SubscribeToTopics = () => {
   return (
     <Box>
       <Typography variant="h2" sx={{ mb: "1em" }}>
-        Welcome!
+        Topics of Interest
       </Typography>
-      <NotificationLogTable />
+      <ViewTopics />
     </Box>
   );
 };
 
-export default Landing;
+export default SubscribeToTopics;
