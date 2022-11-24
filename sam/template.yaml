@@ -1373,6 +1373,33 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
+  getAllCategoryTopicsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Query
+      FieldName: getAllCategoryTopics
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "select * from `CategoryTopic`;",
+        "variableMapping": {
+        }
+        }
+        }
+
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        $util.toJson($context.result)
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
 
   createUserResolver:
     Type: AWS::AppSync::Resolver

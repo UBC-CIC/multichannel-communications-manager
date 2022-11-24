@@ -10,16 +10,16 @@ let e = {
     {
       kinesis: {
         kinesisSchemaVersion: "1.0",
-        partitionKey: "sys.User",
+        partitionKey: "sys.UserCategoryTopic",
         sequenceNumber:
-          "49635282510291549795472904832465031055947861467777204226",
-        data: "ewoJImRhdGEiOiB7ICJ1c2VyX2lkIjogMTUsICJjYXRlZ29yeVRvcGljX2lkIjogNSwgImVtYWlsX25vdGljZSI6IDEsICJzbXNfbm90aWNlIjogMSB9LAoJIm1ldGFkYXRhIjoJewoJCSJ0aW1lc3RhbXAiOgkiMjAyMi0xMS0yMVQwMTo1MDoxMy4xNDUyNjJaIiwKCQkicmVjb3JkLXR5cGUiOgkiZGF0YSIsCgkJIm9wZXJhdGlvbiI6CSJpbnNlcnQiLAoJCSJwYXJ0aXRpb24ta2V5LXR5cGUiOgkic2NoZW1hLXRhYmxlIiwKCQkic2NoZW1hLW5hbWUiOgkic3lzIiwKCQkidGFibGUtbmFtZSI6CSJVc2VyQ2F0ZWdvcnlUb3BpYyIsCgkJInRyYW5zYWN0aW9uLWlkIjoJODU4OTk0NjY2NwoJfQp9",
-        approximateArrivalTimestamp: 1668981392.555,
+          "49635282510291549795473114249239761006638651079131136002",
+        data: "ewoJImRhdGEiOgl7CgkJInVzZXJfaWQiOgkxNSwKCQkiY2F0ZWdvcnlUb3BpY19pZCI6CTEyLAoJCSJlbWFpbF9ub3RpY2UiOgkwLAoJCSJzbXNfbm90aWNlIjoJMQoJfSwKCSJtZXRhZGF0YSI6CXsKCQkidGltZXN0YW1wIjoJIjIwMjItMTEtMjRUMTk6Mjk6NTYuODI0NzE4WiIsCgkJInJlY29yZC10eXBlIjoJImRhdGEiLAoJCSJvcGVyYXRpb24iOgkidXBkYXRlIiwKCQkicGFydGl0aW9uLWtleS10eXBlIjoJInNjaGVtYS10YWJsZSIsCgkJInNjaGVtYS1uYW1lIjoJInN5cyIsCgkJInRhYmxlLW5hbWUiOgkiVXNlckNhdGVnb3J5VG9waWMiLAoJCSJ0cmFuc2FjdGlvbi1pZCI6CTEyODg0OTE0Njk3Cgl9Cn0=",
+        approximateArrivalTimestamp: 1669318196.857,
       },
       eventSource: "aws:kinesis",
       eventVersion: "1.0",
       eventID:
-        "shardId-000000000000:49635282510291549795472904832465031055947861467777204226",
+        "shardId-000000000000:49635282510291549795473114249239761006638651079131136002",
       eventName: "aws:kinesis:record",
       invokeIdentityArn: "arn:aws:iam::834289487514:role/RDSHelperLambdaRole",
       awsRegion: "ca-central-1",

@@ -106,6 +106,7 @@ type Query {
   getTopicByAcronym(topic_acronym: String!): Topic
   getAllCategories: [Category]
   getAllTopics: [Topic]
+  getAllCategoryTopics: [CategoryTopic]
   testSQL: String
 }
 

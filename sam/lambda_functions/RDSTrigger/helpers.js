@@ -121,37 +121,6 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
 async function upsertUserProfile(userID, province, postalCode) {
   console.log("upsertUserProfile ...");
   return new Promise((resolve, reject) => {
-    //   upsertUserEndpoint(userID, userID, {
-    //     Address: emailAdress,
-    //     ChannelType: "EMAIL",
-    //     User: {
-    //       UserAttributes: {
-    //         province: [province],
-    //         postalCode: [postalCode],
-    //       },
-    //     },
-    //   })
-    //     .then((accountsChanged) => {
-    //       if (phoneAddress === undefined) {
-    //         resolve(accountsChanged);
-    //       } else {
-    //         upsertUserEndpoint(userID, null, {
-    //           Address: phoneAddress,
-    //           ChannelType: "SMS",
-    //         })
-    //           .then((accountsChanged2) => {
-    //             resolve([accountsChanged, accountsChanged2]);
-    //           })
-    //           .catch((err) => {
-    //             reject(err);
-    //           });
-    //       }
-    //     })
-    //     .catch((error) => {
-    //       reject(error);
-    //     });
-    // });
-
     let request = {
       ApplicationId: PINPOINTID,
       EndpointId: userID,
