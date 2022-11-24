@@ -34,22 +34,22 @@ function Navbar(props) {
   const [loadingBackdrop, setLoadingBackdrop] = React.useState(false);
 
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
+  // const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
 
   const isMenuOpen = Boolean(anchorEl);
-  const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+  // const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMobileMenuClose = () => {
-    setMobileMoreAnchorEl(null);
-  };
+  // const handleMobileMenuClose = () => {
+  //   setMobileMoreAnchorEl(null);
+  // };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-    handleMobileMenuClose();
+    // handleMobileMenuClose();
   };
 
   const handleLogout = async () => {
@@ -60,18 +60,18 @@ function Navbar(props) {
     setLoadingBackdrop(false);
   };
 
-  const handleMobileMenuOpen = (event) => {
-    setMobileMoreAnchorEl(event.currentTarget);
-  };
+  // const handleMobileMenuOpen = (event) => {
+  //   setMobileMoreAnchorEl(event.currentTarget);
+  // };
 
   const menuId = "primary-search-account-menu";
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       id={menuId}
       keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
+      transformOrigin={{ vertical: "top", horizontal: "center" }}
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
@@ -82,26 +82,26 @@ function Navbar(props) {
     </Menu>
   );
 
-  const mobileMenuId = "primary-search-account-menu-mobile";
-  const renderMobileMenu = (
-    <Menu
-      anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      id={mobileMenuId}
-      keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
-      open={isMobileMenuOpen}
-      onClose={handleMobileMenuClose}
-    >
-      <MenuItem disabled>
-        <Avatar>{user.charAt(0).toUpperCase()}</Avatar>
-      </MenuItem>
-      <MenuItem onClick={handleLogout}>
-        <span>Logout </span>
-        <ExitToApp color={"secondary"} />
-      </MenuItem>
-    </Menu>
-  );
+  // const mobileMenuId = "primary-search-account-menu-mobile";
+  // const renderMobileMenu = (
+  //   <Menu
+  //     anchorEl={mobileMoreAnchorEl}
+  //     anchorOrigin={{ vertical: "top", horizontal: "right" }}
+  //     id={mobileMenuId}
+  //     keepMounted
+  //     transformOrigin={{ vertical: "top", horizontal: "right" }}
+  //     open={isMobileMenuOpen}
+  //     onClose={handleMobileMenuClose}
+  //   >
+  //     <MenuItem disabled>
+  //       <Avatar>{user.charAt(0).toUpperCase()}</Avatar>
+  //     </MenuItem>
+  //     <MenuItem onClick={handleLogout}>
+  //       <span>Logout </span>
+  //       <ExitToApp color={"secondary"} />
+  //     </MenuItem>
+  //   </Menu>
+  // );
 
   useEffect(() => {
     async function retrieveUser() {
@@ -174,7 +174,7 @@ function Navbar(props) {
               </IconButton>
             </div>
             <div>
-              <IconButton
+              {/* <IconButton
                 aria-label="show more"
                 aria-controls={mobileMenuId}
                 aria-haspopup="true"
@@ -183,7 +183,7 @@ function Navbar(props) {
               >
                 <More />
               </IconButton>
-              {renderMobileMenu}
+              {renderMobileMenu} */}
               {renderMenu}
             </div>
           </Box>
