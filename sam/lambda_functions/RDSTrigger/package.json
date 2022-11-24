@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "name": "rdspinpoint-package",
+  "dependencies": {
+    "aws-sdk": "^2.1258.0",
+    "graphql": "^16.6.0",
+    "graphql-request": "^5.0.0"
+  }
+}
