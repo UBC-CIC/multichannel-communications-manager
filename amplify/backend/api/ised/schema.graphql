@@ -1,57 +1,15 @@
 # This "input" configures a global authorization rule to enable public access to
 # all models in this schema. Learn more about authorization rules here: https://docs.amplify.aws/cli/graphql/authorization-rules
-<<<<<<< HEAD
-input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONLY!
-
-
-type User @model {
-  userId: ID! @primaryKey
-  email: String! @index
-  phone: Int
-  phoneId: String
-  postalCode: String
-  province: Province!
-  userCategoryTopics: [UserCategoryTopic] @hasMany
-}
-
-type Category @model {
-  categoryId: ID! @primaryKey
-  acronym: String! @index
-=======
 input AMPLIFY {
   globalAuthRule: AuthRule = { allow: public }
 } # FOR TESTING ONLY!
 type Category {
   category_id: Int!
   acronym: String!
->>>>>>> rds
   title: String!
   description: String
 }
 
-<<<<<<< HEAD
-type Topic @model {
-  topicId: ID! @primaryKey
-  acronym: String! @index
-  categoryTopic: [CategoryTopic] @hasMany
-}
-
-
-# relations
-
-type CategoryTopic @model {
-  categoryTopicId: ID! @primaryKey(sortKeyFields: ["categoryId","topicId"])
-  categoryId: ID!
-  topicId: ID! 
-}
-
-type UserCategoryTopic @model {
-  userCategoryTopicsId: ID! @primaryKey(sortKeyFields: ["userId", "categoryTopicId"])
-  userId: ID!
-  categoryTopicId: ID!  
-  email: Boolean!
-  sms: Boolean!
-=======
 type Topic {
   topic_id: Int!
   acronym: String!
@@ -155,7 +113,6 @@ type Query {
 schema {
   query: Query
   mutation: Mutation
->>>>>>> rds
 }
 
 enum Province {
