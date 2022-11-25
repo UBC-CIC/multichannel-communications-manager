@@ -3,298 +3,195 @@
 
 export const createUser = /* GraphQL */ `
   mutation CreateUser(
-    $input: CreateUserInput!
-    $condition: ModelUserConditionInput
+    $email_address: String!
+    $phone_address: String
+    $postal_code: String
+    $province: Province!
   ) {
-    createUser(input: $input, condition: $condition) {
-      id
-      email
-      phoneNumber
-      phoneId
+    createUser(
+      email_address: $email_address
+      phone_address: $phone_address
+      postal_code: $postal_code
+      province: $province
+    ) {
+      user_id
+      email_address
+      phone_address
+      postal_code
       province
-      postalCode
-      follows {
-        items {
-          id
-          emailNotice
-          textNotice
-          createdAt
-          updatedAt
-          userFollowsId
-          topicFollowsId
-          owner
-        }
-        nextToken
-      }
-      createdAt
-      updatedAt
-      owner
     }
   }
 `;
 export const updateUser = /* GraphQL */ `
   mutation UpdateUser(
-    $input: UpdateUserInput!
-    $condition: ModelUserConditionInput
+    $user_id: Int!
+    $email_address: String
+    $phone_address: String
+    $postal_code: String
+    $province: Province
   ) {
-    updateUser(input: $input, condition: $condition) {
-      id
-      email
-      phoneNumber
-      phoneId
+    updateUser(
+      user_id: $user_id
+      email_address: $email_address
+      phone_address: $phone_address
+      postal_code: $postal_code
+      province: $province
+    ) {
+      user_id
+      email_address
+      phone_address
+      postal_code
       province
-      postalCode
-      follows {
-        items {
-          id
-          emailNotice
-          textNotice
-          createdAt
-          updatedAt
-          userFollowsId
-          topicFollowsId
-          owner
-        }
-        nextToken
-      }
-      createdAt
-      updatedAt
-      owner
     }
   }
 `;
 export const deleteUser = /* GraphQL */ `
-  mutation DeleteUser(
-    $input: DeleteUserInput!
-    $condition: ModelUserConditionInput
+  mutation DeleteUser($user_id: Int!) {
+    deleteUser(user_id: $user_id)
+  }
+`;
+export const createCategory = /* GraphQL */ `
+  mutation CreateCategory(
+    $acronym: String!
+    $title: String!
+    $description: String
   ) {
-    deleteUser(input: $input, condition: $condition) {
-      id
-      email
-      phoneNumber
-      phoneId
-      province
-      postalCode
-      follows {
-        items {
-          id
-          emailNotice
-          textNotice
-          createdAt
-          updatedAt
-          userFollowsId
-          topicFollowsId
-          owner
-        }
-        nextToken
-      }
-      createdAt
-      updatedAt
-      owner
+    createCategory(
+      acronym: $acronym
+      title: $title
+      description: $description
+    ) {
+      category_id
+      acronym
+      title
+      description
     }
+  }
+`;
+export const updateCategory = /* GraphQL */ `
+  mutation UpdateCategory(
+    $category_id: Int!
+    $acronym: String
+    $title: String
+    $description: String
+  ) {
+    updateCategory(
+      category_id: $category_id
+      acronym: $acronym
+      title: $title
+      description: $description
+    ) {
+      category_id
+      acronym
+      title
+      description
+    }
+  }
+`;
+export const deleteCategory = /* GraphQL */ `
+  mutation DeleteCategory($category_id: Int!) {
+    deleteCategory(category_id: $category_id)
   }
 `;
 export const createTopic = /* GraphQL */ `
-  mutation CreateTopic(
-    $input: CreateTopicInput!
-    $condition: ModelTopicConditionInput
-  ) {
-    createTopic(input: $input, condition: $condition) {
-      id
-      title
-      description
-      follows {
-        items {
-          id
-          emailNotice
-          textNotice
-          createdAt
-          updatedAt
-          userFollowsId
-          topicFollowsId
-          owner
-        }
-        nextToken
-      }
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const updateTopic = /* GraphQL */ `
-  mutation UpdateTopic(
-    $input: UpdateTopicInput!
-    $condition: ModelTopicConditionInput
-  ) {
-    updateTopic(input: $input, condition: $condition) {
-      id
-      title
-      description
-      follows {
-        items {
-          id
-          emailNotice
-          textNotice
-          createdAt
-          updatedAt
-          userFollowsId
-          topicFollowsId
-          owner
-        }
-        nextToken
-      }
-      createdAt
-      updatedAt
+  mutation CreateTopic($acronym: String!) {
+    createTopic(acronym: $acronym) {
+      topic_id
+      acronym
     }
   }
 `;
 export const deleteTopic = /* GraphQL */ `
-  mutation DeleteTopic(
-    $input: DeleteTopicInput!
-    $condition: ModelTopicConditionInput
+  mutation DeleteTopic($topic_id: Int!) {
+    deleteTopic(topic_id: $topic_id)
+  }
+`;
+export const addTopicToCategory = /* GraphQL */ `
+  mutation AddTopicToCategory(
+    $category_acronym: String!
+    $topic_acronym: String!
   ) {
-    deleteTopic(input: $input, condition: $condition) {
-      id
-      title
-      description
-      follows {
-        items {
-          id
-          emailNotice
-          textNotice
-          createdAt
-          updatedAt
-          userFollowsId
-          topicFollowsId
-          owner
-        }
-        nextToken
-      }
-      createdAt
-      updatedAt
+    addTopicToCategory(
+      category_acronym: $category_acronym
+      topic_acronym: $topic_acronym
+    ) {
+      categoryTopic_id
+      category_acronym
+      topic_acronym
     }
   }
 `;
-export const createFollow = /* GraphQL */ `
-  mutation CreateFollow(
-    $input: CreateFollowInput!
-    $condition: ModelFollowConditionInput
+export const deleteCategoryTopic = /* GraphQL */ `
+  mutation DeleteCategoryTopic(
+    $category_acronym: String!
+    $topic_acronym: String!
   ) {
-    createFollow(input: $input, condition: $condition) {
-      id
-      user {
-        id
-        email
-        phoneNumber
-        phoneId
-        province
-        postalCode
-        follows {
-          nextToken
-        }
-        createdAt
-        updatedAt
-        owner
-      }
-      topic {
-        id
-        title
-        description
-        follows {
-          nextToken
-        }
-        createdAt
-        updatedAt
-      }
-      emailNotice
-      textNotice
-      createdAt
-      updatedAt
-      userFollowsId
-      topicFollowsId
-      owner
+    deleteCategoryTopic(
+      category_acronym: $category_acronym
+      topic_acronym: $topic_acronym
+    )
+  }
+`;
+export const userFollowCategoryTopic = /* GraphQL */ `
+  mutation UserFollowCategoryTopic(
+    $user_id: Int!
+    $category_acronym: String!
+    $topic_acronym: String!
+    $email_notice: Boolean!
+    $sms_notice: Boolean!
+  ) {
+    userFollowCategoryTopic(
+      user_id: $user_id
+      category_acronym: $category_acronym
+      topic_acronym: $topic_acronym
+      email_notice: $email_notice
+      sms_notice: $sms_notice
+    ) {
+      user_id
+      categoryTopic_id
+      email_notice
+      sms_notice
     }
   }
 `;
-export const updateFollow = /* GraphQL */ `
-  mutation UpdateFollow(
-    $input: UpdateFollowInput!
-    $condition: ModelFollowConditionInput
+export const userUpdateChannelPrefence = /* GraphQL */ `
+  mutation UserUpdateChannelPrefence(
+    $user_id: Int!
+    $category_acronym: String!
+    $topic_acronym: String!
+    $email_notice: Boolean!
+    $sms_notice: Boolean!
   ) {
-    updateFollow(input: $input, condition: $condition) {
-      id
-      user {
-        id
-        email
-        phoneNumber
-        phoneId
-        province
-        postalCode
-        follows {
-          nextToken
-        }
-        createdAt
-        updatedAt
-        owner
-      }
-      topic {
-        id
-        title
-        description
-        follows {
-          nextToken
-        }
-        createdAt
-        updatedAt
-      }
-      emailNotice
-      textNotice
-      createdAt
-      updatedAt
-      userFollowsId
-      topicFollowsId
-      owner
+    userUpdateChannelPrefence(
+      user_id: $user_id
+      category_acronym: $category_acronym
+      topic_acronym: $topic_acronym
+      email_notice: $email_notice
+      sms_notice: $sms_notice
+    ) {
+      user_id
+      categoryTopic_id
+      email_notice
+      sms_notice
     }
   }
 `;
-export const deleteFollow = /* GraphQL */ `
-  mutation DeleteFollow(
-    $input: DeleteFollowInput!
-    $condition: ModelFollowConditionInput
+export const userUnfollowCategoryTopic = /* GraphQL */ `
+  mutation UserUnfollowCategoryTopic(
+    $user_id: Int!
+    $category_acronym: String!
+    $topic_acronym: String!
   ) {
-    deleteFollow(input: $input, condition: $condition) {
-      id
-      user {
-        id
-        email
-        phoneNumber
-        phoneId
-        province
-        postalCode
-        follows {
-          nextToken
-        }
-        createdAt
-        updatedAt
-        owner
-      }
-      topic {
-        id
-        title
-        description
-        follows {
-          nextToken
-        }
-        createdAt
-        updatedAt
-      }
-      emailNotice
-      textNotice
-      createdAt
-      updatedAt
-      userFollowsId
-      topicFollowsId
-      owner
+    userUnfollowCategoryTopic(
+      user_id: $user_id
+      category_acronym: $category_acronym
+      topic_acronym: $topic_acronym
+    ) {
+      user_id
+      email_address
+      phone_address
+      postal_code
+      province
     }
   }
 `;
