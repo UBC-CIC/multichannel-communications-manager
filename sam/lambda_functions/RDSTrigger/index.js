@@ -35,7 +35,7 @@ const handler = require("./helpers.js");
 /**
  * @type {import('@types/aws-lambda').APIGatewayProxyHandler}
  */
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
   // try setting the event loop setting
   // console.log("context:", context);
   // console.log("eventLoop var:", context.callbackWaitsForEmptyEventLoop);
@@ -43,7 +43,7 @@ exports.handler = async (event, context) => {
   // console.log("new context:", context);
 
   console.log(`EVENT: ${JSON.stringify(event)}`);
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     // try {
     // const forLoop = async (_) => {
     // for (let record of event.Records) {
