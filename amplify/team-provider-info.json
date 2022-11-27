@@ -1,4 +1,25 @@
 {
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-ised-dev-115239-authRole",
+      "UnauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-dev-115239-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-dev-115239-authRole",
+      "Region": "ca-central-1",
+      "DeploymentBucketName": "amplify-ised-dev-115239-deployment",
+      "UnauthRoleName": "amplify-ised-dev-115239-unauthRole",
+      "StackName": "amplify-ised-dev-115239",
+      "StackId": "arn:aws:cloudformation:ca-central-1:834289487514:stack/amplify-ised-dev-115239/dec4a530-5303-11ed-b15e-06c05dbfc37e",
+      "AmplifyAppId": "d3r4k2lt45dkzj"
+    },
+    "categories": {
+      "auth": {
+        "ised012c959f": {}
+      },
+      "function": {
+        "isedDynamoTrigger": {}
+      }
+    }
+  },
   "rds": {
     "awscloudformation": {
       "AuthRoleName": "amplify-ised-rds-210447-authRole",
@@ -14,6 +35,29 @@
     "categories": {
       "auth": {
         "ised012c959f": {}
+      },
+      "function": {
+        "isedDynamoTrigger": {}
+      }
+    }
+  },
+  "newdev": {
+    "rds": {
+      "awscloudformation": {
+        "AuthRoleName": "amplify-ised-rds-210447-authRole",
+        "UnauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-rds-210447-unauthRole",
+        "AuthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-rds-210447-authRole",
+        "Region": "ca-central-1",
+        "DeploymentBucketName": "amplify-ised-rds-210447-deployment",
+        "UnauthRoleName": "amplify-ised-rds-210447-unauthRole",
+        "StackName": "amplify-ised-rds-210447",
+        "StackId": "arn:aws:cloudformation:ca-central-1:834289487514:stack/amplify-ised-rds-210447/296f69d0-58d1-11ed-87da-02b919c3d7e0",
+        "AmplifyAppId": "d3r4k2lt45dkzj"
+      },
+      "categories": {
+        "auth": {
+          "ised012c959f": {}
+        }
       }
     }
   }
