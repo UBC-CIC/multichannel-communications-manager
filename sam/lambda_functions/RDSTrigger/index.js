@@ -44,9 +44,37 @@ exports.handler = async (event, context) => {
 
   console.log(`EVENT: ${JSON.stringify(event)}`);
   return new Promise((resolve, reject) => {
-    try {
-      const forLoop = async (_) => {
-        for (let record of event.Records) {
+    // try {
+    // const forLoop = async (_) => {
+    // for (let record of event.Records) {
+    //   let payload = record.kinesis;
+    //   console.log("printing the raw payload info ...");
+    //   console.log(payload.partitionKey);
+    //   let data = Buffer.from(payload.data, "base64").toString();
+
+    // migrateToPinpoint(JSON.parse(data), (response) =>
+    //   console.log(response)
+    // ).on((err) => reject(err));
+    // migrateToPinpoint(JSON.parse(data)).catch((err) => reject(err));
+    // }
+    // };
+    // event.Records.forEach(async (record) => {
+    //   let payload = record.kinesis;
+    //   console.log("printing the raw payload info ...");
+    //   console.log(payload.partitionKey);
+    //   let data = Buffer.from(payload.data, "base64").toString();
+
+    //   await migrateToPinpoint(JSON.parse(data));
+    // });
+    // } catch (err) {
+    //   reject(err);
+    // }
+
+    // resolve("successfully processed all records");
+    (async () => {
+      try {
+        for (var i = 0; i < event.Records.length; i++) {
+          var record = event.Records[i];
           let payload = record.kinesis;
           console.log("printing the raw payload info ...");
           console.log(payload.partitionKey);
@@ -54,20 +82,11 @@ exports.handler = async (event, context) => {
 
           await migrateToPinpoint(JSON.parse(data));
         }
-      };
-      // event.Records.forEach(async (record) => {
-      //   let payload = record.kinesis;
-      //   console.log("printing the raw payload info ...");
-      //   console.log(payload.partitionKey);
-      //   let data = Buffer.from(payload.data, "base64").toString();
-
-      //   await migrateToPinpoint(JSON.parse(data));
-      // });
-    } catch (err) {
-      reject(err);
-    }
-
-    resolve("successfully processed all records");
+        resolve("successfully processed all records");
+      } catch (err) {
+        reject(err);
+      }
+    })();
   });
 };
 
