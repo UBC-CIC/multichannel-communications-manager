@@ -2,11 +2,5 @@
   "AppSyncApiName": "ised",
   "DynamoDBBillingMode": "PAY_PER_REQUEST",
   "DynamoDBEnableServerSideEncryption": false,
-  "AuthCognitoUserPoolId": {
-    "Fn::GetAtt": [
-      "authised012c959f",
-      "Outputs.UserPoolId"
-    ]
-  },
-  "AuthModeLastUpdated": "2022-11-21T19:30:40.135Z"
+  "AuthModeLastUpdated": "2022-11-25T22:54:06.124Z"
 }

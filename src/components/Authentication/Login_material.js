@@ -11,7 +11,8 @@ import {
 import { Alert } from "@mui/lab";
 import { ArrowBack, AlternateEmail, Dialpad } from "@mui/icons-material";
 import theme from "../../themes";
-import { Auth } from "aws-amplify";
+import { Auth, API, graphqlOperation } from "aws-amplify";
+import { createUser } from "../../graphql/mutations";
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { updateLoginState } from "../../actions/loginAction";
@@ -202,7 +203,7 @@ function Login(props) {
         }
       });
       setCognitoUser(data.user);
-      updateFormState(() => ({ ...initialFormState, email }));
+      // updateFormState(() => ({ ...initialFormState, email }));
       setLoading(false);
       
       updateLoginState("confirmSignUp");
@@ -269,6 +270,38 @@ function Login(props) {
     }
   }
 
+  function convertProvinceToAcronym(province) {
+    let acronym;
+    if (province === "Alberta") {
+      acronym = "AB"
+    } else if (province === "British Columbia") {
+      acronym = "BC"
+    } else if (province === "Manitoba") {
+      acronym = "MB"
+    } else if (province === "New Brunswick") {
+      acronym = "NB"
+    } else if (province === "Newfoundland and Labrador") {
+      acronym = "NL"
+    } else if (province === "Northwest Territories") {
+      acronym = "NT"
+    } else if (province === "Nova Scotia") {
+      acronym = "NS"
+    } else if (province === "Nunavut") {
+      acronym = "NU"
+    } else if (province === "Ontario") {
+      acronym = "ON"
+    } else if (province === "Prince Edward Island") {
+      acronym = "PE"
+    } else if (province === "Quebec") {
+      acronym = "QC"
+    } else if (province === "Saskatchewan") {
+      acronym = "SK"
+    } else {
+      acronym = "YT"
+    }
+    return acronym
+  }
+
   const verifyEmail = () => {
     if (formState.authCode === "") {
       setEmptyAuthCode(true)
@@ -281,13 +314,22 @@ function Login(props) {
           // Optional. Force user confirmation irrespective of existing alias. By default set to True.
           forceAliasCreation: true,
         })
-          .then((data) => handleNextStep())
+          .then(async (data) => {
+            // let prov = convertProvinceToAcronym(formState.province)
+            // const userData = {
+            //   email_address: formState.email,
+            //   postal_code: formState.postal_code,
+            //   province: prov
+            // }
+            // await API.graphql(graphqlOperation(createUser, userData))
+            handleNextStep()
+          })
           .catch((e) => {
             const errorMsg = e.message;
-
-            if (errorMsg.includes("Invalid verification code provided, please try again.")) {
-              setVerificationError(true)
-            }
+            console.log(e)
+            // if (errorMsg.includes("Invalid verification code provided, please try again.")) {
+            //   setVerificationError(true)
+            // }
           });
       }
       //the following if block runs during user sign in
@@ -300,6 +342,7 @@ function Login(props) {
   /* functions for user sign in */
   async function signIn() {
     try {
+      setLoading(true)
       const { email } = formState;
       if (email === "") {
         setInvalidEmailError(true)
@@ -309,6 +352,7 @@ function Login(props) {
         updateLoginState("verifyEmail");
         setActiveStep(1);
       }
+      setLoading(false)
     } catch (e) {
       setLoading(false);
       const errorMsg = e.message;

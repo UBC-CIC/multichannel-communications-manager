@@ -13,6 +13,7 @@ import React from "react";
 const NotificationPreferencesDialog = ({
   open,
   handleClose,
+  handleSave,
   selectedTopic,
   selectedNotifications,
   setSelectedNotifications,
@@ -98,7 +99,7 @@ const NotificationPreferencesDialog = ({
             <Button
               variant="contained"
               sx={{ width: "30%" }}
-              onClick={handleClose}
+              onClick={handleSave}
             >
               Save
             </Button>

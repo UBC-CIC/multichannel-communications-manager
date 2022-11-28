@@ -33,11 +33,23 @@
       "AmplifyAppId": "d3r4k2lt45dkzj"
     },
     "categories": {
-      "auth": {
-        "ised012c959f": {}
+      "api": {
+        "ised": {}
       },
-      "function": {
-        "isedDynamoTrigger": {}
+      "auth": {
+        "ised1a75b9f9": {
+          "userPoolId": "ca-central-1_NniEEJcEa",
+          "userPoolName": "ised012c959f_userpool_012c959f-dev",
+          "webClientId": "6dtcijfoh4qj8f9egsilrtqom9",
+          "nativeClientId": "6t08altha3t8j981nbknst63gc",
+          "identityPoolId": "ca-central-1:c37951b7-a685-421b-9ad2-85b85e456c67",
+          "identityPoolName": "ised012c959f_identitypool_012c959f__dev",
+          "allowUnauthenticatedIdentities": false,
+          "authRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-dev-115239-authRole",
+          "authRoleName": "amplify-ised-dev-115239-authRole",
+          "unauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-dev-115239-unauthRole",
+          "unauthRoleName": "amplify-ised-dev-115239-unauthRole"
+        }
       }
     }
   },

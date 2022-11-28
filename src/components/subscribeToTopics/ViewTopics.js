@@ -12,6 +12,8 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
+import { API, graphqlOperation } from "aws-amplify"
+import { getAllCategories } from "../../graphql/queries";
 import { styled } from "@mui/material/styles";
 import TopicCard from "../TopicCard";
 
@@ -34,55 +36,56 @@ const StyledImageListItem = styled(ImageListItem)`
 
 const ViewTopics = () => {
   //hard coded mock data for now, to be replaced with queried data
-  const sampleTopics = [
-    {
-      title: "Health",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Insolvency",
-      description:
-        "Consumer proposals, bankruptcy and how to find a Licensed Insolvency Trustee.",
-    },
-    {
-      title: "Money and Finances",
-      description:
-        "Managing your money, debt and investments, planning for retirement and protecting yourself from consumer fraud.",
-    },
-    {
-      title: "Federal Corporations",
-      description:
-        "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
-    },
-    {
-      title: "Sample 5",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 6",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 7",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 8",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 9",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-  ];
+  // const sampleTopics = [
+  //   {
+  //     title: "Health",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Insolvency",
+  //     description:
+  //       "Consumer proposals, bankruptcy and how to find a Licensed Insolvency Trustee.",
+  //   },
+  //   {
+  //     title: "Money and Finances",
+  //     description:
+  //       "Managing your money, debt and investments, planning for retirement and protecting yourself from consumer fraud.",
+  //   },
+  //   {
+  //     title: "Federal Corporations",
+  //     description:
+  //       "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
+  //   },
+  //   {
+  //     title: "Sample 5",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Sample 6",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Sample 7",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Sample 8",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Sample 9",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  // ];
 
   //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
+  const [sampleTopics, setSampleTopics] = useState([])
   const [allSelectedTopics, setAllSelectedTopics] = useState();
   const [selectedSubtopics, setSelectedSubtopics] = useState([]);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
@@ -91,8 +94,15 @@ const ViewTopics = () => {
   const [pageCount, setPageCount] = useState();
   const topicsPerPage = 8;
 
+  async function queriedData() {
+    let categories = await API.graphql(graphqlOperation(getAllCategories))
+    let allCategories = categories.data.getAllCategories
+    setSampleTopics(allCategories)
+  }
+
   //updates pagination
   useEffect(() => {
+    queriedData()
     //change this to use queried data later
     const topicsPageCount =
       sampleTopics &&
