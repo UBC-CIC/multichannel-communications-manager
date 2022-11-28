@@ -149,36 +149,36 @@ async function migrateToPinpoint(record) {
             break;
         }
         break;
-      case "CategoryTopic":
-        switch (operation) {
-          case "insert":
-            handler
-              .createSegment(
-                data.category_acronym + "-" + data.topic_acronym,
-                "EMAIL"
-              )
-              .then((response) => {
-                console.log("createSegment response: ", response);
-                return handler.createSegment(
-                  data.category_acronym + "-" + data.topic_acronym,
-                  "SMS"
-                );
-              })
-              .then((response) => {
-                console.log("second createSegment response: ", response);
-                resolve(response);
-              })
-              .catch((err) => {
-                console.log(err);
-                reject(err);
-              });
-            break;
-          case "update":
-            break;
-          case "remove":
-            break;
-        }
-        break;
+      // case "CategoryTopic":
+      //   switch (operation) {
+      //     case "insert":
+      //       handler
+      //         .createSegment(
+      //           data.category_acronym + "-" + data.topic_acronym,
+      //           "EMAIL"
+      //         )
+      //         .then((response) => {
+      //           console.log("createSegment response: ", response);
+      //           return handler.createSegment(
+      //             data.category_acronym + "-" + data.topic_acronym,
+      //             "SMS"
+      //           );
+      //         })
+      //         .then((response) => {
+      //           console.log("second createSegment response: ", response);
+      //           resolve(response);
+      //         })
+      //         .catch((err) => {
+      //           console.log(err);
+      //           reject(err);
+      //         });
+      //       break;
+      //     case "update":
+      //       break;
+      //     case "remove":
+      //       break;
+      //   }
+      //   break;
       case "UserCategoryTopic":
         switch (operation) {
           case "insert":
