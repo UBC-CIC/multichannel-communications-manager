@@ -395,29 +395,29 @@ Resources:
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
 
-  DMSSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: DMS security group. Outbound only traffic.
-      VpcId: !Ref VPC
+  # DMSSecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupDescription: DMS security group. Outbound only traffic.
+  #     VpcId: !Ref VPC
 
-  DMSVPCRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-              - dms.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Description: Role for DMS to assume role
-      Path: /
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole
-      RoleName: dms-vpc-role
+  # DMSVPCRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service:
+  #             - dms.amazonaws.com
+  #           Action:
+  #             - 'sts:AssumeRole'
+  #     Description: Role for DMS to assume role
+  #     Path: /
+  #     ManagedPolicyArns:
+  #       - arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole
+  #     RoleName: dms-vpc-role
     
 
 # RDS #########################################
@@ -1928,75 +1928,75 @@ Resources:
 
   # need #############
   #Kinesis Resource
-  RDSKinesisStream:
-    Type: AWS::Kinesis::Stream
-    Properties:
-      Name: "rdsStream"
-      ShardCount: 1
-      StreamEncryption:
-        EncryptionType: KMS
-        KeyId: alias/aws/kinesis
-  KinesisServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-              - dms.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Description: Role for DMS to publish to Kinesis
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonKinesisFullAccess
-      RoleName: DMSToKinesisRole
+  # RDSKinesisStream:
+  #   Type: AWS::Kinesis::Stream
+  #   Properties:
+  #     Name: "rdsStream"
+  #     ShardCount: 1
+  #     StreamEncryption:
+  #       EncryptionType: KMS
+  #       KeyId: alias/aws/kinesis
+  # KinesisServiceRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service:
+  #             - dms.amazonaws.com
+  #           Action:
+  #             - 'sts:AssumeRole'
+  #     Description: Role for DMS to publish to Kinesis
+  #     ManagedPolicyArns:
+  #       - arn:aws:iam::aws:policy/AmazonKinesisFullAccess
+  #     RoleName: DMSToKinesisRole
   #DMS Resources
-  SourceEndpoint:
-    Type: "AWS::DMS::Endpoint"
-    Properties:
-      DatabaseName: sys
-      EndpointType: source
-      EngineName: mysql
-      Password: !Ref DBPassword
-      Port: 3306
-      ServerName: !GetAtt MainDBCluster.Endpoint.Address
-      Username: !Ref DBUser
-  TargetEndpoint:
-    Type: "AWS::DMS::Endpoint"
-    Properties:
-      EndpointType: target
-      EngineName: kinesis
-      KinesisSettings: #object
-        MessageFormat: "JSON"
-        ServiceAccessRoleArn: !GetAtt KinesisServiceRole.Arn
-        StreamArn: !GetAtt RDSKinesisStream.Arn
-  MyReplicationSubnetGroup:
-    Type: AWS::DMS::ReplicationSubnetGroup
-    Properties:
-      ReplicationSubnetGroupDescription: RDSReplicationSubnetGroup
-      SubnetIds:
-      - Ref: PrivateSubnet3
-      - Ref: PrivateSubnet4
-  BasicReplicationInstance:
-      Type: "AWS::DMS::ReplicationInstance"
-      Properties:
-        ReplicationInstanceClass: dms.t2.micro
-        ReplicationSubnetGroupIdentifier: !Ref MyReplicationSubnetGroup
-        PubliclyAccessible: false
-        AllocatedStorage: 10
-        VpcSecurityGroupIds:
-        - !Ref DMSSecurityGroup
-  BasicReplicationTask:
-    Type: AWS::DMS::ReplicationTask
-    Properties:
-      ReplicationInstanceArn: !Ref BasicReplicationInstance
-      ReplicationTaskIdentifier: RDSReplicationTask
-      MigrationType: cdc
-      SourceEndpointArn: !Ref SourceEndpoint
-      TargetEndpointArn: !Ref TargetEndpoint
-      TableMappings: "{ \"rules\": [ { \"rule-type\": \"selection\", \"rule-id\": \"1\", \"rule-name\": \"1\", \"object-locator\": { \"schema-name\": \"sys\", \"table-name\": \"%\" }, \"rule-action\": \"include\" } ] }"
+  # SourceEndpoint:
+  #   Type: "AWS::DMS::Endpoint"
+  #   Properties:
+  #     DatabaseName: sys
+  #     EndpointType: source
+  #     EngineName: mysql
+  #     Password: !Ref DBPassword
+  #     Port: 3306
+  #     ServerName: !GetAtt MainDBCluster.Endpoint.Address
+  #     Username: !Ref DBUser
+  # TargetEndpoint:
+  #   Type: "AWS::DMS::Endpoint"
+  #   Properties:
+  #     EndpointType: target
+  #     EngineName: kinesis
+  #     KinesisSettings: #object
+  #       MessageFormat: "JSON"
+  #       ServiceAccessRoleArn: !GetAtt KinesisServiceRole.Arn
+  #       StreamArn: !GetAtt RDSKinesisStream.Arn
+  # MyReplicationSubnetGroup:
+  #   Type: AWS::DMS::ReplicationSubnetGroup
+  #   Properties:
+  #     ReplicationSubnetGroupDescription: RDSReplicationSubnetGroup
+  #     SubnetIds:
+  #     - Ref: PrivateSubnet3
+  #     - Ref: PrivateSubnet4
+  # BasicReplicationInstance:
+  #     Type: "AWS::DMS::ReplicationInstance"
+  #     Properties:
+  #       ReplicationInstanceClass: dms.t2.micro
+  #       ReplicationSubnetGroupIdentifier: !Ref MyReplicationSubnetGroup
+  #       PubliclyAccessible: false
+  #       AllocatedStorage: 10
+  #       VpcSecurityGroupIds:
+  #       - !Ref DMSSecurityGroup
+  # BasicReplicationTask:
+  #   Type: AWS::DMS::ReplicationTask
+  #   Properties:
+  #     ReplicationInstanceArn: !Ref BasicReplicationInstance
+  #     ReplicationTaskIdentifier: RDSReplicationTask
+  #     MigrationType: cdc
+  #     SourceEndpointArn: !Ref SourceEndpoint
+  #     TargetEndpointArn: !Ref TargetEndpoint
+  #     TableMappings: "{ \"rules\": [ { \"rule-type\": \"selection\", \"rule-id\": \"1\", \"rule-name\": \"1\", \"object-locator\": { \"schema-name\": \"sys\", \"table-name\": \"%\" }, \"rule-action\": \"include\" } ] }"
 
   # SES
   SESIdentity:
@@ -2082,25 +2082,25 @@ Resources:
   #         - String
 
 
-  HelperLambdaPolicy:
-    Type: 'AWS::IAM::Policy'
-    Properties:
-      PolicyName: RDSHelperLambdaPolicy
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - "mobiletargeting:CreateImportJob"
-              - "mobiletargeting:GetImportJobs"
-              - "mobiletargeting:UpdateEndpoint"
-              - "mobiletargeting:DeleteEndpoint"
-              - "mobiletargeting:PhoneNumberValidate"
-              - "iam:GetRole"
-              - "iam:PassRole"
-            Resource: '*'
-      Roles:
-        - !Ref HelperLambdaRole
+  # HelperLambdaPolicy:
+  #   Type: 'AWS::IAM::Policy'
+  #   Properties:
+  #     PolicyName: RDSHelperLambdaPolicy
+  #     PolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Effect: Allow
+  #           Action:
+  #             - "mobiletargeting:CreateImportJob"
+  #             - "mobiletargeting:GetImportJobs"
+  #             - "mobiletargeting:UpdateEndpoint"
+  #             - "mobiletargeting:DeleteEndpoint"
+  #             - "mobiletargeting:PhoneNumberValidate"
+  #             - "iam:GetRole"
+  #             - "iam:PassRole"
+  #           Resource: '*'
+  #     Roles:
+  #       - !Ref HelperLambdaRole
   
   # RDSPinPointLambda:
   #   Type: AWS::Lambda::Function
@@ -2189,36 +2189,36 @@ Resources:
   #     Environment:
   #       Variables:
   #         PINPOINT_APPID: !Ref PinpointApp
-  RDSPinPointLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./lambda_functions/RDSTrigger/
-      Handler: index.handler
-      Runtime: nodejs16.x
-      Timeout: 30
-      MemorySize: 3008
-      Role: 
-        # !Ref HelperLambdaRoleArn
-        !GetAtt HelperLambdaRole.Arn
-      # Layers:
-      # - !Ref RDSPinpointLambdaLayers
-      Environment:
-        Variables:
-          PINPOINT_APPID: !Ref PinpointApp
-        # TODO: Add graphql endpoint variable here
-          # GRAPHQL_ENDPOINT: !Ref 
-          REGION: "ca-central-1"
-      Events:
-        # Properties: Kinesis
-        # Type: Kinesis
-        KinesisEvent:
-          Type: Kinesis
-          Properties:
-            Stream: !GetAtt RDSKinesisStream.Arn
-            BatchSize: 10
-            MaximumBatchingWindowInSeconds: 10
-            MaximumRecordAgeInSeconds: 60
-            StartingPosition: "LATEST"
+  # RDSPinPointLambda:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: ./lambda_functions/RDSTrigger/
+  #     Handler: index.handler
+  #     Runtime: nodejs16.x
+  #     Timeout: 30
+  #     MemorySize: 3008
+  #     Role: 
+  #       # !Ref HelperLambdaRoleArn
+  #       !GetAtt HelperLambdaRole.Arn
+  #     # Layers:
+  #     # - !Ref RDSPinpointLambdaLayers
+  #     Environment:
+  #       Variables:
+  #         PINPOINT_APPID: !Ref PinpointApp
+  #       # TODO: Add graphql endpoint variable here
+  #         # GRAPHQL_ENDPOINT: !Ref 
+  #         REGION: "ca-central-1"
+  #     Events:
+  #       # Properties: Kinesis
+  #       # Type: Kinesis
+  #       KinesisEvent:
+  #         Type: Kinesis
+  #         Properties:
+  #           Stream: !GetAtt RDSKinesisStream.Arn
+  #           BatchSize: 10
+  #           MaximumBatchingWindowInSeconds: 10
+  #           MaximumRecordAgeInSeconds: 60
+  #           StartingPosition: "LATEST"
 
   # RDSPinpointLambdaLayers:
   #   Type: AWS::Serverless::LayerVersion
