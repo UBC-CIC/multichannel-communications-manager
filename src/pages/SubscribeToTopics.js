@@ -5,7 +5,7 @@ import ViewTopics from "../components/subscribeToTopics/ViewTopics";
 const SubscribeToTopics = () => {
   return (
     <Box>
-      <Typography variant="h2" sx={{ mb: "1em" }}>
+      <Typography variant="h3" sx={{ mb: "1em" }}>
         Topics of Interest
       </Typography>
       <ViewTopics />

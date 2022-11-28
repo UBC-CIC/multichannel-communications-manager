@@ -15,6 +15,8 @@ import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
 import { styled } from "@mui/material/styles";
+import { API, graphqlOperation } from "aws-amplify"
+import { getAllCategories } from "../../graphql/queries";
 import "./Login.css";
 import theme from "../../themes";
 import TopicCard from "../TopicCard";
@@ -48,29 +50,30 @@ const StyledImageListItem = styled(ImageListItem)`
 
 const SelectTopics = ({ handleNextStep }) => {
   //hard coded mock data for now, to be replaced with queried data
-  const sampleTopics = [
-    {
-      title: "Health",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Insolvency",
-      description:
-        "Consumer proposals, bankruptcy and how to find a Licensed Insolvency Trustee.",
-    },
-    {
-      title: "Money and Finances",
-      description:
-        "Managing your money, debt and investments, planning for retirement and protecting yourself from consumer fraud.",
-    },
-    {
-      title: "Federal Corporations",
-      description:
-        "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
-    },
-  ];
+  // const sampleTopics = [
+  //   {
+  //     title: "Health",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Insolvency",
+  //     description:
+  //       "Consumer proposals, bankruptcy and how to find a Licensed Insolvency Trustee.",
+  //   },
+  //   {
+  //     title: "Money and Finances",
+  //     description:
+  //       "Managing your money, debt and investments, planning for retirement and protecting yourself from consumer fraud.",
+  //   },
+  //   {
+  //     title: "Federal Corporations",
+  //     description:
+  //       "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
+  //   },
+  // ];
 
+  const [sampleTopics, setSampleTopics] = useState([]);
   //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
   const [allSelectedTopics, setAllSelectedTopics] = useState();
   const [selectedSubtopics, setSelectedSubtopics] = useState([]);
@@ -80,8 +83,15 @@ const SelectTopics = ({ handleNextStep }) => {
   const [pageCount, setPageCount] = useState();
   const topicsPerPage = 3;
 
+  async function queriedData() {
+    let categories = await API.graphql(graphqlOperation(getAllCategories))
+    let filteredData = categories.data.getAllCategories
+    setSampleTopics(filteredData)
+  }
+
   //updates pagination
   useEffect(() => {
+    queriedData()
     //change this to use queried data later
     const topicsPageCount =
       sampleTopics &&

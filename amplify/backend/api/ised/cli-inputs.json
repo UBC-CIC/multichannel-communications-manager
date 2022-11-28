@@ -6,15 +6,10 @@
     "defaultAuthType": {
       "mode": "API_KEY",
       "expirationTime": 10,
-      "apiKeyExpirationDate": "2022-12-01T19:30:34.465Z",
+      "apiKeyExpirationDate": "2022-12-05T22:53:02.346Z",
       "keyDescription": "rds appsync api key"
     },
     "conflictResolution": {},
-    "additionalAuthTypes": [
-      {
-        "mode": "AMAZON_COGNITO_USER_POOLS",
-        "cognitoUserPoolId": "authised012c959f"
-      }
-    ]
+    "additionalAuthTypes": []
   }
 }

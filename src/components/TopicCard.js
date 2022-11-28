@@ -13,9 +13,11 @@ import {
   Checkbox,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Auth } from "aws-amplify"
 import NotificationPreferencesDialog from "./NotificationPreferencesDialog";
 import "./TopicCard.css";
+import PhoneNumberDialog from "./PhoneNumberDialog";
 
 const TopicCard = ({
   selectedTopic,
@@ -25,15 +27,95 @@ const TopicCard = ({
   const { title, description, image } = selectedTopic;
   const initialNotificationSelection = { text: false, email: false };
   const [openNotificationDialog, setOpenNotificationDialog] = useState(false);
+  const [openPhoneDialog, setOpenPhoneDialog] = useState(false);
   const [selectedNotifications, setSelectedNotifications] = useState(
     initialNotificationSelection
   );
   const [isRotated, setIsRotated] = useState(false);
+  const [userPhone, setUserPhone] = useState("")
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [verificationCode, setVerificationCode] = useState("")
+  const [invalidInputError, setInvalidInputError] = useState(false)
+  const [phoneDialogState, setPhoneDiologState] = useState("noPhone")
+  const [user, setUser] = useState("")
   //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
   const subtopics = ["COVID-19", "Subtopic 2", "Subtopic 3", "Subtopic 4"];
 
+  useEffect(() => {
+    async function retrieveUser() {
+      try {
+        const returnedUser = await Auth.currentAuthenticatedUser();
+        setUser(returnedUser)
+        setUserPhone(returnedUser.attributes.phoneNumber)
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    retrieveUser();
+  }, []);
+
+  function checkPhone(num) {
+    var regex = new RegExp(/\(?([0-9]{3})\)?([ .-]?)([0-9]{3})\2([0-9]{4})/);
+    if (regex.test(num))
+      return true;
+    else return false;
+  }
+
+  const handleSavePhoneDialog = async () => {
+    if (phoneDialogState === "noPhone") {
+      await Auth.updateUserAttributes(user, {
+        phone_number: phoneNumber,
+      })
+        .then(async () => {
+          await Auth.verifyCurrentUserAttribute("phone_number")
+          setPhoneDiologState("verifyPhone")
+        })
+        .catch((e) => {
+          console.log(e)
+          setInvalidInputError(e.message)
+        })
+      // if (phoneNumber === "" || !checkPhone(phoneNumber)) {
+      //   setInvalidInputError(true)
+      // } else {
+      //   await Auth.updateUserAttributes(user, {
+      //     phone_number: phoneNumber,
+      //   })
+      //     .catch((e) => {
+      //       console.log(e)
+      //     })
+      //   setPhoneDiologState("verifyPhone")
+      // }
+    } else if (phoneDialogState === "verifyPhone") {
+      // if (verificationCode === "") {
+      //   setInvalidInputError(true)
+      // } else {
+      await Auth.verifyCurrentUserAttributeSubmit('phone_number', verificationCode)
+        .then(() => {
+          console.log('phone number verified');
+          setPhoneDiologState("phoneSaved")
+        }).catch((e) => {
+          console.log('failed with error', e);
+          setInvalidInputError(true)
+        });
+      // }
+    } else {
+      setOpenPhoneDialog(false)
+    }
+  }
+
   const handleCloseNotificationDialog = () => {
     setOpenNotificationDialog(false);
+  };
+
+  const handleSaveNotificationDialog = () => {
+    if (selectedNotifications.text && userPhone === undefined) {
+      setOpenPhoneDialog(true)
+    }
+  }
+
+  const handleClosePhoneDialog = () => {
+    setSelectedNotifications({text: false})
+    setOpenPhoneDialog(false);
   };
 
   //updates setSelectedSubtopics every time subtopics are selected/unselected by user
@@ -118,9 +200,22 @@ const TopicCard = ({
         <NotificationPreferencesDialog
           open={openNotificationDialog}
           handleClose={handleCloseNotificationDialog}
+          handleSave={handleSaveNotificationDialog}
           selectedTopic={selectedTopic}
           selectedNotifications={selectedNotifications}
           setSelectedNotifications={setSelectedNotifications}
+        />
+        <PhoneNumberDialog
+          open={openPhoneDialog}
+          handleClose={handleClosePhoneDialog}
+          handleSave={handleSavePhoneDialog}
+          state={phoneDialogState}
+          phone={phoneNumber}
+          setPhone={setPhoneNumber}
+          code={verificationCode}
+          setCode={setVerificationCode}
+          inputError={invalidInputError}
+          setInputError={setInvalidInputError}
         />
       </>
     );
