@@ -16,6 +16,7 @@ import ImageListItem, {
 } from "@mui/material/ImageListItem";
 import { styled } from "@mui/material/styles";
 import { API, graphqlOperation } from "aws-amplify"
+import { userFollowCategoryTopic } from "../../graphql/mutations"
 import { getAllCategories } from "../../graphql/queries";
 import "./Login.css";
 import theme from "../../themes";
@@ -75,8 +76,9 @@ const SelectTopics = ({ handleNextStep }) => {
 
   const [sampleTopics, setSampleTopics] = useState([]);
   //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
-  const [allSelectedTopics, setAllSelectedTopics] = useState();
+  const [allSelectedTopics, setAllSelectedTopics] = useState([]);
   const [selectedSubtopics, setSelectedSubtopics] = useState([]);
+  const [saveEnabled, setSaveEnabled] = useState(false);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
   //for pagination
   const [page, setPage] = useState(1);
@@ -136,6 +138,32 @@ const SelectTopics = ({ handleNextStep }) => {
     );
   };
 
+  async function nextClicked() {
+    const allSelectedTopicsTemp = allSelectedTopics
+    for (var i = 0; i < allSelectedTopicsTemp.length; i++) {
+      await API.graphql(graphqlOperation(userFollowCategoryTopic, allSelectedTopicsTemp[i]))   
+    }
+    handleNextStep()
+  }
+
+  function backClicked() {
+    const allSelectedTopicsTemp = allSelectedTopics
+    if (allSelectedTopicsTemp.filter((s) => s.category_acronym === currentlySelectedTopic.acronym).length === 0) {
+      if (!saveEnabled) {
+        let splitSubtopics = []
+        for (let x = 0; x < selectedSubtopics.length; x++) {
+          let topicTitle = selectedSubtopics[x].split("/")
+          splitSubtopics.push(topicTitle)
+        }
+        let subtopicsForThisTopic = splitSubtopics.filter((s) => s[0] === currentlySelectedTopic.title)
+        for (let i = 0; i < subtopicsForThisTopic.length; i++) {
+          setSelectedSubtopics((prev) => prev.filter((s) => !(s.includes(currentlySelectedTopic.title))))
+        }
+      }
+    }
+    setCurrentlySelectedTopic()
+  }
+
   return (
     <Grid
       sx={{
@@ -159,15 +187,18 @@ const SelectTopics = ({ handleNextStep }) => {
             color="primary"
             aria-label="back to topic options"
             component="label"
-            onClick={() => setCurrentlySelectedTopic()}
+            onClick={backClicked}
             sx={{ mb: "0.5em" }}
           >
             <ArrowBackIcon />
           </IconButton>
           <TopicCard
             selectedTopic={currentlySelectedTopic}
+            setSaveEnabled={setSaveEnabled}
             selectedSubTopics={selectedSubtopics}
             setSelectedSubtopics={setSelectedSubtopics}
+            allSelectedTopics={allSelectedTopics}
+            setAllSelectedTopics={setAllSelectedTopics}
           />
         </Box>
       ) : (
@@ -237,7 +268,7 @@ const SelectTopics = ({ handleNextStep }) => {
           <SubmitButton
             sx={{ mt: "2em" }}
             variant="contained"
-            onClick={handleNextStep}
+            onClick={nextClicked}
           >
             Next
           </SubmitButton>

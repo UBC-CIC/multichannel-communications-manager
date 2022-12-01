@@ -15,7 +15,7 @@ import ImageListItem, {
 import { API, graphqlOperation } from "aws-amplify"
 import { getAllCategories } from "../../graphql/queries";
 import { styled } from "@mui/material/styles";
-import TopicCard from "../TopicCard";
+import ViewTopicsCard from "./ViewTopicsCard";
 
 const StyledImageListItemBar = styled(ImageListItemBar)`
   .MuiImageListItemBar-title {
@@ -172,7 +172,7 @@ const ViewTopics = () => {
           >
             <ArrowBackIcon />
           </IconButton>
-          <TopicCard
+          <ViewTopicsCard
             selectedTopic={currentlySelectedTopic}
             selectedSubTopics={selectedSubtopics}
             setSelectedSubtopics={setSelectedSubtopics}
