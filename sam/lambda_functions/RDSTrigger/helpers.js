@@ -373,6 +373,6 @@ module.exports = {
   upsertEndpoint,
   upsertUserProfile,
   deleteUser,
-  createSegment,
+  // createSegment,
   updateTopicChannel,
 };
