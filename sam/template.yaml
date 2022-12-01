@@ -1421,7 +1421,7 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `User` (email_address, phone_address, phone_id, postal_code, province) values (:email_address, :phone_address, null, :postal_code, :province);",
+        "sql": "insert into `User` (email_address, phone_address, postal_code, province) values (:email_address, :phone_address, :postal_code, :province);",
         "variableMapping": {
         ":email_address": "$context.arguments.email_address",
         ":phone_address": $phone_address,
@@ -1429,19 +1429,32 @@ Resources:
         ":postal_code": $postal_code,
         ":province": "$context.arguments.province"
         },
+        "pinpoint":{"type": "userprofile", "action": "insert"},
         "responseSQL": "select * from `User` where email_address=:email_address"
         }
         }
-
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
+      # DataSourceName: !GetAtt LambdaAppSyncDataSource.Name      
+      MaxBatchSize: 0
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
-      MaxBatchSize: 0
+      # PipelineConfig: 
+      #   Functions:
+      #   - !GetAtt CreatePinpointUserFunction.FunctionId
+
+  # CreatePinpointUserFunction:
+  #   Type: AWS::AppSync::FunctionConfiguration
+  #   Properties: 
+  #     ApiId: !GetAtt GraphQlApiIdParameter.Value
+  #     Code: String
+  #     DataSourceName: NONE
+  #     Name: createPinpointUserFunction
+  #     Runtime: APPSYNC_JS
 
   updateUserResolver:
     Type: AWS::AppSync::Resolver
@@ -1496,6 +1509,7 @@ Resources:
         ":province": "$context.arguments.province",
         ":postal_code": "$context.arguments.postal_code",
         },
+        "pinpoint":{"type": "userprofile", "action": "update"},
         "responseSQL": "select * from `User` where user_id=:user_id;"
         }
         }
@@ -1504,7 +1518,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1526,14 +1540,15 @@ Resources:
             "sql": "DELETE FROM `User` WHERE user_id=:1",
             "variableMapping": {
                 ":1": $context.arguments.user_id
-            }
+            },
+          "pinpoint":{"type": "userprofile", "action": "delete"}
           }
           }
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        "'Delete succeeded'"
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1621,7 +1636,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1680,7 +1695,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1708,7 +1723,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        "'Delete succeeded'"
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1738,7 +1753,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1767,7 +1782,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        "Delete succeeded"
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1841,7 +1856,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1888,7 +1903,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1919,7 +1934,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        "Delete succeeded"
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT

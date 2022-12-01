@@ -1,3 +1,13 @@
+const gqlRequest = require("graphql-request");
+
+const GRAPHQL_ENDPOINT =
+  // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIENDPOINTOUTPUT;
+  "https://qxohgzahbvhytksiegrj4macla.appsync-api.ca-central-1.amazonaws.com/graphql";
+const GRAPHQL_API_KEY =
+  // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIKEYOUTPUT;
+  "da2-ghgkjvxhr5dgvgz7iopp2of6pm";
+const handler = require("./helpers.js");
+
 const mysql = require("mysql");
 let dbInit = false;
 
@@ -129,7 +139,7 @@ exports.handler = async (event) => {
   // called whenever a GraphQL event is received
   console.log("Received event", JSON.stringify(event, null, 3));
 
-  let result;
+  let result = {};
   if (!dbInit) {
     try {
       await conditionallyCreateDB(connection);
@@ -143,6 +153,7 @@ exports.handler = async (event) => {
   }
 
   let sql_statements = event.sql.split(";"); // splits up multiple SQL statements into an array
+  // try {
   for (let sql_statement of sql_statements) {
     // iterate through the SQL statements
     if (sql_statement.length < 3) {
@@ -156,7 +167,7 @@ exports.handler = async (event) => {
       connection
     );
     // execute the sql statement on our database
-    result = await executeSQL(connection, inputSQL);
+    result.sqlResult = await executeSQL(connection, inputSQL);
   }
 
   // for secondary SQL statement to execute, like a SELECT after an INSERT
@@ -166,8 +177,93 @@ exports.handler = async (event) => {
       event.variableMapping,
       connection
     );
-    result = await executeSQL(connection, responseSQL);
+    result.sqlResult = await executeSQL(connection, responseSQL);
   }
-  console.log("Finished execution");
+  console.log("Finished SQL execution");
+  // } catch (err) {
+  //   result.sqlResult = err;
+  // }
+
+  try {
+    if (event.pinpoint) {
+      const pinpointAction = event.pinpoint;
+      switch (pinpointAction.type) {
+        case "userprofile":
+          switch (pinpointAction.action) {
+            case "insert":
+            // case "update":
+            //   handler
+            //     .upsertUserProfile(
+            //       event.variableMapping.user_id,
+            //       event.variableMapping.province,
+            //       event.variableMapping.postal_code
+            //     )
+            //     .then((response) => {
+            //       console.log("upsertUserProfile response: ", response);
+            //       return handler.upsertEndpoint(
+            //         data.user_id.toString(),
+            //         "EMAIL" + "_" + data.user_id.toString(),
+            //         data.email_address,
+            //         "EMAIL"
+            //       );
+            //     })
+            //     .then((response) => {
+            //       console.log("upsertEndpoint response: ", response);
+            //       if (data.phone_address) {
+            //         result = handler.upsertEndpoint(
+            //           data.user_id.toString(),
+            //           "PHONE" + "_" + data.phone_address,
+            //           data.phone_address,
+            //           "SMS"
+            //         );
+            //       } else {
+            //         return "success";
+            //       }
+            //     })
+            //     .then((response) => {
+            //       console.log("second upsertEndpoint response: ", response);
+            //       result.pinpointResult = "success";
+            //     })
+            //     .catch((err) => {
+            //       console.log("handler err: ", err);
+            //     });
+            //   break;
+            case "update":
+              let upsertUserProfileResponse = await handler.upsertUserProfile(
+                event.variableMapping.user_id,
+                event.variableMapping.province,
+                event.variableMapping.postal_code
+              );
+              console.log("upsertUserProfile response: ", response);
+              let upsertEmailResponse = await handler.upsertEndpoint(
+                data.user_id.toString(),
+                "EMAIL" + "_" + data.user_id.toString(),
+                data.email_address,
+                "EMAIL"
+              );
+
+              console.log("upsertEndpoint response: ", upsertEmailResponse);
+              if (data.phone_address) {
+                let upsertPhoneResponse = await handler.upsertEndpoint(
+                  data.user_id.toString(),
+                  "PHONE" + "_" + data.phone_address,
+                  data.phone_address,
+                  "SMS"
+                );
+              } else {
+                result.pinpointResult = "success";
+              }
+          }
+          break;
+        case "REMOVE":
+          result = handler.deleteUser(data.user_id.toString());
+          break;
+      }
+    }
+  } catch (err) {
+    result.pinpointResult = err;
+  }
+
+  console.log("return: ", result);
   return result;
 };
