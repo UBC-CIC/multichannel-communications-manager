@@ -47,6 +47,7 @@ const TopicCard = ({
   const [phoneDialogState, setPhoneDiologState] = useState("noPhone")
   const [subtopics, setSubtopics] = useState([])
   const [noTopicSelected, setNoTopicSelected] = useState(false)
+  const [noPreferenceSelected, setNoPreferenceSelected] = useState(false)
   const [userID, setUserID] = useState("")
   //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
   // const subtopics = ["COVID-19", "Subtopic 2", "Subtopic 3", "Subtopic 4"];
@@ -122,12 +123,15 @@ const TopicCard = ({
 
   const handleCloseNotificationDialog = () => {
     setNoTopicSelected(false)
+    setNoPreferenceSelected(false)
     setOpenNotificationDialog(false);
   };
 
   const handleSaveNotificationDialog = () => {
-    if (!selectedNotifications.text && !selectedNotifications.email) {
-      setOpenNotificationDialog(false)
+    if (selectedNotifications.text && userPhone === undefined) {
+      setOpenPhoneDialog(true)
+    } else if (!selectedNotifications.text && !selectedNotifications.email) {
+      setNoPreferenceSelected(true)
     } else if (selectedSubTopics.filter((s) => s.includes(selectedTopic.title)).length === 0) {
       setNoTopicSelected(true)
     } else {
@@ -301,6 +305,7 @@ const TopicCard = ({
           selectedNotifications={selectedNotifications}
           setSelectedNotifications={setSelectedNotifications}
           noTopicSelected={noTopicSelected}
+          noPreferenceSelected={noPreferenceSelected}
         />
         <PhoneNumberDialog
           open={openPhoneDialog}

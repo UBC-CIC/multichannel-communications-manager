@@ -16,21 +16,25 @@ import {
   import React, { useState, useEffect } from "react";
   import { Auth } from "aws-amplify"
   import NotificationPreferencesDialog from "../NotificationPreferencesDialog";
+  import NotificationSuccessDialog from "../NotificationSuccessDialog";
   import "../TopicCard.css";
   import PhoneNumberDialog from "../PhoneNumberDialog";
   
   const ViewTopicsCard = ({
     selectedTopic,
-    selectedSubTopics,
-    setSelectedSubtopics,
-  }) => {
+    }) => {
     const { title, description, image } = selectedTopic;
     const initialNotificationSelection = { text: false, email: false };
+    const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
     const [openNotificationDialog, setOpenNotificationDialog] = useState(false);
     const [openPhoneDialog, setOpenPhoneDialog] = useState(false);
     const [selectedNotifications, setSelectedNotifications] = useState(
       initialNotificationSelection
     );
+    const [noTopicSelected, setNoTopicSelected] = useState(false)
+    const [noPreferenceSelected, setNoPreferenceSelected] = useState(false)
+    const [selectedSubTopics, setSelectedSubtopics] = useState([])
+    const [userSelectedSubTopics, setUserSelectedSubtopics] = useState([])
     const [isRotated, setIsRotated] = useState(false);
     const [userPhone, setUserPhone] = useState("")
     const [phoneNumber, setPhoneNumber] = useState("")
@@ -38,10 +42,25 @@ import {
     const [invalidInputError, setInvalidInputError] = useState(false)
     const [phoneDialogState, setPhoneDiologState] = useState("noPhone")
     const [user, setUser] = useState("")
+    const [subtopics, setSubtopics] = useState([])
+    const [userAlreadySubscribed, setUserAlreadySubscribed] = useState(false)
     //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
-    const subtopics = ["COVID-19", "Subtopic 2", "Subtopic 3", "Subtopic 4"];
+    const sampleSubtopics = ["COVID-19", "Subtopic 2", "Subtopic 3", "Subtopic 4"];
+    // const userSubscribedSubtopics = {topic_acronym: ['Covid-19', 'Subtopic 2'], email_notice: true, sms_notice: false};
+    const userSubscribedSubtopics = null;
   
+    async function getSubtopics() {
+      if (userSubscribedSubtopics !== null) {
+        setSubtopics(userSubscribedSubtopics.topic_acronym)
+        setUserSelectedSubtopics(userSubscribedSubtopics.topic_acronym)
+        setUserAlreadySubscribed(true)
+      } else {
+        setSubtopics(sampleSubtopics)
+      }
+    }
+    
     useEffect(() => {
+      getSubtopics()
       async function retrieveUser() {
         try {
           const returnedUser = await Auth.currentAuthenticatedUser();
@@ -64,9 +83,10 @@ import {
     const handleSavePhoneDialog = async () => {
       if (phoneDialogState === "noPhone") {
         await Auth.updateUserAttributes(user, {
-          phone_number: phoneNumber,
+          'phone_number': phoneNumber,
         })
-          .then(async () => {
+          .then(async (res) => {
+            console.log(res)
             await Auth.verifyCurrentUserAttribute("phone_number")
             setPhoneDiologState("verifyPhone")
           })
@@ -105,13 +125,29 @@ import {
   
     const handleCloseNotificationDialog = () => {
       setOpenNotificationDialog(false);
+      setNoTopicSelected(false)
+      setNoPreferenceSelected(false)
     };
   
     const handleSaveNotificationDialog = () => {
       if (selectedNotifications.text && userPhone === undefined) {
         setOpenPhoneDialog(true)
+      } else if (!selectedNotifications.text && !selectedNotifications.email) {
+        setNoPreferenceSelected(true)
+        setSelectedNotifications({text: false, email: false})
+      } else if (selectedSubTopics.filter((s) => s.includes(selectedTopic.title)).length === 0) {
+        setNoTopicSelected(true)
+        setSelectedNotifications({text: false, email: false})
+      } else {
+        setNoTopicSelected(false)
+        setOpenSuccessDialog(true)
       }
     }
+
+    const handleCloseSuccessDialog = () => {
+      setOpenSuccessDialog(false)
+      setOpenNotificationDialog(false)
+    };
   
     const handleClosePhoneDialog = () => {
       setSelectedNotifications({text: false})
@@ -128,6 +164,45 @@ import {
         );
       }
     };
+
+    const handleAlreadySubscribedChange = (e, subtopic) => {
+      if (e.target.checked) {
+        setUserSelectedSubtopics((prev) => [...prev, `${subtopic}`]);
+      } else if (!e.target.checked) {
+        setUserSelectedSubtopics((prev) =>
+          prev.filter((s) => s !== `${subtopic}`)
+        );
+      }
+    };
+
+    const handleButtonSave = () => {
+      if (userAlreadySubscribed) {
+        //
+      }
+      setIsRotated(!isRotated)
+    }
+
+    function notificationPreferences() {
+      if (userAlreadySubscribed) {
+        if (userSubscribedSubtopics.email_notice && userSubscribedSubtopics.sms_notice) {
+          return "Notifications Selected: Email, Text"
+        } else if (userSubscribedSubtopics.email_notice && !userSubscribedSubtopics.sms_notice) {
+          return "Notifications Selected: Email"
+        } else {
+          return "Notifications Selected: Text"
+        }
+      } else {
+        if (selectedNotifications.email && selectedNotifications.text) {
+          return "Notifications Selected: Email, Text"
+        } else if (selectedNotifications.email && !selectedNotifications.text) {
+          return "Notifications Selected: Email"
+        } else if (!selectedNotifications.email && selectedNotifications.text) {
+          return "Notifications Selected: Text"
+        } else {
+          return "Notifications Selected: None"
+        }
+      }
+    }
   
     //renders front of the card displaying topic of interest information
     const renderCardFront = () => {
@@ -160,15 +235,8 @@ import {
                 variant="body2"
                 color="text.secondary"
                 sx={{ mt: "1.5em" }}
-              >
-                Notifications selected:{" "}
-                {Object.values(selectedNotifications).some((val) => val === true)
-                  ? Object.keys(selectedNotifications)
-                      .filter(function (key) {
-                        return selectedNotifications[key];
-                      })
-                      .map(String)
-                  : "None"}
+                >
+                {notificationPreferences()}
               </Typography>
             </CardContent>
             <CardActions
@@ -188,12 +256,13 @@ import {
                 >
                   View Subtopics
                 </Button>
-                <IconButton
-                  aria-label="subscribe to topic"
-                  onClick={() => setOpenNotificationDialog(true)}
-                >
-                  <NotificationsIcon />
-                </IconButton>
+                {userAlreadySubscribed ? <></> :
+                  <IconButton
+                    aria-label="subscribe to topic"
+                    onClick={() => setOpenNotificationDialog(true)}
+                  >
+                    <NotificationsIcon />
+                  </IconButton>}
               </Box>
             </CardActions>
           </Card>
@@ -204,6 +273,8 @@ import {
             selectedTopic={selectedTopic}
             selectedNotifications={selectedNotifications}
             setSelectedNotifications={setSelectedNotifications}
+            noTopicSelected={noTopicSelected}
+            noPreferenceSelected={noPreferenceSelected}
           />
           <PhoneNumberDialog
             open={openPhoneDialog}
@@ -216,6 +287,10 @@ import {
             setCode={setVerificationCode}
             inputError={invalidInputError}
             setInputError={setInvalidInputError}
+          />
+          <NotificationSuccessDialog
+            open={openSuccessDialog}
+            handleClose={handleCloseSuccessDialog}
           />
         </>
       );
@@ -233,17 +308,29 @@ import {
             }}
           />
           <CardContent sx={{ p: "16px 16px 0px 16px" }}>
-            <FormGroup>
-              {subtopics.map((subtopic, index) => (
-                <FormControlLabel
-                  key={index}
-                  control={<Checkbox />}
-                  checked={selectedSubTopics.includes(`${title}/${subtopic}`)}
-                  label={subtopic}
-                  onChange={(e) => handleChange(e, subtopic)}
-                />
-              ))}
-            </FormGroup>
+            {userAlreadySubscribed ? 
+              <FormGroup>
+                {subtopics.map((subtopic, index) => (
+                  <FormControlLabel
+                    key={index}
+                    control={<Checkbox />}
+                    checked={userSelectedSubTopics.includes(subtopic)}
+                    label={subtopic}
+                    onChange={(e) => handleAlreadySubscribedChange(e, subtopic)}
+                  />
+                ))}
+              </FormGroup> :
+              <FormGroup>
+                {subtopics.map((subtopic, index) => (
+                  <FormControlLabel
+                    key={index}
+                    control={<Checkbox />}
+                    checked={selectedSubTopics.includes(`${title}/${subtopic}`)}
+                    label={subtopic}
+                    onChange={(e) => handleChange(e, subtopic)}
+                  />
+                ))}
+              </FormGroup>}
           </CardContent>
           <CardActions
             disableSpacing
@@ -256,7 +343,7 @@ import {
                 alignItems: "center",
               }}
             >
-              <Button sx={{ mr: "1em" }} onClick={() => setIsRotated(!isRotated)}>
+              <Button sx={{ mr: "1em" }} onClick={handleButtonSave}>
                 Save
               </Button>
             </Box>

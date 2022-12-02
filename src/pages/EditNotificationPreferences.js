@@ -14,6 +14,7 @@ import {
 import { Search } from "@mui/icons-material";
 import { Auth, API, graphqlOperation } from "aws-amplify"
 import { getUserByEmail, getUserCategoryTopicByUserId } from "../graphql/queries";
+import UnsubscribeDialog from "../components/UnsubscribeDialog";
 
 
 const EditNotificationPreferences = () => {
@@ -86,13 +87,19 @@ const EditNotificationPreferences = () => {
 
   const [searchVal, setSearchVal] = useState("");
   const [topics, setTopics] = useState([])
+  const [topicIndex, setTopicIndex] = useState({index: '', type: ''})
+  const [filterRemovedTopics, setFilterRemovedTopics] = useState([])
+  const [title, setTitle] = useState('')
+  const [notificationType, setNotificationType] = useState('')
+  const [openUnsubscribeDialog, setOpenUnsubscribeDialog] = useState(false)
 
   async function queriedData() {
     try {
-      const returnedUser = await Auth.currentAuthenticatedUser();
-      let user = await API.graphql(graphqlOperation(getUserByEmail, { user_email: returnedUser.attributes.email }));
-      let test = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {user_id: user.data.getUserByEmail.user_id}))
-      setTopics(test.data.getUserCategoryTopicByUserId)
+      // const returnedUser = await Auth.currentAuthenticatedUser();
+      // let user = await API.graphql(graphqlOperation(getUserByEmail, { user_email: returnedUser.attributes.email }));
+      // let test = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {user_id: user.data.getUserByEmail.user_id}))
+      // setTopics(test.data.getUserCategoryTopicByUserId)
+      setTopics(sampleTopics)
     } catch (e) {
       console.log(e);
     }
@@ -123,22 +130,60 @@ const EditNotificationPreferences = () => {
     const test = [...topics]
     console.log(test)
     const { id } = e.target
+    setTopicIndex({index: id, type: 'email_notice'})
     test[id].email_notice = !topics[id].email_notice
-    setTopics(test)
+    unSubscribe(test[id], test)
   }
 
   function handleTextChange(e) {
     const test = [...topics]
-    console.log(test)
+    // console.log(test)
     const { id } = e.target
+    setTopicIndex({index: id, type: 'sms_notice'})
     test[id].sms_notice = !topics[id].sms_notice
-    setTopics(test)
+    unSubscribe(test[id], test)
+  }
+
+  function unSubscribe(topic, updatedTopics) {
+    if (topic.sms_notice === false && topic.email_notice === false) {
+      setTitle(topic.title)
+      setNotificationType('')
+      setOpenUnsubscribeDialog(true)
+      setFilterRemovedTopics(topics.filter((s) => s !== topic))
+    } else if (topic.sms_notice === false && topic.email_notice === true) {
+      setTitle(topic.title)
+      setNotificationType('Text')
+      setOpenUnsubscribeDialog(true)
+      setFilterRemovedTopics(updatedTopics)
+    } else if (topic.sms_notice === true && topic.email_notice === false) {
+      setTitle(topic.title)
+      setNotificationType('Email')
+      setOpenUnsubscribeDialog(true)
+      setFilterRemovedTopics(updatedTopics)
+    } else {
+      setTopics(updatedTopics)
+    }
   }
 
   function onKeyDownSearch(e) {
     if (e.keyCode === 13) {
       search()
     }
+  }
+
+  function handleUnsubscribe() {
+    console.log(filterRemovedTopics)
+    setTopics(filterRemovedTopics)
+    setOpenUnsubscribeDialog(false)
+  }
+
+  function handleUnsubscribeClose() {
+    if (topicIndex.type === 'email_notice') {
+      topics[topicIndex.index].email_notice = !filterRemovedTopics[topicIndex.index].email_notice
+    } else {
+      topics[topicIndex.index].sms_notice = !filterRemovedTopics[topicIndex.index].sms_notice
+    }
+    setOpenUnsubscribeDialog(false)
   }
 
   const displaySubscribedTopics = () => {
@@ -245,6 +290,13 @@ const EditNotificationPreferences = () => {
         </Box>
         {displaySubscribedTopics()}
       </Grid>
+      <UnsubscribeDialog
+        open={openUnsubscribeDialog}
+        handleClose={handleUnsubscribeClose}
+        title={title}
+        notificationType={notificationType}
+        handleSave={handleUnsubscribe}
+        />
     </>
   );
 };

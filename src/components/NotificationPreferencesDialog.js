@@ -20,7 +20,8 @@ const NotificationPreferencesDialog = ({
   selectedTopic,
   selectedNotifications,
   setSelectedNotifications,
-  noTopicSelected
+  noTopicSelected,
+  noPreferenceSelected
 }) => {
   const { title, description } = selectedTopic;
   return (
@@ -33,6 +34,9 @@ const NotificationPreferencesDialog = ({
       <DialogTitle>Notification Preferences</DialogTitle>
       <BannerMessage type={"error"} typeCheck={noTopicSelected}>
         Please select a subtopic first.
+      </BannerMessage>
+      <BannerMessage type={"error"} typeCheck={noPreferenceSelected}>
+        No notification preference has been made.
       </BannerMessage>
       <DialogContent sx={{ mt: "1em" }}>
         <Typography variant="body2" sx={{ fontColor: "#484848" }}>
@@ -127,7 +131,7 @@ const BannerMessage = (props) => {
             variant="filled"
             severity={type}
             elevation={3}
-            sx={{ width: "100%", margin: theme.spacing(2, "auto") }}
+            sx={{ margin: theme.spacing("auto") }}
           >
             {children}
           </Alert>
