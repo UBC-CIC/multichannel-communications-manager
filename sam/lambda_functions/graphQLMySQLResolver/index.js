@@ -134,6 +134,7 @@ connection = mysql.createPool({
   password: process.env.PASSWORD,
   database: process.env.DBNAME,
 });
+console.log("connection:", connection);
 
 exports.handler = async (event) => {
   // called whenever a GraphQL event is received
@@ -180,6 +181,7 @@ exports.handler = async (event) => {
     result.sqlResult = await executeSQL(connection, responseSQL);
   }
   console.log("Finished SQL execution");
+  console.log("sqlResult: ", result.sqlResult);
   // } catch (err) {
   //   result.sqlResult = err;
   // }
@@ -229,34 +231,89 @@ exports.handler = async (event) => {
             //     });
             //   break;
             case "update":
+              console.log(event.variableMapping);
               let upsertUserProfileResponse = await handler.upsertUserProfile(
-                event.variableMapping.user_id,
-                event.variableMapping.province,
-                event.variableMapping.postal_code
+                result.sqlResult[0].user_id.toString(),
+                event.variableMapping[":province"],
+                event.variableMapping[":postal_code"]
               );
-              console.log("upsertUserProfile response: ", response);
+              console.log(
+                "upsertUserProfile response: ",
+                upsertUserProfileResponse
+              );
               let upsertEmailResponse = await handler.upsertEndpoint(
-                data.user_id.toString(),
-                "EMAIL" + "_" + data.user_id.toString(),
-                data.email_address,
+                event.variableMapping[":user_id"].toString(),
+                "EMAIL" + "_" + event.variableMapping[":user_id"].toString(),
+                event.variableMapping[":email_address"],
                 "EMAIL"
               );
 
               console.log("upsertEndpoint response: ", upsertEmailResponse);
-              if (data.phone_address) {
+              if (event.variableMapping[":phone_address"]) {
                 let upsertPhoneResponse = await handler.upsertEndpoint(
-                  data.user_id.toString(),
-                  "PHONE" + "_" + data.phone_address,
-                  data.phone_address,
+                  event.variableMapping[":user_id"].toString(),
+                  "PHONE" + "_" + event.variableMapping[":phone_address"],
+                  event.variableMapping[":phone_address"],
                   "SMS"
                 );
               } else {
                 result.pinpointResult = "success";
               }
+            case "delete":
+              result = handler.deleteUser(
+                event.variableMapping[":user_id"].toString()
+              );
+              break;
           }
           break;
-        case "REMOVE":
-          result = handler.deleteUser(data.user_id.toString());
+        case "usersubscription":
+          switch (pinpointAction.action) {
+            case "insert":
+            case "update":
+              executeGraphQL(`
+            query MyQuery {
+              getCategoryTopicById(categoryTopic_id: ${event.variableMapping.categoryTopic_id}) {
+                topic_acronym
+                category_acronym
+              }
+            }`)
+                .then((response) => {
+                  categorytopic = response.getCategoryTopicById;
+                  handler.updateTopicChannel(
+                    event.variableMapping.user_id,
+                    categorytopic.category_acronym +
+                      "-" +
+                      categorytopic.topic_acronym,
+                    event.variableMapping.email_notice,
+                    event.variableMapping.sms_notice
+                  );
+                  resolve("pinpoint update channel preference succeeded");
+                })
+                .catch((err) => reject(err));
+              break;
+            case "delete":
+              executeGraphQL(`
+            query MyQuery {
+              getCategoryTopicById(categoryTopic_id: ${event.variableMapping.categoryTopic_id}) {
+                topic_acronym
+                category_acronym
+              }
+            }`)
+                .then((response) => {
+                  categorytopic = response.data.getCategoryTopicById;
+                  handler.updateTopicChannel(
+                    event.variableMapping.user_id,
+                    categorytopic.category_acronym +
+                      "-" +
+                      categorytopic.topic_acronym,
+                    false,
+                    false
+                  );
+                  resolve("pinpoint unfollow email and phone succeeded");
+                })
+                .catch((err) => reject(err));
+              break;
+          }
           break;
       }
     }
@@ -267,3 +324,36 @@ exports.handler = async (event) => {
   console.log("return: ", result);
   return result;
 };
+
+async function executeGraphQL(query) {
+  console.log("executing query: ", query);
+  return new Promise((resolve, reject) => {
+    // let options = {
+    //   method: "POST",
+    //   headers: {
+    //     "x-api-key": GRAPHQL_API_KEY,
+    //   },
+    //   body: JSON.stringify({ query, variables }),
+    // };
+    let gqlQuery = gqlRequest.gql([query]);
+    const gqlClient = new gqlRequest.GraphQLClient(GRAPHQL_ENDPOINT, {
+      headers: {
+        "x-api-key": GRAPHQL_API_KEY,
+      },
+    });
+
+    gqlClient
+      .request(gqlQuery)
+      .then((response) => {
+        console.log("executeGraphQL response:", response);
+        return response;
+      })
+      .then((json) => {
+        console.log("executeGraphQL return:", JSON.stringify(json));
+        resolve(json);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}

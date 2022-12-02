@@ -60,7 +60,7 @@ Parameters:
   DBInstanceClass:
     Description: The database instance type
     Type: String
-    Default: db.t4g.large
+    Default: db.t2.small
     AllowedValues: [db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge]
   DBEngineVersion:
     Description: The version of Aurora MySQL for the database
@@ -558,6 +558,52 @@ Resources:
       VpcEndpointType: Interface
       VpcId: !Ref VPC
 
+  # EndpointPinpoint:
+  #   Type: AWS::EC2::VPCEndpoint
+  #   Properties:
+  #     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.pinpoint-sms-voice-v2'
+  #     PrivateDnsEnabled: true
+  #     SecurityGroupIds:
+  #       # - !Ref PinpointVpcEndpointSecurityGroup
+  #       # - !Ref ClosedSecurityGroup
+  #       - !Ref OpenSecurityGroup
+  #     SubnetIds:
+  #       # - !Ref PublicSubnet1
+  #       # - !Ref PublicSubnet2
+  #       - !Ref PrivateSubnet1
+  #       - !Ref PrivateSubnet2
+  #     VpcEndpointType: Interface
+  #     VpcId: !Ref VPC  
+
+  # PinpointVpcEndpointSecurityGroup:
+  #     Type: 'AWS::EC2::SecurityGroup'
+  #     Properties:
+  #       VpcId: !Ref VPC
+  #       GroupDescription: 'Security group for VPC Endpoint'
+  #       SecurityGroupIngress:
+  #         - IpProtocol: tcp
+  #           FromPort: 443
+  #           ToPort: 443
+  #           SourceSecurityGroupId: !Ref ClosedSecurityGroup
+    
+  EIP:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt 'EIP.AllocationId'
+      SubnetId: !Ref PublicSubnet1
+
+  NGWRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref NatGateway
+
   # EndpointKMS:
   #   Type: AWS::EC2::VPCEndpoint
   #   Properties:
@@ -744,6 +790,13 @@ Resources:
             - "ec2:DeleteNetworkInterface"
             - "ec2:DescribeNetworkInterfaces"
             Resource: '*'
+        - Version: '2012-10-17'  # in line policies for lambda
+          Statement:
+          - Effect: Allow
+            Action:
+            - mobiletargeting:*
+            Resource: 
+            - !GetAtt PinpointApp.Arn
       Environment:
         Variables:
           DBNAME: !Ref 'DBName'
@@ -754,11 +807,12 @@ Resources:
           ADMIN_EMAIL: !Ref CognitoAdminEmail
       VpcConfig:
         SecurityGroupIds:
-          - !Ref ClosedSecurityGroup
+          # - !Ref ClosedSecurityGroup
+          - !Ref OpenSecurityGroup
         SubnetIds:
           - !Ref PrivateSubnet1
           - !Ref PrivateSubnet2
-
+          
   graphQLMySQLResolverLogs:
     Type: AWS::Logs::LogGroup
     DependsOn: graphQLMySQLResolver
@@ -1138,7 +1192,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1167,7 +1221,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1196,7 +1250,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result)
+        $util.toJson($context.result.sqlResult)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1225,7 +1279,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1254,7 +1308,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1282,7 +1336,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result)
+        $util.toJson($context.result.sqlResult)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1311,7 +1365,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1339,7 +1393,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result)
+        $util.toJson($context.result.sqlResult)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1367,7 +1421,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result)
+        $util.toJson($context.result.sqlResult)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1395,7 +1449,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result)
+        $util.toJson($context.result.sqlResult)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1580,7 +1634,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1723,7 +1777,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result.sqlResult[0])
+        "Delete succeeded"
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT

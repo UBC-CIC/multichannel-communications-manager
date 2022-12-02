@@ -1,6 +1,6 @@
 // const { v4: uuidv4 } = require("uuid");
 // const PINPOINTID = process.env.PINPOINT_APPID;
-const PINPOINTID = "a39c6412c79a4ec2946257bb4c95ca2a";
+const PINPOINTID = "4dd4f0be4a904c169c3cba73530a3f11";
 const AWS = require("aws-sdk");
 // const pinpoint = new AWS.Pinpoint({ region: process.env.REGION });
 const pinpoint = new AWS.Pinpoint({ region: "ca-central-1" });
@@ -111,7 +111,7 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
 
 /**
  * format the upsert request and call upsertUserEndpoint()
- * @param {Int} userID
+ * @param {String} userID
  * @param {String} emailAdress
  * @param {Int} phoneAddress
  * @param {String} province
@@ -121,18 +121,23 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
 async function upsertUserProfile(userID, province, postalCode) {
   console.log("upsertUserProfile ...");
   return new Promise((resolve, reject) => {
+    console.log(userID);
     let request = {
       ApplicationId: PINPOINTID,
       EndpointId: userID,
       EndpointRequest: {
         User: {
-          UserAttributes: {
-            province: [province],
-            postalCode: [postalCode],
-          },
+          UserAttributes: {},
         },
       },
     };
+
+    if (province) {
+      request.EndpointRequest.User.UserAttributes.province = [province];
+    }
+    if (postalCode) {
+      request.EndpointRequest.User.UserAttributes.postalCode = [postalCode];
+    }
 
     console.log(
       "sending request to pinpoint ...",
