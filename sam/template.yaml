@@ -342,7 +342,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref ClosedSecurityGroup
+          SourceSecurityGroupId: !Ref OpenSecurityGroup
       SecurityGroupEgress:
         - IpProtocol: -1
           FromPort: -1
