@@ -1528,10 +1528,10 @@ Resources:
         "sql": "UPDATE `User` SET $email_address $phone_address $province $postal_code WHERE `User`.user_id = :user_id;",
         "variableMapping": {
         ":user_id": $context.arguments.user_id,
-        ":email_address": "$context.arguments.email_address",
-        ":phone_address": "$context.arguments.phone_address",
-        ":province": "$context.arguments.province",
-        ":postal_code": "$context.arguments.postal_code",
+        ":email_address": $email_address,
+        ":phone_address": $phone_address,
+        ":province": $context.arguments.province,
+        ":postal_code": $context.arguments.postal_code,
         },
         "pinpoint":{"type": "userprofile", "action": "update"},
         "responseSQL": "select * from `User` where user_id=:user_id;"

@@ -136,6 +136,7 @@ connection = mysql.createPool({
 console.log("connection:", connection);
 
 exports.handler = async (event) => {
+  console.log("event: ", event);
   // called whenever a GraphQL event is received
   console.log("Received event", JSON.stringify(event, null, 3));
 
@@ -192,43 +193,6 @@ exports.handler = async (event) => {
         case "userprofile":
           switch (pinpointAction.action) {
             case "insert":
-            // case "update":
-            //   handler
-            //     .upsertUserProfile(
-            //       event.variableMapping.user_id,
-            //       event.variableMapping.province,
-            //       event.variableMapping.postal_code
-            //     )
-            //     .then((response) => {
-            //       console.log("upsertUserProfile response: ", response);
-            //       return handler.upsertEndpoint(
-            //         data.user_id.toString(),
-            //         "EMAIL" + "_" + data.user_id.toString(),
-            //         data.email_address,
-            //         "EMAIL"
-            //       );
-            //     })
-            //     .then((response) => {
-            //       console.log("upsertEndpoint response: ", response);
-            //       if (data.phone_address) {
-            //         result = handler.upsertEndpoint(
-            //           data.user_id.toString(),
-            //           "PHONE" + "_" + data.phone_address,
-            //           data.phone_address,
-            //           "SMS"
-            //         );
-            //       } else {
-            //         return "success";
-            //       }
-            //     })
-            //     .then((response) => {
-            //       console.log("second upsertEndpoint response: ", response);
-            //       result.pinpointResult = "success";
-            //     })
-            //     .catch((err) => {
-            //       console.log("handler err: ", err);
-            //     });
-            //   break;
             case "update":
               console.log(event.variableMapping);
               let upsertUserProfileResponse = await handler.upsertUserProfile(
@@ -240,28 +204,29 @@ exports.handler = async (event) => {
                 "upsertUserProfile response: ",
                 upsertUserProfileResponse
               );
+
               let upsertEmailResponse = await handler.upsertEndpoint(
-                event.variableMapping[":user_id"].toString(),
-                "EMAIL" + "_" + event.variableMapping[":user_id"].toString(),
+                result.sqlResult[0].user_id.toString(),
+                "EMAIL" + "_" + result.sqlResult[0].user_id.toString(),
                 event.variableMapping[":email_address"],
                 "EMAIL"
               );
+              console.log("upsert email response: ", upsertEmailResponse);
 
-              console.log("upsertEndpoint response: ", upsertEmailResponse);
               if (event.variableMapping[":phone_address"]) {
                 let upsertPhoneResponse = await handler.upsertEndpoint(
-                  event.variableMapping[":user_id"].toString(),
-                  "PHONE" + "_" + event.variableMapping[":phone_address"],
+                  result.sqlResult[0].user_id.toString(),
+                  "SMS" + "_" + result.sqlResult[0].user_id.toString(),
                   event.variableMapping[":phone_address"],
                   "SMS"
                 );
+                console.log("upsert phone no. response: ", upsertPhoneResponse);
               } else {
                 result.pinpointResult = "success";
               }
+              break;
             case "delete":
-              result = handler.deleteUser(
-                event.variableMapping[":user_id"].toString()
-              );
+              result = handler.deleteUser(event.variableMapping[":user_id"]);
               break;
           }
           break;
@@ -269,29 +234,67 @@ exports.handler = async (event) => {
           switch (pinpointAction.action) {
             case "insert":
             case "update":
-              executeGraphQL(`
+              //   executeGraphQL(`
+              // query MyQuery {
+              //   getCategoryTopicById(categoryTopic_id: ${event.variableMapping.categoryTopic_id}) {
+              //     topic_acronym
+              //     category_acronym
+              //   }
+              // }`)
+              //     .then((response) => {
+              //       categorytopic = response.getCategoryTopicById;
+              //       handler.updateTopicChannel(
+              //         event.variableMapping.user_id,
+              //         categorytopic.category_acronym +
+              //           "-" +
+              //           categorytopic.topic_acronym,
+              //         event.variableMapping.email_notice,
+              //         event.variableMapping.sms_notice
+              //       );
+              //       resolve("pinpoint update channel preference succeeded");
+              //     })
+              //     .catch((err) => reject(err));
+              //   break;
+              // case "delete":
+              //   executeGraphQL(`
+              // query MyQuery {
+              //   getCategoryTopicById(categoryTopic_id: ${event.variableMapping.categoryTopic_id}) {
+              //     topic_acronym
+              //     category_acronym
+              //   }
+              // }`)
+              //     .then((response) => {
+              //       categorytopic = response.data.getCategoryTopicById;
+              //       handler.updateTopicChannel(
+              //         event.variableMapping.user_id,
+              //         categorytopic.category_acronym +
+              //           "-" +
+              //           categorytopic.topic_acronym,
+              //         false,
+              //         false
+              //       );
+              //       resolve("pinpoint unfollow email and phone succeeded");
+              //     })
+              //     .catch((err) => reject(err));
+
+              let categorytopic = await executeGraphQL(`
             query MyQuery {
               getCategoryTopicById(categoryTopic_id: ${event.variableMapping.categoryTopic_id}) {
                 topic_acronym
                 category_acronym
               }
-            }`)
-                .then((response) => {
-                  categorytopic = response.getCategoryTopicById;
-                  handler.updateTopicChannel(
-                    event.variableMapping.user_id,
-                    categorytopic.category_acronym +
-                      "-" +
-                      categorytopic.topic_acronym,
-                    event.variableMapping.email_notice,
-                    event.variableMapping.sms_notice
-                  );
-                  resolve("pinpoint update channel preference succeeded");
-                })
-                .catch((err) => reject(err));
+            }`).getCategoryTopicById;
+              result.pinpointResult = await handler.updateTopicChannel(
+                event.variableMapping[":user_id"],
+                categorytopic.category_acronym +
+                  "-" +
+                  categorytopic.topic_acronym,
+                event.variableMapping[":email_notice"],
+                event.variableMapping[":sms_notice"]
+              );
               break;
             case "delete":
-              executeGraphQL(`
+              let graphqlResponse = executeGraphQL(`
             query MyQuery {
               getCategoryTopicById(categoryTopic_id: ${event.variableMapping.categoryTopic_id}) {
                 topic_acronym
@@ -311,6 +314,7 @@ exports.handler = async (event) => {
                   resolve("pinpoint unfollow email and phone succeeded");
                 })
                 .catch((err) => reject(err));
+
               break;
           }
           break;

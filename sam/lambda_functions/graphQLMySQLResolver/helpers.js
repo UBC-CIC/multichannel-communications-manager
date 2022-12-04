@@ -73,7 +73,8 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
   return new Promise((resolve, reject) => {
     var request = {
       ApplicationId: PINPOINTID,
-      EndpointId: endpoint_type === "EMAIL" ? userID : endpointID,
+      // EndpointId: endpoint_type === "EMAIL" ? userID : endpointID,
+      EndpointId: endpointID,
       EndpointRequest: {
         Address: endpoint_address,
         ChannelType: endpoint_type,
