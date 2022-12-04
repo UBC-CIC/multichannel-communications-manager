@@ -766,37 +766,7 @@ Resources:
       MemorySize: 1000
       Timeout: 100
       Description: Called by AppSync to resolve SQL statements in the form of a request mapping
-      Policies:
-        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
-        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
-        - arn:aws:iam::aws:policy/AWSAppSyncInvokeFullAccess
-        - Version: '2012-10-17'  # in line policies for lambda
-          Statement:
-          - Effect: Allow
-            Action: logs:CreateLogGroup
-            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
-          - Effect: Allow
-            Action:
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            Resource:
-            - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/GraphQL-MySQL-Resolver:*
-          - Effect: Allow
-            Action: rds-db:connect
-            Resource: !GetAtt RDSProxy.DBProxyArn
-          - Effect: Allow
-            Action:
-            - "ec2:CreateNetworkInterface"
-            - "ec2:DeleteNetworkInterface"
-            - "ec2:DescribeNetworkInterfaces"
-            Resource: '*'
-        - Version: '2012-10-17'  # in line policies for lambda
-          Statement:
-          - Effect: Allow
-            Action:
-            - mobiletargeting:*
-            Resource: 
-            - !GetAtt PinpointApp.Arn
+      Role: !GetAtt GraphQLResolverRole.Arn
       Environment:
         Variables:
           DBNAME: !Ref 'DBName'
@@ -2094,47 +2064,61 @@ Resources:
       Enabled: true
 
   #Lambda Resources
-  HelperLambdaRole:
+  GraphQLResolverRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: RDSHelperLambdaRole
+      RoleName: GraphQLResolverRole
       AssumeRolePolicyDocument:
-        Version: 2012-10-17
+        Version: '2012-10-17'
         Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - pinpoint.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Policies:
+      - PolicyName: allow-lambda-access-appsync-n-pinpoint
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
           - Effect: Allow
-            Principal:
-              Service:
-              - lambda.amazonaws.com
-              - pinpoint.amazonaws.com
+            Action: logs:CreateLogGroup
+            Resource: 
+            - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+          - Effect: Allow
             Action:
-              - 'sts:AssumeRole'
-      Description: Role for helper lambda
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: 
+            - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/GraphQL-MySQL-Resolver:*
+          - Effect: Allow
+            Action:
+            - mobiletargeting:*
+            Resource: '*'
+            # - !GetAtt PinpointApp.Arn
+          - Effect: Allow
+            Action: rds-db:connect
+            Resource: 
+            - !GetAtt RDSProxy.DBProxyArn
+          - Effect: Allow
+            Action:
+            - "ec2:CreateNetworkInterface"
+            - "ec2:DeleteNetworkInterface"
+            - "ec2:DescribeNetworkInterfaces"
+            Resource: '*'
+      Description: Role for graphql resolver lambda
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
       - arn:aws:iam::aws:policy/IAMReadOnlyAccess
-      Policies:
-        - PolicyName: RDSPinpointLambdaPolicy
-          PolicyDocument:
-            Version: '2012-10-17'  # in line policies for lambda
-            Statement:
-            - Effect: Allow
-              Action: logs:CreateLogGroup
-              Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
-            - Effect: Allow
-              Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              Resource:
-              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/GraphQL-MySQL-Resolver:*
-            - Effect: Allow
-              Action:
-              - mobiletargeting:*
-              Resource: 
-              - !GetAtt PinpointApp.Arn
+      - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+      - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+      - arn:aws:iam::aws:policy/AWSAppSyncInvokeFullAccess
               # arn:aws:mobiletargeting:region:accountId:*
         # - policyName: PinpointAdminPolicy
 
+    
   # PinpointAdminPolicy:
   #   Type: AWS::IAM::Policy
   #     Properties: 

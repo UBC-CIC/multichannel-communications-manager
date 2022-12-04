@@ -1,8 +1,7 @@
 const gqlRequest = require("graphql-request");
 
-const GRAPHQL_ENDPOINT =
-  // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIENDPOINTOUTPUT;
-  "https://qxohgzahbvhytksiegrj4macla.appsync-api.ca-central-1.amazonaws.com/graphql";
+const GRAPHQL_ENDPOINT = process.env.PINPOINT_APPID;
+// "https://qxohgzahbvhytksiegrj4macla.appsync-api.ca-central-1.amazonaws.com/graphql";
 const GRAPHQL_API_KEY =
   // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIKEYOUTPUT;
   "da2-ghgkjvxhr5dgvgz7iopp2of6pm";
