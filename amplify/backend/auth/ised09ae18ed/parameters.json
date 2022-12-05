@@ -1,6 +1,6 @@
 {
-  "authSelections": "identityPoolAndUserPool",
-  "resourceName": "ised1a75b9f9",
+  "authSelections": "userPoolOnly",
+  "resourceName": "ised09ae18ed",
   "serviceType": "imported",
   "region": "ca-central-1",
   "usernameAttributes": [

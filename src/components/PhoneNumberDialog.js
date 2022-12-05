@@ -125,7 +125,7 @@ const PhoneNumberDialog = ({
           <Typography variant="body2" sx={{ fontColor: "#484848" }}>
             Your phone number has been successfully saved.
           </Typography>
-          <Box sx={{display: "flex", flexDirection: "column", justifyContent: "space-between", mt: "3em"}} >
+          <Box sx={{display: "flex", justifyContent: "center", mt: "3em"}} >
               <Button
                 variant="contained"
                 sx={{ width: "30%" }}

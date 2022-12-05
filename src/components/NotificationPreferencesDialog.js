@@ -1,4 +1,6 @@
 import {
+  Alert,
+  Grid,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -8,6 +10,7 @@ import {
   FormGroup,
   Button,
 } from "@mui/material";
+import theme from "../themes";
 import React from "react";
 
 const NotificationPreferencesDialog = ({
@@ -17,6 +20,8 @@ const NotificationPreferencesDialog = ({
   selectedTopic,
   selectedNotifications,
   setSelectedNotifications,
+  noTopicSelected,
+  noPreferenceSelected
 }) => {
   const { title, description } = selectedTopic;
   return (
@@ -27,6 +32,12 @@ const NotificationPreferencesDialog = ({
       onClose={handleClose}
     >
       <DialogTitle>Notification Preferences</DialogTitle>
+      <BannerMessage type={"error"} typeCheck={noTopicSelected}>
+        Please select a subtopic first.
+      </BannerMessage>
+      <BannerMessage type={"error"} typeCheck={noPreferenceSelected}>
+        No notification preference has been made.
+      </BannerMessage>
       <DialogContent sx={{ mt: "1em" }}>
         <Typography variant="body2" sx={{ fontColor: "#484848" }}>
           Receive newsletters and updates regarding {title}
@@ -107,6 +118,26 @@ const NotificationPreferencesDialog = ({
         </Box>
       </DialogContent>
     </Dialog>
+  );
+};
+
+const BannerMessage = (props) => {
+  const { type, typeCheck, children } = props;
+  return (
+    <Grid>
+      {!!typeCheck && (
+        <Grid container item xs={12}>
+          <Alert
+            variant="filled"
+            severity={type}
+            elevation={3}
+            sx={{ margin: theme.spacing("auto") }}
+          >
+            {children}
+          </Alert>
+        </Grid>
+      )}
+    </Grid>
   );
 };
 

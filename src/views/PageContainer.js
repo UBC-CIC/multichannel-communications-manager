@@ -50,11 +50,11 @@ function PageContainer(props) {
       <List>
         <ListItem button key={"home"} onClick={() => navigate("/")}>
           <ListItemIcon>
-            <Home />
+            <NotificationsNone />
           </ListItemIcon>
-          <ListItemText primary={"Home"} />
+          <ListItemText primary={"Subscribe to Topics"} />
         </ListItem>
-        <ListItem
+        {/* <ListItem
           button
           key={"subscribe-to-topics"}
           onClick={() => navigate("/subscribe-to-topics")}
@@ -63,7 +63,7 @@ function PageContainer(props) {
             <NotificationsNone />
           </ListItemIcon>
           <ListItemText primary={"Subscribe to Topics"} />
-        </ListItem>
+        </ListItem> */}
         <ListItem
           button
           key={"edit-notif-preferences"}
@@ -110,12 +110,12 @@ function PageContainer(props) {
         <main style={{ flexGrow: 1, padding: "50px" }}>
           {/* Routes are added here if you need multiple page views*/}
           <Routes>
-            <Route exact path={"/"} element={<Landing />} />
-            <Route
+            <Route exact path={"/"} element={<SubscribeToTopics />} />
+            {/* <Route
               exact
               path={"/subscribe-to-topics"}
               element={<SubscribeToTopics />}
-            />
+            /> */}
             <Route
               exact
               path={"/edit-notif-preferences"}

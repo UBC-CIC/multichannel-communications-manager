@@ -12,11 +12,11 @@
       "AmplifyAppId": "d3r4k2lt45dkzj"
     },
     "categories": {
-      "auth": {
-        "ised012c959f": {}
-      },
       "function": {
         "isedDynamoTrigger": {}
+      },
+      "auth": {
+        "ised1a75b9f9": {}
       }
     }
   },
@@ -30,46 +30,51 @@
       "UnauthRoleName": "amplify-ised-rds-210447-unauthRole",
       "StackName": "amplify-ised-rds-210447",
       "StackId": "arn:aws:cloudformation:ca-central-1:834289487514:stack/amplify-ised-rds-210447/296f69d0-58d1-11ed-87da-02b919c3d7e0",
-      "AmplifyAppId": "d3r4k2lt45dkzj"
+      "AmplifyAppId": "d3r4k2lt45dkzj",
+      "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-ised-rds-210447-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json"
     },
     "categories": {
       "api": {
         "ised": {}
       },
       "auth": {
-        "ised1a75b9f9": {
-          "userPoolId": "ca-central-1_NniEEJcEa",
-          "userPoolName": "ised012c959f_userpool_012c959f-dev",
-          "webClientId": "6dtcijfoh4qj8f9egsilrtqom9",
-          "nativeClientId": "6t08altha3t8j981nbknst63gc",
-          "identityPoolId": "ca-central-1:c37951b7-a685-421b-9ad2-85b85e456c67",
-          "identityPoolName": "ised012c959f_identitypool_012c959f__dev",
-          "allowUnauthenticatedIdentities": false,
-          "authRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-dev-115239-authRole",
-          "authRoleName": "amplify-ised-dev-115239-authRole",
-          "unauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-dev-115239-unauthRole",
-          "unauthRoleName": "amplify-ised-dev-115239-unauthRole"
+        "iseda1fecbaca1fecbac": {},
+        "ised1a75b9f9": {},
+        "isedf0082716f0082716": {},
+        "userPoolGroups": {}
+      },
+      "function": {
+        "isedf0082716f0082716CreateAuthChallenge": {
+          "deploymentBucketName": "amplify-ised-rds-210447-deployment",
+          "s3Key": "amplify-builds/isedf0082716f0082716CreateAuthChallenge-36774c50415673714b46-build.zip"
+        },
+        "isedf0082716f0082716DefineAuthChallenge": {
+          "deploymentBucketName": "amplify-ised-rds-210447-deployment",
+          "s3Key": "amplify-builds/isedf0082716f0082716DefineAuthChallenge-57487071463548364765-build.zip"
+        },
+        "isedf0082716f0082716VerifyAuthChallengeResponse": {
+          "deploymentBucketName": "amplify-ised-rds-210447-deployment",
+          "s3Key": "amplify-builds/isedf0082716f0082716VerifyAuthChallengeResponse-33374f73717776723767-build.zip"
         }
       }
     }
   },
   "newdev": {
-    "rds": {
-      "awscloudformation": {
-        "AuthRoleName": "amplify-ised-rds-210447-authRole",
-        "UnauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-rds-210447-unauthRole",
-        "AuthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-rds-210447-authRole",
-        "Region": "ca-central-1",
-        "DeploymentBucketName": "amplify-ised-rds-210447-deployment",
-        "UnauthRoleName": "amplify-ised-rds-210447-unauthRole",
-        "StackName": "amplify-ised-rds-210447",
-        "StackId": "arn:aws:cloudformation:ca-central-1:834289487514:stack/amplify-ised-rds-210447/296f69d0-58d1-11ed-87da-02b919c3d7e0",
-        "AmplifyAppId": "d3r4k2lt45dkzj"
-      },
-      "categories": {
-        "auth": {
-          "ised012c959f": {}
-        }
+    "awscloudformation": {
+      "AuthRoleName": "amplify-ised-newdev-142348-authRole",
+      "UnauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-newdev-142348-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-newdev-142348-authRole",
+      "Region": "ca-central-1",
+      "DeploymentBucketName": "amplify-ised-newdev-142348-deployment",
+      "UnauthRoleName": "amplify-ised-newdev-142348-unauthRole",
+      "StackName": "amplify-ised-newdev-142348",
+      "StackId": "arn:aws:cloudformation:ca-central-1:834289487514:stack/amplify-ised-newdev-142348/d0ad1de0-5706-11ed-a86a-028e51c9e090",
+      "AmplifyAppId": "d3r4k2lt45dkzj"
+    },
+    "categories": {
+      "auth": {
+        "ised1a75b9f9": {},
+        "ised234403d3234403d3": {}
       }
     }
   }

@@ -261,10 +261,16 @@ function Login(props) {
     // So we should test if the user is authenticated now
     try {
       // This will throw an error if the user is not yet authenticated:
-      await Auth.currentSession();
-      updateLoginState("signedIn");
+      let user = await Auth.currentAuthenticatedUser()
+      let group = user.signInUserSession.accessToken.payload['cognito:groups']
+      if (group.includes('Admins')) {
+        updateLoginState("Admin");
+      } else {
+        updateLoginState("signedIn");
+      }
     } catch (e) {
-      if (e.includes("No current user")) {
+      const errorMsg = e.message 
+      if (errorMsg.includes("No current user")) {
         setVerificationError(true)
       }
     }
@@ -315,21 +321,21 @@ function Login(props) {
           forceAliasCreation: true,
         })
           .then(async (data) => {
-            // let prov = convertProvinceToAcronym(formState.province)
-            // const userData = {
-            //   email_address: formState.email,
-            //   postal_code: formState.postal_code,
-            //   province: prov
-            // }
-            // await API.graphql(graphqlOperation(createUser, userData))
+            let prov = convertProvinceToAcronym(formState.province)
+            const userData = {
+              email_address: formState.email,
+              postal_code: formState.postal_code,
+              province: prov
+            }
+            await API.graphql(graphqlOperation(createUser, userData))
             handleNextStep()
           })
           .catch((e) => {
             const errorMsg = e.message;
             console.log(e)
-            // if (errorMsg.includes("Invalid verification code provided, please try again.")) {
-            //   setVerificationError(true)
-            // }
+            if (errorMsg.includes("Invalid verification code provided, please try again.")) {
+              setVerificationError(true)
+            }
           });
       }
       //the following if block runs during user sign in

@@ -4,13 +4,15 @@ import { ThemeProvider } from "@mui/material/styles";
 import Amplify from "aws-amplify";
 import awsmobile from "./aws-exports";
 import { Hub } from "aws-amplify";
-import { BrowserRouter } from "react-router-dom";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { updateLoginState } from "./actions/loginAction";
 import theme from "./themes";
 import Login from "./components/Authentication/Login_material";
 import PageContainer from "./views/PageContainer";
+import Admin from "./pages/Admin"
+import Navbar from "./components/Navbar"
 
 Amplify.configure(awsmobile);
 
@@ -43,7 +45,7 @@ function App(props) {
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
         <div style={{ width: "100vw", height: "100vh", overflowX: "hidden" }}>
-          {currentLoginState !== "signedIn" && (
+          {currentLoginState !== "signedIn" && currentLoginState !== "Admin" && (
             /* Login component options:
              *
              * [logo: "custom", "none"]
@@ -68,6 +70,14 @@ function App(props) {
           {currentLoginState === "signedIn" && (
             <BrowserRouter>
               <PageContainer />
+            </BrowserRouter>
+          )}
+          {currentLoginState === "Admin" && (
+            <BrowserRouter>  
+              <Navbar showSideMenuButton={false} /> 
+              <main style={{ flexGrow: 1, padding: "50px" }}>
+                <Admin />
+              </main>
             </BrowserRouter>
           )}
         </div>

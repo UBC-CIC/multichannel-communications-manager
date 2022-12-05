@@ -1,10 +1,11 @@
 import { useEffect } from "react";
-import { Grid, Typography, TextField, Autocomplete, Button } from "@mui/material";
+import { Grid, Typography, TextField, Autocomplete, Button, Alert, Collapse } from "@mui/material";
 import { useState } from "react";
 import { Auth, API, graphqlOperation } from "aws-amplify"
 import useLeavingDialogPrompt from "../hooks/useLeavingDialogPrompt"
 import { LeaveWithoutSavingDialog } from "../components/LeaveWithoutSavingDialog";
 import { getUserByEmail } from "../graphql/queries";
+import { updateUser } from "../graphql/mutations";
 
 const EditAccountInfo = () => {
   const provinceOptions = [
@@ -25,6 +26,8 @@ const EditAccountInfo = () => {
 
   const [userData, setUserData] = useState({});
   const [province, setProvince] = useState("")
+  const [alert, setAlert] = useState(false);
+  const [alertContent, setAlertContent] = useState('');
   const [emptyEmailError, setEmptyEmailError] = useState(false);
   const [emptyPostalCodeError, setEmptyPostalCodeError] = useState(false);
   const [invalidEmailError, setInvalidEmailError] = useState(false);
@@ -64,6 +67,38 @@ const EditAccountInfo = () => {
       province = "Yukon"
     }
     return province
+  }
+
+  function convertProvinceToAcronym(province) {
+    let acronym;
+    if (province === "Alberta") {
+      acronym = "AB"
+    } else if (province === "British Columbia") {
+      acronym = "BC"
+    } else if (province === "Manitoba") {
+      acronym = "MB"
+    } else if (province === "New Brunswick") {
+      acronym = "NB"
+    } else if (province === "Newfoundland and Labrador") {
+      acronym = "NL"
+    } else if (province === "Northwest Territories") {
+      acronym = "NT"
+    } else if (province === "Nova Scotia") {
+      acronym = "NS"
+    } else if (province === "Nunavut") {
+      acronym = "NU"
+    } else if (province === "Ontario") {
+      acronym = "ON"
+    } else if (province === "Prince Edward Island") {
+      acronym = "PE"
+    } else if (province === "Quebec") {
+      acronym = "QC"
+    } else if (province === "Saskatchewan") {
+      acronym = "SK"
+    } else {
+      acronym = "YT"
+    }
+    return acronym
   }
 
   useEffect(() => {
@@ -107,7 +142,8 @@ const EditAccountInfo = () => {
     if (value) {
       //for updating dropdown fields
       setProvince(value);
-      setUserData({ ...userData, province: value });
+      let provAcronym = convertProvinceToAcronym(value)
+      setUserData({ ...userData, province: provAcronym });
       if (value !== province) {
         setCanShowPrompt(true)
       }
@@ -130,9 +166,10 @@ const EditAccountInfo = () => {
     } else {
       if (!checkPostal(userData.postal_code)) {
         setInvalidPostalCodeError(true)
-      }
-      if (!checkEmail(userData.email_address)) {
+      } else if (!checkEmail(userData.email_address)) {
         setInvalidEmailError(true)
+      } else {
+        updateUser()
       }
     }
     setCanShowPrompt(false)
@@ -144,7 +181,15 @@ const EditAccountInfo = () => {
       'email': userData.email_address,
       'custom:province': userData.province,
       'custom:postal_code': userData.postal_code
-    });
+    })
+      .then(successAlert)
+      .catch((e) => console.log(e));
+  }
+
+  async function successAlert() {
+    await API.graphql(graphqlOperation(updateUser, userData))
+    setAlert(true);
+    setAlertContent('Your changes have been successfully saved.');
   }
 
   return (
@@ -153,6 +198,7 @@ const EditAccountInfo = () => {
       direction="column"
       style={{ minHeight: "80vh" }}
       >
+        {alert ? <Collapse in={alert}><Alert severity={"success"} onClose={() => setAlert(false)}>{alertContent}</Alert></Collapse> : <></> }
         <LeaveWithoutSavingDialog
           showDialog={showPrompt}
           setShowDialog={setCanShowPrompt}
@@ -232,9 +278,7 @@ const EditAccountInfo = () => {
               type="text"
               onChange={onChange}
             />
-        </Grid>
-        <Grid container marginTop={3} marginLeft={{md: "42%"}} md={2}>
-          <Button variant="contained" fullWidth onClick={buttonClicked}>
+            <Button variant="contained" fullWidth onClick={buttonClicked}>
             Save
           </Button>
         </Grid>
