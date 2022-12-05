@@ -1,7 +1,7 @@
 const gqlRequest = require("graphql-request");
 
-const GRAPHQL_ENDPOINT = process.env.PINPOINT_APPID;
-// "https://qxohgzahbvhytksiegrj4macla.appsync-api.ca-central-1.amazonaws.com/graphql";
+const GRAPHQL_ENDPOINT =
+  "https://qxohgzahbvhytksiegrj4macla.appsync-api.ca-central-1.amazonaws.com/graphql";
 const GRAPHQL_API_KEY =
   // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIKEYOUTPUT;
   "da2-ghgkjvxhr5dgvgz7iopp2of6pm";
@@ -226,7 +226,9 @@ exports.handler = async (event) => {
               }
               break;
             case "delete":
-              result = handler.deleteUser(event.SQLVariableMapping[":user_id"]);
+              result = handler.deleteUser(
+                event.SQLVariableMapping[":user_id"].toString()
+              );
               break;
           }
           break;
@@ -277,18 +279,20 @@ exports.handler = async (event) => {
               //     })
               //     .catch((err) => reject(err));
 
-              let categorytopic = await executeGraphQL(`
-            query MyQuery {
-              getCategoryTopicById(categoryTopic_id: ${event.SQLVariableMapping.categoryTopic_id}) {
-                topic_acronym
-                category_acronym
-              }
-            }`).getCategoryTopicById;
+              //   let gqlResult = await executeGraphQL(`
+              // query MyQuery {
+              //   getCategoryTopicById(categoryTopic_id: ${event.SQLVariableMapping.categoryTopic_id}) {
+              //     topic_acronym
+              //     category_acronym
+              //   }
+              // }`);
+              // .getCategoryTopicById;
+              // console.log("gqlResult:", gqlResult);
               result.pinpointResult = await handler.updateTopicChannel(
                 event.SQLVariableMapping[":user_id"],
-                categorytopic.category_acronym +
+                event.SQLVariableMapping[":category_acronym"] +
                   "-" +
-                  categorytopic.topic_acronym,
+                  event.SQLVariableMapping[":topic_acronym"],
                 event.SQLVariableMapping[":email_notice"],
                 event.SQLVariableMapping[":sms_notice"]
               );
@@ -339,6 +343,7 @@ async function executeGraphQL(query) {
     //   body: JSON.stringify({ query, variables }),
     // };
     let gqlQuery = gqlRequest.gql([query]);
+
     const gqlClient = new gqlRequest.GraphQLClient(GRAPHQL_ENDPOINT, {
       headers: {
         "x-api-key": GRAPHQL_API_KEY,

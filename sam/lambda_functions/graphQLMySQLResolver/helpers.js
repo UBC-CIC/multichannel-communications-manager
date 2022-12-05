@@ -167,13 +167,14 @@ async function upsertUserProfile(userID, province, postalCode) {
 
 /**
  * delete all endpoints of a user
- * @param {Int} userID
+ * @param {String} userID
  * @return {Promise} A Promise object that contains information about deleted endpoints
  */
 function deleteUser(userID) {
   return new Promise((resolve, reject) => {
     let request = { ApplicationId: PINPOINTID, UserId: userID };
 
+    console.log("sending request to ppt: ", request);
     pinpoint.deleteUserEndpoints(request, function (err, response) {
       if (err) {
         console.error(err, err.stack);
@@ -310,7 +311,7 @@ function updateTopicChannel(
 
   let request = {
     ApplicationId: PINPOINTID,
-    EndpointId: userID,
+    EndpointId: "email" + "_" + userID,
     EndpointRequest: {
       OptOut: "NONE",
       User: {
@@ -319,13 +320,13 @@ function updateTopicChannel(
     },
   };
 
-  if (emailNotice === 1) {
+  if (emailNotice) {
     request.EndpointRequest.User.UserAttributes[categoryTopicName].push(
       "EMAIL"
     );
   }
 
-  if (textNotice === 1) {
+  if (textNotice) {
     request.EndpointRequest.User.UserAttributes[categoryTopicName].push("SMS");
   }
 

@@ -1667,9 +1667,9 @@ Resources:
           "version": "2018-05-29",
           "operation": "Invoke",
           "payload": {
-            "sql": "DELETE FROM `User` WHERE user_id=:1",
+            "sql": "DELETE FROM `User` WHERE user_id = :user_id;",
             "SQLVariableMapping": {
-                ":1": $context.arguments.user_id
+                ":user_id": $context.arguments.user_id
             },
           "pinpoint":{"type": "userprofile", "action": "delete"}
           }
@@ -1678,7 +1678,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result.sqlResult[0])
+        "Succeeded"
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1979,6 +1979,7 @@ Resources:
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
         },
+        "pinpoint": {"type": "usersubscription", "action": "insert"},
         "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_acronym=:category_acronym and `CategoryTopic`.topic_acronym=:topic_acronym;"
         }
         }
@@ -2026,6 +2027,7 @@ Resources:
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
         },
+        "pinpoint": {"type": "usersubscription", "action": "update"},
         "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_acronym=:category_acronym and `CategoryTopic`.topic_acronym=:topic_acronym;"
         }
         }
@@ -2057,7 +2059,8 @@ Resources:
         ":user_id": $context.arguments.user_id,
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
-        }
+        },
+        "pinpoint": {"type": "usersubscription", "action": "delete"}
         }
         }
       ResponseMappingTemplate: |
