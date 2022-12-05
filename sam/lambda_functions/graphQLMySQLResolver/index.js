@@ -105,10 +105,10 @@ function executeSQL(connection, sql_statement) {
   });
 }
 
-function populateAndSanitizeSQL(sql, variableMapping, connection) {
+function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
   // takes the variable mapping JSON, and inserts them into the sql string
-  // for each pair in variableMapping, replace the key with value in sql
-  Object.entries(variableMapping).forEach(([key, value]) => {
+  // for each pair in SQLVariableMapping, replace the key with value in sql
+  Object.entries(SQLVariableMapping).forEach(([key, value]) => {
     let escapedValue = connection.escape(value);
     if (
       String(escapedValue).length == 0 ||
@@ -161,10 +161,10 @@ exports.handler = async (event) => {
       // sometimes an empty statement will try to be executed, this stops those from executing
       continue;
     }
-    // 'fill in' the variables in the sql statement with ones from variableMapping
+    // 'fill in' the variables in the sql statement with ones from SQLVariableMapping
     const inputSQL = populateAndSanitizeSQL(
       sql_statement,
-      event.variableMapping,
+      event.SQLVariableMapping,
       connection
     );
     // execute the sql statement on our database
@@ -175,7 +175,7 @@ exports.handler = async (event) => {
   if (event.responseSQL) {
     const responseSQL = populateAndSanitizeSQL(
       event.responseSQL,
-      event.variableMapping,
+      event.SQLVariableMapping,
       connection
     );
     result.sqlResult = await executeSQL(connection, responseSQL);
@@ -194,11 +194,11 @@ exports.handler = async (event) => {
           switch (pinpointAction.action) {
             case "insert":
             case "update":
-              console.log(event.variableMapping);
+              console.log(event.SQLVariableMapping);
               let upsertUserProfileResponse = await handler.upsertUserProfile(
                 result.sqlResult[0].user_id.toString(),
-                event.variableMapping[":province"],
-                event.variableMapping[":postal_code"]
+                event.SQLVariableMapping[":province"],
+                event.SQLVariableMapping[":postal_code"]
               );
               console.log(
                 "upsertUserProfile response: ",
@@ -208,16 +208,16 @@ exports.handler = async (event) => {
               let upsertEmailResponse = await handler.upsertEndpoint(
                 result.sqlResult[0].user_id.toString(),
                 "EMAIL" + "_" + result.sqlResult[0].user_id.toString(),
-                event.variableMapping[":email_address"],
+                event.SQLVariableMapping[":email_address"],
                 "EMAIL"
               );
               console.log("upsert email response: ", upsertEmailResponse);
 
-              if (event.variableMapping[":phone_address"]) {
+              if (event.SQLVariableMapping[":phone_address"]) {
                 let upsertPhoneResponse = await handler.upsertEndpoint(
                   result.sqlResult[0].user_id.toString(),
                   "SMS" + "_" + result.sqlResult[0].user_id.toString(),
-                  event.variableMapping[":phone_address"],
+                  event.SQLVariableMapping[":phone_address"],
                   "SMS"
                 );
                 console.log("upsert phone no. response: ", upsertPhoneResponse);
@@ -226,7 +226,7 @@ exports.handler = async (event) => {
               }
               break;
             case "delete":
-              result = handler.deleteUser(event.variableMapping[":user_id"]);
+              result = handler.deleteUser(event.SQLVariableMapping[":user_id"]);
               break;
           }
           break;
@@ -236,7 +236,7 @@ exports.handler = async (event) => {
             case "update":
               //   executeGraphQL(`
               // query MyQuery {
-              //   getCategoryTopicById(categoryTopic_id: ${event.variableMapping.categoryTopic_id}) {
+              //   getCategoryTopicById(categoryTopic_id: ${event.SQLVariableMapping.categoryTopic_id}) {
               //     topic_acronym
               //     category_acronym
               //   }
@@ -244,12 +244,12 @@ exports.handler = async (event) => {
               //     .then((response) => {
               //       categorytopic = response.getCategoryTopicById;
               //       handler.updateTopicChannel(
-              //         event.variableMapping.user_id,
+              //         event.SQLVariableMapping.user_id,
               //         categorytopic.category_acronym +
               //           "-" +
               //           categorytopic.topic_acronym,
-              //         event.variableMapping.email_notice,
-              //         event.variableMapping.sms_notice
+              //         event.SQLVariableMapping.email_notice,
+              //         event.SQLVariableMapping.sms_notice
               //       );
               //       resolve("pinpoint update channel preference succeeded");
               //     })
@@ -258,7 +258,7 @@ exports.handler = async (event) => {
               // case "delete":
               //   executeGraphQL(`
               // query MyQuery {
-              //   getCategoryTopicById(categoryTopic_id: ${event.variableMapping.categoryTopic_id}) {
+              //   getCategoryTopicById(categoryTopic_id: ${event.SQLVariableMapping.categoryTopic_id}) {
               //     topic_acronym
               //     category_acronym
               //   }
@@ -266,7 +266,7 @@ exports.handler = async (event) => {
               //     .then((response) => {
               //       categorytopic = response.data.getCategoryTopicById;
               //       handler.updateTopicChannel(
-              //         event.variableMapping.user_id,
+              //         event.SQLVariableMapping.user_id,
               //         categorytopic.category_acronym +
               //           "-" +
               //           categorytopic.topic_acronym,
@@ -279,24 +279,24 @@ exports.handler = async (event) => {
 
               let categorytopic = await executeGraphQL(`
             query MyQuery {
-              getCategoryTopicById(categoryTopic_id: ${event.variableMapping.categoryTopic_id}) {
+              getCategoryTopicById(categoryTopic_id: ${event.SQLVariableMapping.categoryTopic_id}) {
                 topic_acronym
                 category_acronym
               }
             }`).getCategoryTopicById;
               result.pinpointResult = await handler.updateTopicChannel(
-                event.variableMapping[":user_id"],
+                event.SQLVariableMapping[":user_id"],
                 categorytopic.category_acronym +
                   "-" +
                   categorytopic.topic_acronym,
-                event.variableMapping[":email_notice"],
-                event.variableMapping[":sms_notice"]
+                event.SQLVariableMapping[":email_notice"],
+                event.SQLVariableMapping[":sms_notice"]
               );
               break;
             case "delete":
               let graphqlResponse = executeGraphQL(`
             query MyQuery {
-              getCategoryTopicById(categoryTopic_id: ${event.variableMapping.categoryTopic_id}) {
+              getCategoryTopicById(categoryTopic_id: ${event.SQLVariableMapping.categoryTopic_id}) {
                 topic_acronym
                 category_acronym
               }
@@ -304,7 +304,7 @@ exports.handler = async (event) => {
                 .then((response) => {
                   categorytopic = response.data.getCategoryTopicById;
                   handler.updateTopicChannel(
-                    event.variableMapping.user_id,
+                    event.SQLVariableMapping.user_id,
                     categorytopic.category_acronym +
                       "-" +
                       categorytopic.topic_acronym,

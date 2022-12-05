@@ -1152,7 +1152,7 @@ Resources:
           "operation": "Invoke",
           "payload": {
             "sql": "select `User`.* from `User` where `User`.user_id = :1;",
-            "variableMapping": {
+            "SQLVariableMapping": {
             ":1": $context.arguments.user_id
             }
           }
@@ -1181,7 +1181,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `User` where `User`.email_address = :1;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":1": "$context.arguments.user_email"
         }
         }
@@ -1210,7 +1210,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :1 and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":1": $context.arguments.user_id
         }
         }
@@ -1239,7 +1239,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `CategoryTopic` where categoryTopic_id = :id;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":id": $context.arguments.categoryTopic_id
         }
         }
@@ -1268,7 +1268,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `Category` where `Category`.acronym = :1;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":1": "$context.arguments.acronym"
         }
         }
@@ -1297,7 +1297,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `Topic`, `CategoryTopic` where `Topic`.acronym = `CategoryTopic`.topic_acronym and `CategoryTopic`.category_acronym = :1;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":1": "$context.arguments.category_acronym"
         }
         }
@@ -1325,7 +1325,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `Topic` where `Topic`.acronym = :1;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":1": "$context.arguments.topic_acronym"
         }
         }
@@ -1354,7 +1354,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `Topic`",
-        "variableMapping": {
+        "SQLVariableMapping": {
         }
         }
         }
@@ -1382,7 +1382,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `Category`",
-        "variableMapping": {
+        "SQLVariableMapping": {
         }
         }
         }
@@ -1410,7 +1410,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `CategoryTopic`;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         }
         }
         }
@@ -1446,7 +1446,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "insert into `User` (email_address, phone_address, postal_code, province) values (:email_address, :phone_address, :postal_code, :province);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":email_address": "$context.arguments.email_address",
         ":phone_address": $phone_address,
         ## ":phone_id": $phone_id,
@@ -1470,7 +1470,7 @@ Resources:
       # PipelineConfig: 
       #   Functions:
       #   - !GetAtt CreatePinpointUserFunction.FunctionId
-
+      
   # CreatePinpointUserFunction:
   #   Type: AWS::AppSync::FunctionConfiguration
   #   Properties: 
@@ -1480,6 +1480,75 @@ Resources:
   #     Name: createPinpointUserFunction
   #     Runtime: APPSYNC_JS
 
+  # updateUserResolver:
+  #   Type: AWS::AppSync::Resolver
+  #   DependsOn:
+  #   - LambdaAppSyncDataSource
+  #   Properties:
+  #     TypeName: Mutation
+  #     FieldName: updateUser
+  #     RequestMappingTemplate: |
+  #       #if( $context.arguments.email_address )
+  #         #if( $context.arguments.phone_address || $context.arguments.province || $context.arguments.postal_code)
+  #           #set( $email_address = "email_address=:email_address," )
+  #         #else
+  #           #set( $email_address = "email_address=:email_address" )
+  #         #end        
+  #       #else
+  #         #set( $email_address = "" )
+  #       #end
+  #       #if( $context.arguments.phone_address )
+  #         #if( $context.arguments.province || $context.arguments.postal_code)
+  #           #set( $phone_address = "phone_address=:phone_address," )
+  #         #else
+  #           #set( $phone_address = "phone_address=:phone_address" )
+  #         #end           
+  #       #else
+  #         #set( $phone_address = "" )
+  #       #end
+  #       #if( $context.arguments.province )
+  #         #if( $context.arguments.postal_code)
+  #           #set( $province = "province=:province," )
+  #         #else
+  #           #set( $province = "province=:province" )
+  #         #end          
+  #       #else
+  #         #set( $province = "" )
+  #       #end
+  #       #if( $context.arguments.postal_code )
+  #         #set( $postal_code = "postal_code=:postal_code" )
+  #       #else
+  #         #set( $postal_code = "" )
+  #       #end
+
+  #       {
+  #       "version": "2018-05-29",
+  #       "operation": "Invoke",
+  #       "payload": {
+  #       "sql": "UPDATE `User` SET $email_address $phone_address $province $postal_code WHERE `User`.user_id = :user_id;",
+  #       "SQLVariableMapping": {
+  #       ":user_id": $context.arguments.user_id,
+  #       ":email_address": $email_address,
+  #       ":phone_address": $phone_address,
+  #       ":province": $context.arguments.province,
+  #       ":postal_code": $context.arguments.postal_code,
+  #       },
+  #       "pinpoint":{"type": "userprofile", "action": "update"},
+  #       "responseSQL": "select * from `User` where user_id=:user_id;"
+  #       }
+  #       }
+
+  #     ResponseMappingTemplate: |
+  #       #if($ctx.error)
+  #         $util.error($ctx.error.message, $ctx.error.type)
+  #       #end
+  #       $util.toJson($context.result.sqlResult[0])
+  #     ApiId: !GetAtt GraphQlApiIdParameter.Value
+  #     DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+  #     Kind: UNIT
+  #     MaxBatchSize: 0
+
+
   updateUserResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -1488,56 +1557,59 @@ Resources:
       TypeName: Mutation
       FieldName: updateUser
       RequestMappingTemplate: |
+        #set($phone_address = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.phone_address, null)))
+        #set($email_address = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.email_address, null)))
+        #set($province = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.province, null)))
+        #set($postal_code = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
+
         #if( $context.arguments.email_address )
           #if( $context.arguments.phone_address || $context.arguments.province || $context.arguments.postal_code)
-            #set( $email_address = "email_address=:email_address," )
+            #set( $sql_email_address = "email_address=:email_address," )
           #else
-            #set( $email_address = "email_address=:email_address" )
+            #set( $sql_email_address = "email_address=:email_address" )
           #end        
         #else
-          #set( $email_address = "" )
+          #set( $sql_email_address = "" )
         #end
         #if( $context.arguments.phone_address )
           #if( $context.arguments.province || $context.arguments.postal_code)
-            #set( $phone_address = "phone_address=:phone_address," )
+            #set( $sql_phone_address = "phone_address=:phone_address," )
           #else
-            #set( $phone_address = "phone_address=:phone_address" )
+            #set( $sql_phone_address = "phone_address=:phone_address" )
           #end           
         #else
-          #set( $phone_address = "" )
+          #set( $sql_phone_address = "" )
         #end
         #if( $context.arguments.province )
           #if( $context.arguments.postal_code)
-            #set( $province = "province=:province," )
+            #set( $sql_province = "province=:province," )
           #else
-            #set( $province = "province=:province" )
+            #set( $sql_province = "province=:province" )
           #end          
         #else
-          #set( $province = "" )
+          #set( $sql_province = "" )
         #end
         #if( $context.arguments.postal_code )
-          #set( $postal_code = "postal_code=:postal_code" )
+          #set( $sql_postal_code = "postal_code=:postal_code" )
         #else
-          #set( $postal_code = "" )
+          #set( $sql_postal_code = "" )
         #end
-
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `User` SET $email_address $phone_address $province $postal_code WHERE `User`.user_id = :user_id;",
-        "variableMapping": {
+        "sql": "UPDATE `User` SET $sql_email_address $sql_phone_address $sql_province $sql_postal_code WHERE `User`.user_id = :user_id;",
+        "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_address": $email_address,
         ":phone_address": $phone_address,
-        ":province": $context.arguments.province,
-        ":postal_code": $context.arguments.postal_code,
+        ":province": $province,
+        ":postal_code": $postal_code,
         },
         "pinpoint":{"type": "userprofile", "action": "update"},
         "responseSQL": "select * from `User` where user_id=:user_id;"
         }
         }
-
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
@@ -1547,6 +1619,40 @@ Resources:
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
+
+  # updateUserFunction:
+  #   Type: AWS::AppSync::FunctionConfiguration
+  #   Properties:
+  #     ApiId: !GetAtt GraphQlApiIdParameter.Value
+  #     Name: updateUserFunction
+  #     DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+  #     FunctionVersion: "2018-05-29"
+  #     Runtime: 
+  #       Name: APPSYNC_JS
+  #       RuntimeVersion: 1.0.0
+  #     Code: |
+  #       import { util } from '@aws-appsync/utils';
+
+  #       export function request(ctx) {
+  #         console.log(ctx);
+  #         console.log(ctx.stash);
+  #         /*
+  #         const { email } = ctx.stash;
+  #         const valid = util.matches(
+  #           '^[a-zA-Z0-9_.+-]+@(?:(?:[a-zA-Z0-9-]+.)?[a-zA-Z]+.)?(xmyvaliddomain).com',
+  #           email
+  #         );
+  #         if (!valid) {
+  #           util.error(`"${email}" is not a valid email.`);
+  #         }
+  #         */
+
+  #         return { payload: {}};
+  #       }
+
+  #       export function response(ctx) {
+  #         return ctx.result;
+  #       }
 
 
   deleteUserResolver:
@@ -1562,7 +1668,7 @@ Resources:
           "operation": "Invoke",
           "payload": {
             "sql": "DELETE FROM `User` WHERE user_id=:1",
-            "variableMapping": {
+            "SQLVariableMapping": {
                 ":1": $context.arguments.user_id
             },
           "pinpoint":{"type": "userprofile", "action": "delete"}
@@ -1592,7 +1698,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "insert into `Category` (acronym, title, description) values (:acronym, :title, :description);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":acronym": "$context.arguments.acronym",
         ":title": "$context.arguments.title",
         ":description": $description
@@ -1647,7 +1753,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "UPDATE `Category` SET $acronym $title $description WHERE `Category`.category_id = :category_id;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":category_id": $context.arguments.category_id,
         ":acronym": "$context.arguments.acronym",
         ":title": "$context.arguments.title",
@@ -1680,7 +1786,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "delete from `Category` where category_id=:category_id;",
-        "variableMapping": {
+        "SQLVariableMapping": {
           ":category_id": $context.arguments.category_id
         }
         }
@@ -1709,7 +1815,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "insert into `Topic` (acronym) values (:acronym);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":acronym": "$context.arguments.acronym"
         },
         "responseSQL": "select * from `Topic` where acronym=:acronym;"
@@ -1738,7 +1844,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "delete from `Topic` where topic_id=:topic_id;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":topic_id": "$context.arguments.topic_id"
         }
         }
@@ -1766,7 +1872,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "insert into `CategoryTopic` (category_acronym, topic_acronym) values (:category_acronym, :topic_acronym);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
         },
@@ -1796,7 +1902,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "delete from `CategoryTopic` where category_acronym=:category_acronym and topic_acronym=:topic_acronym;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
         }
@@ -1827,7 +1933,7 @@ Resources:
         "payload": {
         "sql": 
           "alter table `User` modify phone_address varchar(50);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         }
         }
         }
@@ -1866,7 +1972,7 @@ Resources:
         "payload": {
         "sql": 
           "insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_notice": $email_notice,
         ":sms_notice": $sms_notice,
@@ -1913,7 +2019,7 @@ Resources:
           "update `UserCategoryTopic`,`CategoryTopic` set `UserCategoryTopic`.email_notice = :email_notice, `UserCategoryTopic`.sms_notice = :sms_notice where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id;",
           ##"update `UserCategoryTopic` set email_notice=:email_notice, sms_notice=:sms_notice from (select categoryTopic_id from `CategoryTopic`) as CategoryTopic where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym and `UserCategoryTopic`.categoryTopic_id=`CategoryTopic`.categoryTopic_id;",
           ##"insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_notice": $email_notice,
         ":sms_notice": $sms_notice,
@@ -1947,7 +2053,7 @@ Resources:
         "payload": {
         "sql": 
           "delete from `UserCategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id in (select categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"

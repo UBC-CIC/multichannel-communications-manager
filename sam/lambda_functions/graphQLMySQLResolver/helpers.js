@@ -127,17 +127,23 @@ async function upsertUserProfile(userID, province, postalCode) {
       ApplicationId: PINPOINTID,
       EndpointId: userID,
       EndpointRequest: {
-        User: {
-          UserAttributes: {},
-        },
+        // User: {
+        //   UserAttributes: {},
+        // },
       },
     };
 
+    let userProfileRequest = { User: { UserAttributes: {} } };
+
     if (province) {
-      request.EndpointRequest.User.UserAttributes.province = [province];
+      userProfileRequest.User.UserAttributes.province = [province];
     }
     if (postalCode) {
-      request.EndpointRequest.User.UserAttributes.postalCode = [postalCode];
+      userProfileRequest.User.UserAttributes.postalCode = [postalCode];
+    }
+
+    if (province || postalCode) {
+      request.EndpointRequest = userProfileRequest;
     }
 
     console.log(
