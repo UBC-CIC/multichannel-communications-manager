@@ -221,6 +221,7 @@ exports.handler = async (event) => {
                   "SMS"
                 );
                 console.log("upsert phone no. response: ", upsertPhoneResponse);
+                result.pinpointResult = "success";
               } else {
                 result.pinpointResult = "success";
               }
@@ -229,6 +230,7 @@ exports.handler = async (event) => {
               result = handler.deleteUser(
                 event.SQLVariableMapping[":user_id"].toString()
               );
+              result.pinpointResult = "success";
               break;
           }
           break;
@@ -236,58 +238,6 @@ exports.handler = async (event) => {
           switch (pinpointAction.action) {
             case "insert":
             case "update":
-              //   executeGraphQL(`
-              // query MyQuery {
-              //   getCategoryTopicById(categoryTopic_id: ${event.SQLVariableMapping.categoryTopic_id}) {
-              //     topic_acronym
-              //     category_acronym
-              //   }
-              // }`)
-              //     .then((response) => {
-              //       categorytopic = response.getCategoryTopicById;
-              //       handler.updateTopicChannel(
-              //         event.SQLVariableMapping.user_id,
-              //         categorytopic.category_acronym +
-              //           "-" +
-              //           categorytopic.topic_acronym,
-              //         event.SQLVariableMapping.email_notice,
-              //         event.SQLVariableMapping.sms_notice
-              //       );
-              //       resolve("pinpoint update channel preference succeeded");
-              //     })
-              //     .catch((err) => reject(err));
-              //   break;
-              // case "delete":
-              //   executeGraphQL(`
-              // query MyQuery {
-              //   getCategoryTopicById(categoryTopic_id: ${event.SQLVariableMapping.categoryTopic_id}) {
-              //     topic_acronym
-              //     category_acronym
-              //   }
-              // }`)
-              //     .then((response) => {
-              //       categorytopic = response.data.getCategoryTopicById;
-              //       handler.updateTopicChannel(
-              //         event.SQLVariableMapping.user_id,
-              //         categorytopic.category_acronym +
-              //           "-" +
-              //           categorytopic.topic_acronym,
-              //         false,
-              //         false
-              //       );
-              //       resolve("pinpoint unfollow email and phone succeeded");
-              //     })
-              //     .catch((err) => reject(err));
-
-              //   let gqlResult = await executeGraphQL(`
-              // query MyQuery {
-              //   getCategoryTopicById(categoryTopic_id: ${event.SQLVariableMapping.categoryTopic_id}) {
-              //     topic_acronym
-              //     category_acronym
-              //   }
-              // }`);
-              // .getCategoryTopicById;
-              // console.log("gqlResult:", gqlResult);
               result.pinpointResult = await handler.updateTopicChannel(
                 event.SQLVariableMapping[":user_id"],
                 event.SQLVariableMapping[":category_acronym"] +
@@ -298,27 +248,15 @@ exports.handler = async (event) => {
               );
               break;
             case "delete":
-              let graphqlResponse = executeGraphQL(`
-            query MyQuery {
-              getCategoryTopicById(categoryTopic_id: ${event.SQLVariableMapping.categoryTopic_id}) {
-                topic_acronym
-                category_acronym
-              }
-            }`)
-                .then((response) => {
-                  categorytopic = response.data.getCategoryTopicById;
-                  handler.updateTopicChannel(
-                    event.SQLVariableMapping.user_id,
-                    categorytopic.category_acronym +
-                      "-" +
-                      categorytopic.topic_acronym,
-                    false,
-                    false
-                  );
-                  resolve("pinpoint unfollow email and phone succeeded");
-                })
-                .catch((err) => reject(err));
-
+              result.pinpointResult = await handler.updateTopicChannel(
+                event.SQLVariableMapping[":user_id"],
+                event.SQLVariableMapping[":category_acronym"] +
+                  "-" +
+                  event.SQLVariableMapping[":topic_acronym"],
+                false,
+                false
+              );
+              result.pinpointResult = "success";
               break;
           }
           break;

@@ -394,30 +394,6 @@ Resources:
           Value: !Ref 'ProjectName'
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
-
-  # DMSSecurityGroup:
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties:
-  #     GroupDescription: DMS security group. Outbound only traffic.
-  #     VpcId: !Ref VPC
-
-  # DMSVPCRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service:
-  #             - dms.amazonaws.com
-  #           Action:
-  #             - 'sts:AssumeRole'
-  #     Description: Role for DMS to assume role
-  #     Path: /
-  #     ManagedPolicyArns:
-  #       - arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole
-  #     RoleName: dms-vpc-role
     
 
 # RDS #########################################
@@ -557,34 +533,6 @@ Resources:
         - !Ref PrivateSubnet2
       VpcEndpointType: Interface
       VpcId: !Ref VPC
-
-  # EndpointPinpoint:
-  #   Type: AWS::EC2::VPCEndpoint
-  #   Properties:
-  #     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.pinpoint-sms-voice-v2'
-  #     PrivateDnsEnabled: true
-  #     SecurityGroupIds:
-  #       # - !Ref PinpointVpcEndpointSecurityGroup
-  #       # - !Ref ClosedSecurityGroup
-  #       - !Ref OpenSecurityGroup
-  #     SubnetIds:
-  #       # - !Ref PublicSubnet1
-  #       # - !Ref PublicSubnet2
-  #       - !Ref PrivateSubnet1
-  #       - !Ref PrivateSubnet2
-  #     VpcEndpointType: Interface
-  #     VpcId: !Ref VPC  
-
-  # PinpointVpcEndpointSecurityGroup:
-  #     Type: 'AWS::EC2::SecurityGroup'
-  #     Properties:
-  #       VpcId: !Ref VPC
-  #       GroupDescription: 'Security group for VPC Endpoint'
-  #       SecurityGroupIngress:
-  #         - IpProtocol: tcp
-  #           FromPort: 443
-  #           ToPort: 443
-  #           SourceSecurityGroupId: !Ref ClosedSecurityGroup
     
   EIP:
     Type: 'AWS::EC2::EIP'
@@ -603,34 +551,6 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
       DestinationCidrBlock: '0.0.0.0/0'
       NatGatewayId: !Ref NatGateway
-
-  # EndpointKMS:
-  #   Type: AWS::EC2::VPCEndpoint
-  #   Properties:
-  #     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.kms'
-  #     PrivateDnsEnabled: true
-      # SecurityGroupIds:
-      #   - !Ref ClosedSecurityGroup
-  #     SubnetIds:
-  #       - !Ref PublicSubnet1
-  #       - !Ref PublicSubnet2
-  #     VpcEndpointType: Interface
-  #     VpcId: !Ref VPC
-
-  # EndpointRekognition:
-  #   Type: AWS::EC2::VPCEndpoint
-  #   Properties:
-  #     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.rekognition'
-  #     PrivateDnsEnabled: true
-  #     SecurityGroupIds:
-  #       - !Ref OpenSecurityGroup
-  #     SubnetIds:
-  #       # - !Ref PublicSubnet1
-  #       # - !Ref PublicSubnet2
-  #       - !Ref PrivateSubnet1
-  #       - !Ref PrivateSubnet2
-  #     VpcEndpointType: Interface
-  #     VpcId: !Ref VPC
   
   EndpointRDS:
     Type: AWS::EC2::VPCEndpoint
@@ -729,14 +649,6 @@ Resources:
           MaxIdleConnectionsPercent: 50
           ConnectionBorrowTimeout: 120
 
-  # MinConfidenceThresholdSSM:
-  #   Type: AWS::SSM::Parameter
-  #   Properties: 
-  #     Type: String
-  #     Description: A percentage that represents the minimum required confidence in Rekognition in order to count as a hit, for use in validateImageWithRekognition
-  #     Name: MINIMUM_REKOGNITION_CONFIDENCE_THRESHOLD
-  #     Value: !Ref MinConfidenceThreshold
-
 
   # Lambda functions ####################################
   
@@ -789,119 +701,6 @@ Resources:
     Properties:
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref graphQLMySQLResolver]]
       RetentionInDays: 14
-
-  # LambdaInvokePermission:
-  #   Type: 'AWS::Lambda::Permission'
-  #   DependsOn: validateImageWithRekognition
-  #   Properties:
-  #     FunctionName: !GetAtt validateImageWithRekognition.Arn
-  #     Action: 'lambda:InvokeFunction'
-  #     Principal: s3.amazonaws.com
-  #     SourceAccount: !Ref 'AWS::AccountId'
-  #     SourceArn: !Join ['', ['arn:aws:s3:::','{{resolve:ssm:BucketName}}']] 
-
-  # validateImageWithRekognition:
-  #   Type: AWS::Serverless::Function
-  #   DependsOn:
-  #   - CloudFrontDistribution
-  #   - RDSProxy
-  #   - ClosedSecurityGroup
-  #   - MainDBInstance
-  #   Properties:
-  #     FunctionName: validateImageWithRekognition
-  #     Handler: lambda_function.lambda_handler
-  #     CodeUri: ./lambda_functions/validateImageWithRekognition
-  #     Runtime: python3.8
-  #     Architectures:
-      #   - x86_64
-      # MemorySize: 128
-      # Timeout: 100
-      # Description: Validates images uploaded through the submitted action pipeline
-      # Policies:
-      #   Version: '2012-10-17' # in line policies
-      #   Statement:
-      #   - Effect: Allow
-      #     Action: logs:CreateLogGroup
-      #     Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
-      #   - Effect: Allow
-      #     Action:
-      #     - logs:CreateLogStream
-      #     - logs:PutLogEvents
-      #     Resource:
-      #     - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/validateImageWithRekognition:*
-      #   - Effect: Allow
-      #     Action:
-      #     - rekognition:DetectLabels
-        #   - rekognition:DetectFaces
-        #   - rekognition:DetectModerationLabels
-        #   - rekognition:CompareFaces
-        #   Resource: "*"
-        # - Effect: Allow
-        #   Action:
-        #   - rekognition:CreateCollection
-        #   - rekognition:IndexFaces
-        #   Resource: "*"
-        # - Effect: Allow
-        #   Action:
-        #   - s3:PutObject
-        #   - s3:GetObject
-        #   - s3:DeleteObject
-        #   Resource: arn:aws:s3:::*
-        # - Effect: Allow
-        #   Action:
-        #   - ssm:GetParameter
-        #   - ssm:GetParameters
-        #   Resource:
-        #   - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/MINIMUM_REKOGNITION_CONFIDENCE_THRESHOLD
-        # - Effect: Allow
-        #   Action:
-        #   - ssm:UpdateInstanceInformation
-        #   - ssmmessages:CreateControlChannel
-        #   - ssmmessages:CreateDataChannel
-        #   - ssmmessages:OpenControlChannel
-        #   - ssmmessages:OpenDataChannel
-        #   Resource: "*"
-        # - Effect: Allow
-        #   Action:
-        #   - s3:GetEncryptionConfiguration
-        #   Resource: "*"
-        # - Effect: Allow
-        #   Action:
-      #     - kms:Decrypt
-      #     Resource: '*' 
-      # Environment:
-      #   Variables:
-      #     AMPLIFY_BUCKET: '{{resolve:ssm:BucketName}}'
-      #     CLOUDFRONT_URL: !GetAtt CloudFrontDistribution.DomainName 
-      #     DBNAME: !Ref DBName
-      #     ENDPOINT: !GetAtt RDSProxy.Endpoint
-      #     PASSWORD: !Ref DBPassword
-      #     USERNAME: !Ref DBUser
-      # VpcConfig:
-      #   SecurityGroupIds:
-      #     - !Ref ClosedSecurityGroup
-      #   SubnetIds:
-      #     - !Ref PrivateSubnet1
-      #     - !Ref PrivateSubnet2
-      
-      # Events:
-      #   FileUpload:
-      #     Type: S3
-      #     Properties:
-      #       Bucket: !Ref AmplifyBucket ####################
-      #       Events: s3:ObjectCreated:*
-      #       Filter:
-      #         S3Key:
-      #           Rules:
-      #             - Name: prefix
-      #               Value: "public/validation/input/"
-
-  # validateImageWithRekognitionLogs:
-  #   Type: AWS::Logs::LogGroup
-  #   DependsOn: validateImageWithRekognition
-  #   Properties:
-  #     LogGroupName: !Join ["", ["/aws/lambda/", !Ref validateImageWithRekognition]]
-  #     RetentionInDays: 14
 
 
 # Cloudfront ##########################################
@@ -1620,41 +1419,6 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
-  # updateUserFunction:
-  #   Type: AWS::AppSync::FunctionConfiguration
-  #   Properties:
-  #     ApiId: !GetAtt GraphQlApiIdParameter.Value
-  #     Name: updateUserFunction
-  #     DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
-  #     FunctionVersion: "2018-05-29"
-  #     Runtime: 
-  #       Name: APPSYNC_JS
-  #       RuntimeVersion: 1.0.0
-  #     Code: |
-  #       import { util } from '@aws-appsync/utils';
-
-  #       export function request(ctx) {
-  #         console.log(ctx);
-  #         console.log(ctx.stash);
-  #         /*
-  #         const { email } = ctx.stash;
-  #         const valid = util.matches(
-  #           '^[a-zA-Z0-9_.+-]+@(?:(?:[a-zA-Z0-9-]+.)?[a-zA-Z]+.)?(xmyvaliddomain).com',
-  #           email
-  #         );
-  #         if (!valid) {
-  #           util.error(`"${email}" is not a valid email.`);
-  #         }
-  #         */
-
-  #         return { payload: {}};
-  #       }
-
-  #       export function response(ctx) {
-  #         return ctx.result;
-  #       }
-
-
   deleteUserResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -2073,79 +1837,6 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
-
-  # need #############
-  #Kinesis Resource
-  # RDSKinesisStream:
-  #   Type: AWS::Kinesis::Stream
-  #   Properties:
-  #     Name: "rdsStream"
-  #     ShardCount: 1
-  #     StreamEncryption:
-  #       EncryptionType: KMS
-  #       KeyId: alias/aws/kinesis
-  # KinesisServiceRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service:
-  #             - dms.amazonaws.com
-  #           Action:
-  #             - 'sts:AssumeRole'
-  #     Description: Role for DMS to publish to Kinesis
-  #     ManagedPolicyArns:
-  #       - arn:aws:iam::aws:policy/AmazonKinesisFullAccess
-  #     RoleName: DMSToKinesisRole
-  #DMS Resources
-  # SourceEndpoint:
-  #   Type: "AWS::DMS::Endpoint"
-  #   Properties:
-  #     DatabaseName: sys
-  #     EndpointType: source
-  #     EngineName: mysql
-  #     Password: !Ref DBPassword
-  #     Port: 3306
-  #     ServerName: !GetAtt MainDBCluster.Endpoint.Address
-  #     Username: !Ref DBUser
-  # TargetEndpoint:
-  #   Type: "AWS::DMS::Endpoint"
-  #   Properties:
-  #     EndpointType: target
-  #     EngineName: kinesis
-  #     KinesisSettings: #object
-  #       MessageFormat: "JSON"
-  #       ServiceAccessRoleArn: !GetAtt KinesisServiceRole.Arn
-  #       StreamArn: !GetAtt RDSKinesisStream.Arn
-  # MyReplicationSubnetGroup:
-  #   Type: AWS::DMS::ReplicationSubnetGroup
-  #   Properties:
-  #     ReplicationSubnetGroupDescription: RDSReplicationSubnetGroup
-  #     SubnetIds:
-  #     - Ref: PrivateSubnet3
-  #     - Ref: PrivateSubnet4
-  # BasicReplicationInstance:
-  #     Type: "AWS::DMS::ReplicationInstance"
-  #     Properties:
-  #       ReplicationInstanceClass: dms.t2.micro
-  #       ReplicationSubnetGroupIdentifier: !Ref MyReplicationSubnetGroup
-  #       PubliclyAccessible: false
-  #       AllocatedStorage: 10
-  #       VpcSecurityGroupIds:
-  #       - !Ref DMSSecurityGroup
-  # BasicReplicationTask:
-  #   Type: AWS::DMS::ReplicationTask
-  #   Properties:
-  #     ReplicationInstanceArn: !Ref BasicReplicationInstance
-  #     ReplicationTaskIdentifier: RDSReplicationTask
-  #     MigrationType: cdc
-  #     SourceEndpointArn: !Ref SourceEndpoint
-  #     TargetEndpointArn: !Ref TargetEndpoint
-  #     TableMappings: "{ \"rules\": [ { \"rule-type\": \"selection\", \"rule-id\": \"1\", \"rule-name\": \"1\", \"object-locator\": { \"schema-name\": \"sys\", \"table-name\": \"%\" }, \"rule-action\": \"include\" } ] }"
-
   # SES
   SESIdentity:
     Type: AWS::SES::EmailIdentity
@@ -2389,17 +2080,6 @@ Resources:
   #     Description: Dependency for RDS Pinpoint Lambda
   #     ContentUri: ./lambda_functions/RDSTrigger/nodejs/node_modules/
 
-  #Lambda Event Source
-  # LambdaEventSource:
-  #   Type: AWS::Lambda::EventSourceMapping
-  #   Properties:
-  #     EventSourceArn: !GetAtt KinesisStream.Arn
-  #     FunctionName: !GetAtt RDSPinPointLambda.Arn
-  #     BatchSize: 10
-  #     MaximumBatchingWindowInSeconds: 10
-  #     MaximumRecordAgeInSeconds: 60
-  #     StartingPosition: "LATEST"
-
 
 
 # OUTPUTS ######################
@@ -2408,10 +2088,6 @@ Resources:
   # AmplifyBucketName:
   #   Description: The name of the Amplify S3 bucket
   #   Value: '{{resolve:ssm:BucketName}}'
-
-  # ValidationLambdaArn:
-  #   Description: The ARN of the Lambda function for image validation
-  #   Value: !GetAtt validateImageWithRekognition.Arn
 
   # CloudFrontDistributionDomainName:
   #   Description: The domain name of our CloudFront distibution
