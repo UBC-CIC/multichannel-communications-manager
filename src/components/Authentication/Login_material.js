@@ -263,10 +263,12 @@ function Login(props) {
       // This will throw an error if the user is not yet authenticated:
       let user = await Auth.currentAuthenticatedUser()
       let group = user.signInUserSession.accessToken.payload['cognito:groups']
-      if (group.includes('Admins')) {
-        updateLoginState("Admin");
-      } else {
+      if (group === undefined) {
         updateLoginState("signedIn");
+      } else {
+        if (group.includes('Admins')) {
+          updateLoginState("Admin");
+        }
       }
     } catch (e) {
       const errorMsg = e.message 

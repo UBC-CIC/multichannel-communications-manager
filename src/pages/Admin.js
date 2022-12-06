@@ -6,8 +6,11 @@ import {
   Grid,
   Stack,
   Pagination,
+  TextField,
   IconButton,
+  InputAdornment
 } from "@mui/material";
+import { Add, Search, Delete } from "@mui/icons-material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageListItem, {
   imageListItemClasses,
@@ -15,7 +18,9 @@ import ImageListItem, {
 import { API, graphqlOperation } from "aws-amplify"
 import { getAllCategories } from "../graphql/queries";
 import { styled } from "@mui/material/styles";
-import ViewTopicsCard from "../components/subscribeToTopics/ViewTopicsCard";
+import AdminTopicCard from "../components/AdminTopicCard";
+import AddTopicDialog from "../components/AddTopicDialog";
+import DeleteTopicDialog from "../components/DeleteTopicDialog";
 
 const StyledImageListItemBar = styled(ImageListItemBar)`
   .MuiImageListItemBar-title {
@@ -85,40 +90,81 @@ const Admin = () => {
   ];
 
   //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
-  // const [sampleTopics, setSampleTopics] = useState([])
-  const [allSelectedTopics, setAllSelectedTopics] = useState();
-  const [selectedSubtopics, setSelectedSubtopics] = useState([]);
+  const [topics, setTopics] = useState([])
+  const [topicsTemp, setTopicsTemp] = useState([])
+  const [searchVal, setSearchVal] = useState("");
+  const [openNewTopicDialog, setOpenNewTopicDialog] = useState(false)
+  const [openDeleteTopicDialog, setOpenDeleteTopicDialog] = useState(false)
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
-  const topicsPerPage = 8;
+  const topicsPerPage = 10;
 
-  // async function queriedData() {
-  //   let categories = await API.graphql(graphqlOperation(getAllCategories))
-  //   let allCategories = categories.data.getAllCategories
-  //   setSampleTopics(allCategories)
-  // }
+  async function queriedData() {
+    let categories = await API.graphql(graphqlOperation(getAllCategories))
+    let allCategories = categories.data.getAllCategories
+    setTopics(allCategories)
+    setTopicsTemp(allCategories)
+  }
 
   //updates pagination
   useEffect(() => {
-    // queriedData()
+    queriedData()
     //change this to use queried data later
     const topicsPageCount =
-      sampleTopics &&
-      (sampleTopics.length % 8 === 0
-        ? Math.round(sampleTopics.length / 8)
-        : Math.floor(sampleTopics.length / 8 + 1));
+    topicsTemp &&
+      (topicsTemp.length % 10 === 0
+        ? Math.round(topicsTemp.length / 10)
+        : Math.floor(topicsTemp.length / 10 + 1));
     setPageCount(topicsPageCount);
-    setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [topics]);
+
+  const handleAddNewTopicOpen = () => {
+    setOpenNewTopicDialog(true)
+  }
+
+  const handleAddNewTopicClose = () => {
+    setOpenNewTopicDialog(false)
+  }
+
+  const handleDeleteTopicOpen = () => {
+    setOpenDeleteTopicDialog(true)
+  }
+
+  const handleDeleteTopicClose = () => {
+    setOpenDeleteTopicDialog(false)
+  }
+
+  function search() {
+    if (searchVal === "") {
+      return;
+    } else {
+      let searchValLowerCase = searchVal.toLowerCase()
+      let filteredTopics = topicsTemp.filter((s) => s.title.toLowerCase().includes(searchValLowerCase))
+      setTopicsTemp(filteredTopics)
+    }
+  }
+  
+  function onChange(e) {
+    setSearchVal(e.target.value)
+    if (e.target.value === "") {
+      setTopicsTemp(topics)
+    }
+  }
+
+  function onKeyDownSearch(e) {
+    if (e.keyCode === 13) {
+      search()
+    }
+  }
 
   const displayTopicOptions = () => {
     return (
-      sampleTopics &&
-      sampleTopics.length > 0 &&
-      sampleTopics
+      topicsTemp &&
+      topicsTemp.length > 0 &&
+      topicsTemp
         .slice((page - 1) * topicsPerPage, page * topicsPerPage)
         .map((topic, index) => (
           <StyledImageListItem
@@ -156,11 +202,10 @@ const Admin = () => {
         height: "100%",
       }}
     >
-      <Typography variant="body1" sx={{ mb: "2em" }}>
-        Select topics of interest that you would like to receive notifications
-        from. Your notification preferences can be changed at any time.
+      <Typography variant="h3" sx={{ mb: "1em" }}>
+        Welcome!
       </Typography>
-
+             
       {currentlySelectedTopic ? (
         <Box>
           <IconButton
@@ -172,47 +217,99 @@ const Admin = () => {
           >
             <ArrowBackIcon />
           </IconButton>
-          <ViewTopicsCard
+          <AdminTopicCard
             selectedTopic={currentlySelectedTopic}
+            setSelectedTopic={setCurrentlySelectedTopic}
           />
         </Box>
       ) : (
         <>
-          <Box
-            sx={{
-              display: "grid",
-              mt: "2em",
-              gridTemplateColumns: {
-                xs: "repeat(4, 2fr)",
-              },
-              rowGap: 1,
-              [`& .${imageListItemClasses.root}`]: {
+          <Box sx={{display: 'flex', flexDirection: 'row'}}>
+            <TextField
+              fullWidth
+              placeholder="Search..."
+              size="small"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={search}>
+                      <Search />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+              onChange={onChange}
+              onKeyDown={onKeyDownSearch}
+            />
+              <IconButton
+                color="primary"
+                aria-label="back to topic options"
+                component="label"
+                onClick={handleAddNewTopicOpen}
+                sx={{ width: 'fit-content', mb: "0.5em" }}
+              >
+                <Add />
+              </IconButton>
+              <IconButton
+                color="primary"
+                aria-label="back to topic options"
+                component="label"
+                onClick={handleDeleteTopicOpen}
+                sx={{ width: 'fit-content', mb: "0.5em" }}
+              >
+                <Delete />
+              </IconButton>
+              <AddTopicDialog 
+                open={openNewTopicDialog}
+                handleClose={handleAddNewTopicClose}
+                />
+              <DeleteTopicDialog 
+                open={openDeleteTopicDialog}
+                handleClose={handleDeleteTopicClose}
+                topics={topicsTemp}
+                setTopics={setTopicsTemp}
+                />
+            </Box>
+          <Box sx={{border: 1, borderColor: "grey.400", borderRadius: '6px' }}>
+            <Box
+              sx={{
+                display: "grid",
+                mt: "2em",
+                gridTemplateColumns: {
+                  xs: "repeat(2, 2fr)",
+                  sm: "repeat(3, 2fr)",
+                  md: "repeat(5, 2fr)"
+                },
+                rowGap: 1,
+                [`& .${imageListItemClasses.root}`]: {
+                  display: "flex",
+                  flexDirection: "column",
+                },
+                justifyItems: "center",
+              }}
+            >
+              {displayTopicOptions()}
+            </Box>
+            <Box
+              sx={{
                 display: "flex",
+                alignItems: "center",
                 flexDirection: "column",
-              },
-              justifyItems: "center",
-            }}
-          >
-            {displayTopicOptions()}
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              flexDirection: "column",
-              mt: "1em",
-            }}
-          >
-            <Stack spacing={2}>
-              <Pagination
-                showFirstButton
-                showLastButton
-                count={pageCount}
-                page={page}
-                onChange={(e, newPage) => setPage(newPage)}
-                size="small"
-              />
-            </Stack>
+                mt: "1em",
+                mb: "2em"
+              }}
+            >
+              <Stack spacing={2}>
+                <Pagination
+                  showFirstButton
+                  showLastButton
+                  count={pageCount}
+                  page={page}
+                  onChange={(e, newPage) => setPage(newPage)}
+                  size="small"
+                />
+              </Stack>
+            </Box>
           </Box>
         </>
       )}
