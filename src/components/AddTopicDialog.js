@@ -22,7 +22,8 @@ import { getAllTopics } from '../graphql/queries';
 
 const AddTopicDialog = ({
   open,
-  handleClose
+  handleClose,
+  reload
   }) => {
   const [inputFields, setInputFields] = useState([])
   const [allTopics, setAllTopics] = useState([])
@@ -98,6 +99,7 @@ const AddTopicDialog = ({
             }))
           }
           handleClose()
+          reload()
         })
     } catch (e) {
       console.log(e)
@@ -125,7 +127,7 @@ const AddTopicDialog = ({
       open={open}
     >
       <DialogTitle id="customized-dialog-title" onClose={clearFields}>
-        Create A New Topic
+        Create A New Category
         <IconButton
           aria-label="close"
           onClick={handleClose}
@@ -169,12 +171,12 @@ const AddTopicDialog = ({
             onChange={(e) => setDescription(e.target.value)}
           />
           <FormControl>
-            <InputLabel>Select an existing subtopic</InputLabel>
+            <InputLabel>Select an existing topic</InputLabel>
             <Select
               multiple
               value={selectedTopics}
               onChange={handleSelectedTopics}
-              input={<OutlinedInput label="Select an existing subtopic" />}
+              input={<OutlinedInput label="Select an existing topic" />}
               renderValue={(selected) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                   {selected.map((value) => (
@@ -202,12 +204,12 @@ const AddTopicDialog = ({
                 handleChange={handleChange}
                 handleRemove={handleRemoveSubtopic}
                 error={topicExistsError}
-                helperText={(!!topicExistsError && "This subtopic already exists.")}
+                helperText={(!!topicExistsError && "This topic already exists.")}
               />
             </div>
           ))}
           <Button sx={{width: 'fit-content'}} onClick={handleAddSubtopic}>
-            Add New Subtopic...
+            Add New topic...
           </Button>
         </Box>
       </DialogContent>
@@ -237,7 +239,7 @@ const InputRow = ({
         size="small"
         name="acronym"
         InputLabelProps={{ shrink: true }}
-        label="Subtopic Name"
+        label="Topic Name"
         onChange={(event) => handleChange(event, index)}
         value={item.acronym}
         error={error}
