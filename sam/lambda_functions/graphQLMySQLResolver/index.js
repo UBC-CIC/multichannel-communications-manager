@@ -1,3 +1,12 @@
+const gqlRequest = require("graphql-request");
+
+const GRAPHQL_ENDPOINT =
+  "https://qxohgzahbvhytksiegrj4macla.appsync-api.ca-central-1.amazonaws.com/graphql";
+const GRAPHQL_API_KEY =
+  // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIKEYOUTPUT;
+  "da2-ghgkjvxhr5dgvgz7iopp2of6pm";
+const handler = require("./helpers.js");
+
 const mysql = require("mysql");
 let dbInit = false;
 
@@ -96,10 +105,10 @@ function executeSQL(connection, sql_statement) {
   });
 }
 
-function populateAndSanitizeSQL(sql, variableMapping, connection) {
+function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
   // takes the variable mapping JSON, and inserts them into the sql string
-  // for each pair in variableMapping, replace the key with value in sql
-  Object.entries(variableMapping).forEach(([key, value]) => {
+  // for each pair in SQLVariableMapping, replace the key with value in sql
+  Object.entries(SQLVariableMapping).forEach(([key, value]) => {
     let escapedValue = connection.escape(value);
     if (
       String(escapedValue).length == 0 ||
@@ -124,12 +133,14 @@ connection = mysql.createPool({
   password: process.env.PASSWORD,
   database: process.env.DBNAME,
 });
+console.log("connection:", connection);
 
 exports.handler = async (event) => {
+  console.log("event: ", event);
   // called whenever a GraphQL event is received
   console.log("Received event", JSON.stringify(event, null, 3));
 
-  let result;
+  let result = {};
   if (!dbInit) {
     try {
       await conditionallyCreateDB(connection);
@@ -143,31 +154,152 @@ exports.handler = async (event) => {
   }
 
   let sql_statements = event.sql.split(";"); // splits up multiple SQL statements into an array
+  // try {
   for (let sql_statement of sql_statements) {
     // iterate through the SQL statements
     if (sql_statement.length < 3) {
       // sometimes an empty statement will try to be executed, this stops those from executing
       continue;
     }
-    // 'fill in' the variables in the sql statement with ones from variableMapping
+    // 'fill in' the variables in the sql statement with ones from SQLVariableMapping
     const inputSQL = populateAndSanitizeSQL(
       sql_statement,
-      event.variableMapping,
+      event.SQLVariableMapping,
       connection
     );
     // execute the sql statement on our database
-    result = await executeSQL(connection, inputSQL);
+    result.sqlResult = await executeSQL(connection, inputSQL);
   }
 
   // for secondary SQL statement to execute, like a SELECT after an INSERT
   if (event.responseSQL) {
     const responseSQL = populateAndSanitizeSQL(
       event.responseSQL,
-      event.variableMapping,
+      event.SQLVariableMapping,
       connection
     );
-    result = await executeSQL(connection, responseSQL);
+    result.sqlResult = await executeSQL(connection, responseSQL);
   }
-  console.log("Finished execution");
+  console.log("Finished SQL execution");
+  console.log("sqlResult: ", result.sqlResult);
+  // } catch (err) {
+  //   result.sqlResult = err;
+  // }
+
+  try {
+    if (event.pinpoint) {
+      const pinpointAction = event.pinpoint;
+      switch (pinpointAction.type) {
+        case "userprofile":
+          switch (pinpointAction.action) {
+            case "insert":
+            case "update":
+              console.log(event.SQLVariableMapping);
+              let upsertUserProfileResponse = await handler.upsertUserProfile(
+                result.sqlResult[0].user_id.toString(),
+                event.SQLVariableMapping[":province"],
+                event.SQLVariableMapping[":postal_code"]
+              );
+              console.log(
+                "upsertUserProfile response: ",
+                upsertUserProfileResponse
+              );
+
+              let upsertEmailResponse = await handler.upsertEndpoint(
+                result.sqlResult[0].user_id.toString(),
+                "EMAIL" + "_" + result.sqlResult[0].user_id.toString(),
+                event.SQLVariableMapping[":email_address"],
+                "EMAIL"
+              );
+              console.log("upsert email response: ", upsertEmailResponse);
+
+              if (event.SQLVariableMapping[":phone_address"]) {
+                let upsertPhoneResponse = await handler.upsertEndpoint(
+                  result.sqlResult[0].user_id.toString(),
+                  "SMS" + "_" + result.sqlResult[0].user_id.toString(),
+                  event.SQLVariableMapping[":phone_address"],
+                  "SMS"
+                );
+                console.log("upsert phone no. response: ", upsertPhoneResponse);
+                result.pinpointResult = "success";
+              } else {
+                result.pinpointResult = "success";
+              }
+              break;
+            case "delete":
+              result = handler.deleteUser(
+                event.SQLVariableMapping[":user_id"].toString()
+              );
+              result.pinpointResult = "success";
+              break;
+          }
+          break;
+        case "usersubscription":
+          switch (pinpointAction.action) {
+            case "insert":
+            case "update":
+              result.pinpointResult = await handler.updateTopicChannel(
+                event.SQLVariableMapping[":user_id"],
+                event.SQLVariableMapping[":category_acronym"] +
+                  "-" +
+                  event.SQLVariableMapping[":topic_acronym"],
+                event.SQLVariableMapping[":email_notice"],
+                event.SQLVariableMapping[":sms_notice"]
+              );
+              break;
+            case "delete":
+              result.pinpointResult = await handler.updateTopicChannel(
+                event.SQLVariableMapping[":user_id"],
+                event.SQLVariableMapping[":category_acronym"] +
+                  "-" +
+                  event.SQLVariableMapping[":topic_acronym"],
+                false,
+                false
+              );
+              result.pinpointResult = "success";
+              break;
+          }
+          break;
+      }
+    }
+  } catch (err) {
+    result.pinpointResult = err;
+  }
+
+  console.log("return: ", result);
   return result;
 };
+
+async function executeGraphQL(query) {
+  console.log("executing query: ", query);
+  return new Promise((resolve, reject) => {
+    // let options = {
+    //   method: "POST",
+    //   headers: {
+    //     "x-api-key": GRAPHQL_API_KEY,
+    //   },
+    //   body: JSON.stringify({ query, variables }),
+    // };
+    let gqlQuery = gqlRequest.gql([query]);
+
+    const gqlClient = new gqlRequest.GraphQLClient(GRAPHQL_ENDPOINT, {
+      headers: {
+        "x-api-key": GRAPHQL_API_KEY,
+      },
+    });
+
+    gqlClient
+      .request(gqlQuery)
+      .then((response) => {
+        console.log("executeGraphQL response:", response);
+        return response;
+      })
+      .then((json) => {
+        console.log("executeGraphQL return:", JSON.stringify(json));
+        resolve(json);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}

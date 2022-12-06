@@ -60,7 +60,7 @@ Parameters:
   DBInstanceClass:
     Description: The database instance type
     Type: String
-    Default: db.t4g.large
+    Default: db.t2.small
     AllowedValues: [db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge]
   DBEngineVersion:
     Description: The version of Aurora MySQL for the database
@@ -342,7 +342,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref ClosedSecurityGroup
+          SourceSecurityGroupId: !Ref OpenSecurityGroup
       SecurityGroupEgress:
         - IpProtocol: -1
           FromPort: -1
@@ -394,30 +394,6 @@ Resources:
           Value: !Ref 'ProjectName'
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
-
-  DMSSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: DMS security group. Outbound only traffic.
-      VpcId: !Ref VPC
-
-  DMSVPCRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-              - dms.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Description: Role for DMS to assume role
-      Path: /
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole
-      RoleName: dms-vpc-role
     
 
 # RDS #########################################
@@ -557,34 +533,24 @@ Resources:
         - !Ref PrivateSubnet2
       VpcEndpointType: Interface
       VpcId: !Ref VPC
+    
+  EIP:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
 
-  # EndpointKMS:
-  #   Type: AWS::EC2::VPCEndpoint
-  #   Properties:
-  #     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.kms'
-  #     PrivateDnsEnabled: true
-      # SecurityGroupIds:
-      #   - !Ref ClosedSecurityGroup
-  #     SubnetIds:
-  #       - !Ref PublicSubnet1
-  #       - !Ref PublicSubnet2
-  #     VpcEndpointType: Interface
-  #     VpcId: !Ref VPC
+  NatGateway:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt 'EIP.AllocationId'
+      SubnetId: !Ref PublicSubnet1
 
-  # EndpointRekognition:
-  #   Type: AWS::EC2::VPCEndpoint
-  #   Properties:
-  #     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.rekognition'
-  #     PrivateDnsEnabled: true
-  #     SecurityGroupIds:
-  #       - !Ref OpenSecurityGroup
-  #     SubnetIds:
-  #       # - !Ref PublicSubnet1
-  #       # - !Ref PublicSubnet2
-  #       - !Ref PrivateSubnet1
-  #       - !Ref PrivateSubnet2
-  #     VpcEndpointType: Interface
-  #     VpcId: !Ref VPC
+  NGWRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref NatGateway
   
   EndpointRDS:
     Type: AWS::EC2::VPCEndpoint
@@ -683,14 +649,6 @@ Resources:
           MaxIdleConnectionsPercent: 50
           ConnectionBorrowTimeout: 120
 
-  # MinConfidenceThresholdSSM:
-  #   Type: AWS::SSM::Parameter
-  #   Properties: 
-  #     Type: String
-  #     Description: A percentage that represents the minimum required confidence in Rekognition in order to count as a hit, for use in validateImageWithRekognition
-  #     Name: MINIMUM_REKOGNITION_CONFIDENCE_THRESHOLD
-  #     Value: !Ref MinConfidenceThreshold
-
 
   # Lambda functions ####################################
   
@@ -720,30 +678,7 @@ Resources:
       MemorySize: 1000
       Timeout: 100
       Description: Called by AppSync to resolve SQL statements in the form of a request mapping
-      Policies:
-        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
-        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
-        - arn:aws:iam::aws:policy/AWSAppSyncInvokeFullAccess
-        - Version: '2012-10-17'  # in line policies for lambda
-          Statement:
-          - Effect: Allow
-            Action: logs:CreateLogGroup
-            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
-          - Effect: Allow
-            Action:
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            Resource:
-            - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/GraphQL-MySQL-Resolver:*
-          - Effect: Allow
-            Action: rds-db:connect
-            Resource: !GetAtt RDSProxy.DBProxyArn
-          - Effect: Allow
-            Action:
-            - "ec2:CreateNetworkInterface"
-            - "ec2:DeleteNetworkInterface"
-            - "ec2:DescribeNetworkInterfaces"
-            Resource: '*'
+      Role: !GetAtt GraphQLResolverRole.Arn
       Environment:
         Variables:
           DBNAME: !Ref 'DBName'
@@ -754,130 +689,18 @@ Resources:
           ADMIN_EMAIL: !Ref CognitoAdminEmail
       VpcConfig:
         SecurityGroupIds:
-          - !Ref ClosedSecurityGroup
+          # - !Ref ClosedSecurityGroup
+          - !Ref OpenSecurityGroup
         SubnetIds:
           - !Ref PrivateSubnet1
           - !Ref PrivateSubnet2
-
+          
   graphQLMySQLResolverLogs:
     Type: AWS::Logs::LogGroup
     DependsOn: graphQLMySQLResolver
     Properties:
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref graphQLMySQLResolver]]
       RetentionInDays: 14
-
-  # LambdaInvokePermission:
-  #   Type: 'AWS::Lambda::Permission'
-  #   DependsOn: validateImageWithRekognition
-  #   Properties:
-  #     FunctionName: !GetAtt validateImageWithRekognition.Arn
-  #     Action: 'lambda:InvokeFunction'
-  #     Principal: s3.amazonaws.com
-  #     SourceAccount: !Ref 'AWS::AccountId'
-  #     SourceArn: !Join ['', ['arn:aws:s3:::','{{resolve:ssm:BucketName}}']] 
-
-  # validateImageWithRekognition:
-  #   Type: AWS::Serverless::Function
-  #   DependsOn:
-  #   - CloudFrontDistribution
-  #   - RDSProxy
-  #   - ClosedSecurityGroup
-  #   - MainDBInstance
-  #   Properties:
-  #     FunctionName: validateImageWithRekognition
-  #     Handler: lambda_function.lambda_handler
-  #     CodeUri: ./lambda_functions/validateImageWithRekognition
-  #     Runtime: python3.8
-  #     Architectures:
-      #   - x86_64
-      # MemorySize: 128
-      # Timeout: 100
-      # Description: Validates images uploaded through the submitted action pipeline
-      # Policies:
-      #   Version: '2012-10-17' # in line policies
-      #   Statement:
-      #   - Effect: Allow
-      #     Action: logs:CreateLogGroup
-      #     Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
-      #   - Effect: Allow
-      #     Action:
-      #     - logs:CreateLogStream
-      #     - logs:PutLogEvents
-      #     Resource:
-      #     - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/validateImageWithRekognition:*
-      #   - Effect: Allow
-      #     Action:
-      #     - rekognition:DetectLabels
-        #   - rekognition:DetectFaces
-        #   - rekognition:DetectModerationLabels
-        #   - rekognition:CompareFaces
-        #   Resource: "*"
-        # - Effect: Allow
-        #   Action:
-        #   - rekognition:CreateCollection
-        #   - rekognition:IndexFaces
-        #   Resource: "*"
-        # - Effect: Allow
-        #   Action:
-        #   - s3:PutObject
-        #   - s3:GetObject
-        #   - s3:DeleteObject
-        #   Resource: arn:aws:s3:::*
-        # - Effect: Allow
-        #   Action:
-        #   - ssm:GetParameter
-        #   - ssm:GetParameters
-        #   Resource:
-        #   - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/MINIMUM_REKOGNITION_CONFIDENCE_THRESHOLD
-        # - Effect: Allow
-        #   Action:
-        #   - ssm:UpdateInstanceInformation
-        #   - ssmmessages:CreateControlChannel
-        #   - ssmmessages:CreateDataChannel
-        #   - ssmmessages:OpenControlChannel
-        #   - ssmmessages:OpenDataChannel
-        #   Resource: "*"
-        # - Effect: Allow
-        #   Action:
-        #   - s3:GetEncryptionConfiguration
-        #   Resource: "*"
-        # - Effect: Allow
-        #   Action:
-      #     - kms:Decrypt
-      #     Resource: '*' 
-      # Environment:
-      #   Variables:
-      #     AMPLIFY_BUCKET: '{{resolve:ssm:BucketName}}'
-      #     CLOUDFRONT_URL: !GetAtt CloudFrontDistribution.DomainName 
-      #     DBNAME: !Ref DBName
-      #     ENDPOINT: !GetAtt RDSProxy.Endpoint
-      #     PASSWORD: !Ref DBPassword
-      #     USERNAME: !Ref DBUser
-      # VpcConfig:
-      #   SecurityGroupIds:
-      #     - !Ref ClosedSecurityGroup
-      #   SubnetIds:
-      #     - !Ref PrivateSubnet1
-      #     - !Ref PrivateSubnet2
-      
-      # Events:
-      #   FileUpload:
-      #     Type: S3
-      #     Properties:
-      #       Bucket: !Ref AmplifyBucket ####################
-      #       Events: s3:ObjectCreated:*
-      #       Filter:
-      #         S3Key:
-      #           Rules:
-      #             - Name: prefix
-      #               Value: "public/validation/input/"
-
-  # validateImageWithRekognitionLogs:
-  #   Type: AWS::Logs::LogGroup
-  #   DependsOn: validateImageWithRekognition
-  #   Properties:
-  #     LogGroupName: !Join ["", ["/aws/lambda/", !Ref validateImageWithRekognition]]
-  #     RetentionInDays: 14
 
 
 # Cloudfront ##########################################
@@ -1128,7 +951,7 @@ Resources:
           "operation": "Invoke",
           "payload": {
             "sql": "select `User`.* from `User` where `User`.user_id = :1;",
-            "variableMapping": {
+            "SQLVariableMapping": {
             ":1": $context.arguments.user_id
             }
           }
@@ -1138,7 +961,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1157,7 +980,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `User` where `User`.email_address = :1;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":1": "$context.arguments.user_email"
         }
         }
@@ -1167,7 +990,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1186,7 +1009,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :1 and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":1": $context.arguments.user_id
         }
         }
@@ -1196,7 +1019,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result)
+        $util.toJson($context.result.sqlResult)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1215,7 +1038,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `CategoryTopic` where categoryTopic_id = :id;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":id": $context.arguments.categoryTopic_id
         }
         }
@@ -1225,7 +1048,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1244,7 +1067,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `Category` where `Category`.acronym = :1;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":1": "$context.arguments.acronym"
         }
         }
@@ -1254,7 +1077,7 @@ Resources:
         #if($ctx.error) 
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1273,7 +1096,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `Topic`, `CategoryTopic` where `Topic`.acronym = `CategoryTopic`.topic_acronym and `CategoryTopic`.category_acronym = :1;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":1": "$context.arguments.category_acronym"
         }
         }
@@ -1282,7 +1105,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result)
+        $util.toJson($context.result.sqlResult)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1301,7 +1124,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `Topic` where `Topic`.acronym = :1;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":1": "$context.arguments.topic_acronym"
         }
         }
@@ -1311,7 +1134,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1330,7 +1153,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `Topic`",
-        "variableMapping": {
+        "SQLVariableMapping": {
         }
         }
         }
@@ -1339,7 +1162,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result)
+        $util.toJson($context.result.sqlResult)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1358,7 +1181,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `Category`",
-        "variableMapping": {
+        "SQLVariableMapping": {
         }
         }
         }
@@ -1367,7 +1190,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result)
+        $util.toJson($context.result.sqlResult)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1386,7 +1209,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "select * from `CategoryTopic`;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         }
         }
         }
@@ -1395,7 +1218,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result)
+        $util.toJson($context.result.sqlResult)
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1421,27 +1244,109 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `User` (email_address, phone_address, phone_id, postal_code, province) values (:email_address, :phone_address, null, :postal_code, :province);",
-        "variableMapping": {
+        "sql": "insert into `User` (email_address, phone_address, postal_code, province) values (:email_address, :phone_address, :postal_code, :province);",
+        "SQLVariableMapping": {
         ":email_address": "$context.arguments.email_address",
         ":phone_address": $phone_address,
         ## ":phone_id": $phone_id,
         ":postal_code": $postal_code,
         ":province": "$context.arguments.province"
         },
+        "pinpoint":{"type": "userprofile", "action": "insert"},
         "responseSQL": "select * from `User` where email_address=:email_address"
         }
         }
-
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
+      # DataSourceName: !GetAtt LambdaAppSyncDataSource.Name      
+      MaxBatchSize: 0
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
-      MaxBatchSize: 0
+      # PipelineConfig: 
+      #   Functions:
+      #   - !GetAtt CreatePinpointUserFunction.FunctionId
+      
+  # CreatePinpointUserFunction:
+  #   Type: AWS::AppSync::FunctionConfiguration
+  #   Properties: 
+  #     ApiId: !GetAtt GraphQlApiIdParameter.Value
+  #     Code: String
+  #     DataSourceName: NONE
+  #     Name: createPinpointUserFunction
+  #     Runtime: APPSYNC_JS
+
+  # updateUserResolver:
+  #   Type: AWS::AppSync::Resolver
+  #   DependsOn:
+  #   - LambdaAppSyncDataSource
+  #   Properties:
+  #     TypeName: Mutation
+  #     FieldName: updateUser
+  #     RequestMappingTemplate: |
+  #       #if( $context.arguments.email_address )
+  #         #if( $context.arguments.phone_address || $context.arguments.province || $context.arguments.postal_code)
+  #           #set( $email_address = "email_address=:email_address," )
+  #         #else
+  #           #set( $email_address = "email_address=:email_address" )
+  #         #end        
+  #       #else
+  #         #set( $email_address = "" )
+  #       #end
+  #       #if( $context.arguments.phone_address )
+  #         #if( $context.arguments.province || $context.arguments.postal_code)
+  #           #set( $phone_address = "phone_address=:phone_address," )
+  #         #else
+  #           #set( $phone_address = "phone_address=:phone_address" )
+  #         #end           
+  #       #else
+  #         #set( $phone_address = "" )
+  #       #end
+  #       #if( $context.arguments.province )
+  #         #if( $context.arguments.postal_code)
+  #           #set( $province = "province=:province," )
+  #         #else
+  #           #set( $province = "province=:province" )
+  #         #end          
+  #       #else
+  #         #set( $province = "" )
+  #       #end
+  #       #if( $context.arguments.postal_code )
+  #         #set( $postal_code = "postal_code=:postal_code" )
+  #       #else
+  #         #set( $postal_code = "" )
+  #       #end
+
+  #       {
+  #       "version": "2018-05-29",
+  #       "operation": "Invoke",
+  #       "payload": {
+  #       "sql": "UPDATE `User` SET $email_address $phone_address $province $postal_code WHERE `User`.user_id = :user_id;",
+  #       "SQLVariableMapping": {
+  #       ":user_id": $context.arguments.user_id,
+  #       ":email_address": $email_address,
+  #       ":phone_address": $phone_address,
+  #       ":province": $context.arguments.province,
+  #       ":postal_code": $context.arguments.postal_code,
+  #       },
+  #       "pinpoint":{"type": "userprofile", "action": "update"},
+  #       "responseSQL": "select * from `User` where user_id=:user_id;"
+  #       }
+  #       }
+
+  #     ResponseMappingTemplate: |
+  #       #if($ctx.error)
+  #         $util.error($ctx.error.message, $ctx.error.type)
+  #       #end
+  #       $util.toJson($context.result.sqlResult[0])
+  #     ApiId: !GetAtt GraphQlApiIdParameter.Value
+  #     DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+  #     Kind: UNIT
+  #     MaxBatchSize: 0
+
 
   updateUserResolver:
     Type: AWS::AppSync::Resolver
@@ -1451,65 +1356,68 @@ Resources:
       TypeName: Mutation
       FieldName: updateUser
       RequestMappingTemplate: |
+        #set($phone_address = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.phone_address, null)))
+        #set($email_address = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.email_address, null)))
+        #set($province = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.province, null)))
+        #set($postal_code = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
+
         #if( $context.arguments.email_address )
           #if( $context.arguments.phone_address || $context.arguments.province || $context.arguments.postal_code)
-            #set( $email_address = "email_address=:email_address," )
+            #set( $sql_email_address = "email_address=:email_address," )
           #else
-            #set( $email_address = "email_address=:email_address" )
+            #set( $sql_email_address = "email_address=:email_address" )
           #end        
         #else
-          #set( $email_address = "" )
+          #set( $sql_email_address = "" )
         #end
         #if( $context.arguments.phone_address )
           #if( $context.arguments.province || $context.arguments.postal_code)
-            #set( $phone_address = "phone_address=:phone_address," )
+            #set( $sql_phone_address = "phone_address=:phone_address," )
           #else
-            #set( $phone_address = "phone_address=:phone_address" )
+            #set( $sql_phone_address = "phone_address=:phone_address" )
           #end           
         #else
-          #set( $phone_address = "" )
+          #set( $sql_phone_address = "" )
         #end
         #if( $context.arguments.province )
           #if( $context.arguments.postal_code)
-            #set( $province = "province=:province," )
+            #set( $sql_province = "province=:province," )
           #else
-            #set( $province = "province=:province" )
+            #set( $sql_province = "province=:province" )
           #end          
         #else
-          #set( $province = "" )
+          #set( $sql_province = "" )
         #end
         #if( $context.arguments.postal_code )
-          #set( $postal_code = "postal_code=:postal_code" )
+          #set( $sql_postal_code = "postal_code=:postal_code" )
         #else
-          #set( $postal_code = "" )
+          #set( $sql_postal_code = "" )
         #end
-
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `User` SET $email_address $phone_address $province $postal_code WHERE `User`.user_id = :user_id;",
-        "variableMapping": {
+        "sql": "UPDATE `User` SET $sql_email_address $sql_phone_address $sql_province $sql_postal_code WHERE `User`.user_id = :user_id;",
+        "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
-        ":email_address": "$context.arguments.email_address",
-        ":phone_address": "$context.arguments.phone_address",
-        ":province": "$context.arguments.province",
-        ":postal_code": "$context.arguments.postal_code",
+        ":email_address": $email_address,
+        ":phone_address": $phone_address,
+        ":province": $province,
+        ":postal_code": $postal_code,
         },
+        "pinpoint":{"type": "userprofile", "action": "update"},
         "responseSQL": "select * from `User` where user_id=:user_id;"
         }
         }
-
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
-
 
   deleteUserResolver:
     Type: AWS::AppSync::Resolver
@@ -1523,17 +1431,18 @@ Resources:
           "version": "2018-05-29",
           "operation": "Invoke",
           "payload": {
-            "sql": "DELETE FROM `User` WHERE user_id=:1",
-            "variableMapping": {
-                ":1": $context.arguments.user_id
-            }
+            "sql": "DELETE FROM `User` WHERE user_id = :user_id;",
+            "SQLVariableMapping": {
+                ":user_id": $context.arguments.user_id
+            },
+          "pinpoint":{"type": "userprofile", "action": "delete"}
           }
           }
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        "'Delete succeeded'"
+        "Succeeded"
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1553,7 +1462,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "insert into `Category` (acronym, title, description) values (:acronym, :title, :description);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":acronym": "$context.arguments.acronym",
         ":title": "$context.arguments.title",
         ":description": $description
@@ -1565,7 +1474,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1608,7 +1517,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "UPDATE `Category` SET $acronym $title $description WHERE `Category`.category_id = :category_id;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":category_id": $context.arguments.category_id,
         ":acronym": "$context.arguments.acronym",
         ":title": "$context.arguments.title",
@@ -1621,7 +1530,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1641,7 +1550,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "delete from `Category` where category_id=:category_id;",
-        "variableMapping": {
+        "SQLVariableMapping": {
           ":category_id": $context.arguments.category_id
         }
         }
@@ -1670,7 +1579,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "insert into `Topic` (acronym) values (:acronym);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":acronym": "$context.arguments.acronym"
         },
         "responseSQL": "select * from `Topic` where acronym=:acronym;"
@@ -1680,7 +1589,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1699,7 +1608,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "delete from `Topic` where topic_id=:topic_id;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":topic_id": "$context.arguments.topic_id"
         }
         }
@@ -1708,7 +1617,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        "'Delete succeeded'"
+        "Delete succeeded"
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1727,7 +1636,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "insert into `CategoryTopic` (category_acronym, topic_acronym) values (:category_acronym, :topic_acronym);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
         },
@@ -1738,7 +1647,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1757,7 +1666,7 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": "delete from `CategoryTopic` where category_acronym=:category_acronym and topic_acronym=:topic_acronym;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
         }
@@ -1767,7 +1676,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        "Delete succeeded"
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1788,7 +1697,7 @@ Resources:
         "payload": {
         "sql": 
           "alter table `User` modify phone_address varchar(50);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         }
         }
         }
@@ -1827,13 +1736,14 @@ Resources:
         "payload": {
         "sql": 
           "insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_notice": $email_notice,
         ":sms_notice": $sms_notice,
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
         },
+        "pinpoint": {"type": "usersubscription", "action": "insert"},
         "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_acronym=:category_acronym and `CategoryTopic`.topic_acronym=:topic_acronym;"
         }
         }
@@ -1841,7 +1751,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1874,13 +1784,14 @@ Resources:
           "update `UserCategoryTopic`,`CategoryTopic` set `UserCategoryTopic`.email_notice = :email_notice, `UserCategoryTopic`.sms_notice = :sms_notice where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id;",
           ##"update `UserCategoryTopic` set email_notice=:email_notice, sms_notice=:sms_notice from (select categoryTopic_id from `CategoryTopic`) as CategoryTopic where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym and `UserCategoryTopic`.categoryTopic_id=`CategoryTopic`.categoryTopic_id;",
           ##"insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_notice": $email_notice,
         ":sms_notice": $sms_notice,
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
         },
+        "pinpoint": {"type": "usersubscription", "action": "update"},
         "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_acronym=:category_acronym and `CategoryTopic`.topic_acronym=:topic_acronym;"
         }
         }
@@ -1888,7 +1799,7 @@ Resources:
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        $util.toJson($context.result[0])
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
@@ -1908,95 +1819,23 @@ Resources:
         "payload": {
         "sql": 
           "delete from `UserCategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id in (select categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym);",
-        "variableMapping": {
+        "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":category_acronym": "$context.arguments.category_acronym",
         ":topic_acronym": "$context.arguments.topic_acronym"
-        }
+        },
+        "pinpoint": {"type": "usersubscription", "action": "delete"}
         }
         }
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        "Delete succeeded"
+        $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
-
-
-  # need #############
-  #Kinesis Resource
-  RDSKinesisStream:
-    Type: AWS::Kinesis::Stream
-    Properties:
-      Name: "rdsStream"
-      ShardCount: 1
-      StreamEncryption:
-        EncryptionType: KMS
-        KeyId: alias/aws/kinesis
-  KinesisServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-              - dms.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Description: Role for DMS to publish to Kinesis
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonKinesisFullAccess
-      RoleName: DMSToKinesisRole
-  #DMS Resources
-  SourceEndpoint:
-    Type: "AWS::DMS::Endpoint"
-    Properties:
-      DatabaseName: sys
-      EndpointType: source
-      EngineName: mysql
-      Password: !Ref DBPassword
-      Port: 3306
-      ServerName: !GetAtt MainDBCluster.Endpoint.Address
-      Username: !Ref DBUser
-  TargetEndpoint:
-    Type: "AWS::DMS::Endpoint"
-    Properties:
-      EndpointType: target
-      EngineName: kinesis
-      KinesisSettings: #object
-        MessageFormat: "JSON"
-        ServiceAccessRoleArn: !GetAtt KinesisServiceRole.Arn
-        StreamArn: !GetAtt RDSKinesisStream.Arn
-  MyReplicationSubnetGroup:
-    Type: AWS::DMS::ReplicationSubnetGroup
-    Properties:
-      ReplicationSubnetGroupDescription: RDSReplicationSubnetGroup
-      SubnetIds:
-      - Ref: PrivateSubnet3
-      - Ref: PrivateSubnet4
-  BasicReplicationInstance:
-      Type: "AWS::DMS::ReplicationInstance"
-      Properties:
-        ReplicationInstanceClass: dms.t2.micro
-        ReplicationSubnetGroupIdentifier: !Ref MyReplicationSubnetGroup
-        PubliclyAccessible: false
-        AllocatedStorage: 10
-        VpcSecurityGroupIds:
-        - !Ref DMSSecurityGroup
-  BasicReplicationTask:
-    Type: AWS::DMS::ReplicationTask
-    Properties:
-      ReplicationInstanceArn: !Ref BasicReplicationInstance
-      ReplicationTaskIdentifier: RDSReplicationTask
-      MigrationType: cdc
-      SourceEndpointArn: !Ref SourceEndpoint
-      TargetEndpointArn: !Ref TargetEndpoint
-      TableMappings: "{ \"rules\": [ { \"rule-type\": \"selection\", \"rule-id\": \"1\", \"rule-name\": \"1\", \"object-locator\": { \"schema-name\": \"sys\", \"table-name\": \"%\" }, \"rule-action\": \"include\" } ] }"
 
   # SES
   SESIdentity:
@@ -2025,47 +1864,61 @@ Resources:
       Enabled: true
 
   #Lambda Resources
-  HelperLambdaRole:
+  GraphQLResolverRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: RDSHelperLambdaRole
+      RoleName: GraphQLResolverRole
       AssumeRolePolicyDocument:
-        Version: 2012-10-17
+        Version: '2012-10-17'
         Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - pinpoint.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Policies:
+      - PolicyName: allow-lambda-access-appsync-n-pinpoint
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
           - Effect: Allow
-            Principal:
-              Service:
-              - lambda.amazonaws.com
-              - pinpoint.amazonaws.com
+            Action: logs:CreateLogGroup
+            Resource: 
+            - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+          - Effect: Allow
             Action:
-              - 'sts:AssumeRole'
-      Description: Role for helper lambda
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: 
+            - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/GraphQL-MySQL-Resolver:*
+          - Effect: Allow
+            Action:
+            - mobiletargeting:*
+            Resource: '*'
+            # - !GetAtt PinpointApp.Arn
+          - Effect: Allow
+            Action: rds-db:connect
+            Resource: 
+            - !GetAtt RDSProxy.DBProxyArn
+          - Effect: Allow
+            Action:
+            - "ec2:CreateNetworkInterface"
+            - "ec2:DeleteNetworkInterface"
+            - "ec2:DescribeNetworkInterfaces"
+            Resource: '*'
+      Description: Role for graphql resolver lambda
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
       - arn:aws:iam::aws:policy/IAMReadOnlyAccess
-      Policies:
-        - PolicyName: RDSPinpointLambdaPolicy
-          PolicyDocument:
-            Version: '2012-10-17'  # in line policies for lambda
-            Statement:
-            - Effect: Allow
-              Action: logs:CreateLogGroup
-              Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
-            - Effect: Allow
-              Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              Resource:
-              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/GraphQL-MySQL-Resolver:*
-            - Effect: Allow
-              Action:
-              - mobiletargeting:*
-              Resource: 
-              - !GetAtt PinpointApp.Arn
+      - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+      - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+      - arn:aws:iam::aws:policy/AWSAppSyncInvokeFullAccess
               # arn:aws:mobiletargeting:region:accountId:*
         # - policyName: PinpointAdminPolicy
 
+    
   # PinpointAdminPolicy:
   #   Type: AWS::IAM::Policy
   #     Properties: 
@@ -2082,25 +1935,25 @@ Resources:
   #         - String
 
 
-  HelperLambdaPolicy:
-    Type: 'AWS::IAM::Policy'
-    Properties:
-      PolicyName: RDSHelperLambdaPolicy
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - "mobiletargeting:CreateImportJob"
-              - "mobiletargeting:GetImportJobs"
-              - "mobiletargeting:UpdateEndpoint"
-              - "mobiletargeting:DeleteEndpoint"
-              - "mobiletargeting:PhoneNumberValidate"
-              - "iam:GetRole"
-              - "iam:PassRole"
-            Resource: '*'
-      Roles:
-        - !Ref HelperLambdaRole
+  # HelperLambdaPolicy:
+  #   Type: 'AWS::IAM::Policy'
+  #   Properties:
+  #     PolicyName: RDSHelperLambdaPolicy
+  #     PolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Effect: Allow
+  #           Action:
+  #             - "mobiletargeting:CreateImportJob"
+  #             - "mobiletargeting:GetImportJobs"
+  #             - "mobiletargeting:UpdateEndpoint"
+  #             - "mobiletargeting:DeleteEndpoint"
+  #             - "mobiletargeting:PhoneNumberValidate"
+  #             - "iam:GetRole"
+  #             - "iam:PassRole"
+  #           Resource: '*'
+  #     Roles:
+  #       - !Ref HelperLambdaRole
   
   # RDSPinPointLambda:
   #   Type: AWS::Lambda::Function
@@ -2189,36 +2042,36 @@ Resources:
   #     Environment:
   #       Variables:
   #         PINPOINT_APPID: !Ref PinpointApp
-  RDSPinPointLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./lambda_functions/RDSTrigger/
-      Handler: index.handler
-      Runtime: nodejs16.x
-      Timeout: 30
-      MemorySize: 3008
-      Role: 
-        # !Ref HelperLambdaRoleArn
-        !GetAtt HelperLambdaRole.Arn
-      # Layers:
-      # - !Ref RDSPinpointLambdaLayers
-      Environment:
-        Variables:
-          PINPOINT_APPID: !Ref PinpointApp
-        # TODO: Add graphql endpoint variable here
-          # GRAPHQL_ENDPOINT: !Ref 
-          REGION: "ca-central-1"
-      Events:
-        # Properties: Kinesis
-        # Type: Kinesis
-        KinesisEvent:
-          Type: Kinesis
-          Properties:
-            Stream: !GetAtt RDSKinesisStream.Arn
-            BatchSize: 10
-            MaximumBatchingWindowInSeconds: 10
-            MaximumRecordAgeInSeconds: 60
-            StartingPosition: "LATEST"
+  # RDSPinPointLambda:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: ./lambda_functions/RDSTrigger/
+  #     Handler: index.handler
+  #     Runtime: nodejs16.x
+  #     Timeout: 30
+  #     MemorySize: 3008
+  #     Role: 
+  #       # !Ref HelperLambdaRoleArn
+  #       !GetAtt HelperLambdaRole.Arn
+  #     # Layers:
+  #     # - !Ref RDSPinpointLambdaLayers
+  #     Environment:
+  #       Variables:
+  #         PINPOINT_APPID: !Ref PinpointApp
+  #       # TODO: Add graphql endpoint variable here
+  #         # GRAPHQL_ENDPOINT: !Ref 
+  #         REGION: "ca-central-1"
+  #     Events:
+  #       # Properties: Kinesis
+  #       # Type: Kinesis
+  #       KinesisEvent:
+  #         Type: Kinesis
+  #         Properties:
+  #           Stream: !GetAtt RDSKinesisStream.Arn
+  #           BatchSize: 10
+  #           MaximumBatchingWindowInSeconds: 10
+  #           MaximumRecordAgeInSeconds: 60
+  #           StartingPosition: "LATEST"
 
   # RDSPinpointLambdaLayers:
   #   Type: AWS::Serverless::LayerVersion
@@ -2226,17 +2079,6 @@ Resources:
   #     LayerName: RDSPinpointLambdaLayers
   #     Description: Dependency for RDS Pinpoint Lambda
   #     ContentUri: ./lambda_functions/RDSTrigger/nodejs/node_modules/
-
-  #Lambda Event Source
-  # LambdaEventSource:
-  #   Type: AWS::Lambda::EventSourceMapping
-  #   Properties:
-  #     EventSourceArn: !GetAtt KinesisStream.Arn
-  #     FunctionName: !GetAtt RDSPinPointLambda.Arn
-  #     BatchSize: 10
-  #     MaximumBatchingWindowInSeconds: 10
-  #     MaximumRecordAgeInSeconds: 60
-  #     StartingPosition: "LATEST"
 
 
 
@@ -2246,10 +2088,6 @@ Resources:
   # AmplifyBucketName:
   #   Description: The name of the Amplify S3 bucket
   #   Value: '{{resolve:ssm:BucketName}}'
-
-  # ValidationLambdaArn:
-  #   Description: The ARN of the Lambda function for image validation
-  #   Value: !GetAtt validateImageWithRekognition.Arn
 
   # CloudFrontDistributionDomainName:
   #   Description: The domain name of our CloudFront distibution
