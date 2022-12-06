@@ -242,7 +242,7 @@ const EditAccountInfo = () => {
               label={"Phone Number"}
               InputLabelProps={{ shrink: true }}
               name={"phone"}
-              value={"userData.phone_address"}
+              value={userData.phone_address}
               type="text"
               error={invalidPhoneError}
               helperText={

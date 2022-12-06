@@ -20,7 +20,8 @@ import NotificationSuccessDialog from "../NotificationSuccessDialog";
 import "../TopicCard.css";
 import PhoneNumberDialog from "../PhoneNumberDialog";
 import { API, graphqlOperation } from "aws-amplify";
-import { getTopicsOfCategoryByAcronym } from "../../graphql/queries";
+import { getTopicsOfCategoryByAcronym, getUserByEmail, getUserCategoryTopicByUserId } from "../../graphql/queries";
+import { userFollowCategoryTopic } from "../../graphql/mutations";
 
 const ViewTopicsCard = ({ selectedTopic }) => {
   const { title, description, image } = selectedTopic;
@@ -42,8 +43,10 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   const [invalidInputError, setInvalidInputError] = useState(false);
   const [phoneDialogState, setPhoneDiologState] = useState("noPhone");
   const [user, setUser] = useState("");
+  const [userID, setUserID] = useState("");
   const [subtopics, setSubtopics] = useState([]);
   const [userAlreadySubscribed, setUserAlreadySubscribed] = useState(false);
+  const [userSubscribedNotifications, setUserSubscribedNotifications] = useState({})
   //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
   // const sampleSubtopics = [
   //   "COVID-19",
@@ -52,34 +55,46 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   //   "Subtopic 4",
   // ];
   // const userSubscribedSubtopics = {topic_acronym: ['Covid-19', 'Subtopic 2'], email_notice: true, sms_notice: false};
-  const userSubscribedSubtopics = null;
+  // const userSubscribedSubtopics = null;
 
-  async function getSubtopics() {
-    if (userSubscribedSubtopics !== null) {
-      setSubtopics(userSubscribedSubtopics.topic_acronym);
-      setUserSelectedSubtopics(userSubscribedSubtopics.topic_acronym);
+  async function getSubtopics(id) {
+    let getUserSubscribed = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {user_id: id}))
+    let userSubscribedSubtopics = getUserSubscribed.data.getUserCategoryTopicByUserId
+    if (userSubscribedSubtopics.filter((s) => s.category_acronym === selectedTopic.acronym).length !== 0) {
+      let notifPreference = {
+        email_notice: userSubscribedSubtopics[0].email_notice,
+        sms_notice: userSubscribedSubtopics[0].sms_notice
+      }
+      setUserSubscribedNotifications(notifPreference)
+      for (let i = 0; i < userSubscribedSubtopics.length; i++) {
+        // setSubtopics([...subtopics, userSubscribedSubtopics[i].topic_acronym])
+        setUserSelectedSubtopics([...userSelectedSubTopics, userSubscribedSubtopics[i].topic_acronym]);
+      }
+      // setSubtopics(userSubscribedSubtopics.topic_acronym);
+      // setUserSelectedSubtopics(userSubscribedSubtopics.topic_acronym);
       setUserAlreadySubscribed(true);
-    } else {
-      let queriedTopics = await API.graphql(
-        graphqlOperation(getTopicsOfCategoryByAcronym, {
-          category_acronym: selectedTopic.acronym,
-        })
-      );
-      let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
-      let topics = onlyTopics.map((a) => a.acronym);
-      console.log("topics: ", topics);
-      setSubtopics(topics);
-      // setSubtopics(sampleSubtopics);
-    }
+    } 
+    
+    let queriedTopics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
+        category_acronym: selectedTopic.acronym,
+      })
+    );
+    let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
+    let topics = onlyTopics.map((a) => a.acronym);
+    setSubtopics(topics);
   }
 
   useEffect(() => {
-    getSubtopics();
     async function retrieveUser() {
       try {
         const returnedUser = await Auth.currentAuthenticatedUser();
         setUser(returnedUser);
         setUserPhone(returnedUser.attributes.phoneNumber);
+        let getUserId = await API.graphql(graphqlOperation(getUserByEmail, {
+          user_email: returnedUser.attributes.email
+        }))
+        getSubtopics(getUserId.data.getUserByEmail.user_id);
+        setUserID(getUserId.data.getUserByEmail.user_id)
       } catch (e) {
         console.log(e);
       }
@@ -146,19 +161,26 @@ const ViewTopicsCard = ({ selectedTopic }) => {
     setNoPreferenceSelected(false);
   };
 
-  const handleSaveNotificationDialog = () => {
+  const handleSaveNotificationDialog = async () => {
     if (selectedNotifications.text && userPhone === undefined) {
       setOpenPhoneDialog(true);
     } else if (!selectedNotifications.text && !selectedNotifications.email) {
       setNoPreferenceSelected(true);
       setSelectedNotifications({ text: false, email: false });
-    } else if (
-      selectedSubTopics.filter((s) => s.includes(selectedTopic.title))
-        .length === 0
-    ) {
+    } else if (selectedSubTopics.length === 0) {
       setNoTopicSelected(true);
       setSelectedNotifications({ text: false, email: false });
     } else {
+      for (let i = 0; i < selectedSubTopics.length; i++) {
+        let userFollowData = {
+          user_id: userID,
+          category_acronym: selectedTopic.acronym,
+          topic_acronym: selectedSubTopics[i],
+          email_notice: selectedNotifications.email,
+          sms_notice: selectedNotifications.text
+        }
+        await API.graphql(graphqlOperation(userFollowCategoryTopic, userFollowData))
+      }
       setNoTopicSelected(false);
       setOpenSuccessDialog(true);
     }
@@ -177,10 +199,10 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   //updates setSelectedSubtopics every time subtopics are selected/unselected by user
   const handleChange = (e, subtopic) => {
     if (e.target.checked) {
-      setSelectedSubtopics((prev) => [...prev, `${title}/${subtopic}`]);
+      setSelectedSubtopics((prev) => [...prev, `${subtopic}`]);
     } else if (!e.target.checked) {
       setSelectedSubtopics((prev) =>
-        prev.filter((s) => s !== `${title}/${subtopic}`)
+        prev.filter((s) => s !== `${subtopic}`)
       );
     }
   };
@@ -197,7 +219,9 @@ const ViewTopicsCard = ({ selectedTopic }) => {
 
   const handleButtonSave = () => {
     if (userAlreadySubscribed) {
-      //
+      console.log(userSelectedSubTopics)
+    } else {
+      console.log(selectedSubTopics)
     }
     setIsRotated(!isRotated);
   };
@@ -205,13 +229,13 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   function notificationPreferences() {
     if (userAlreadySubscribed) {
       if (
-        userSubscribedSubtopics.email_notice &&
-        userSubscribedSubtopics.sms_notice
+        userSubscribedNotifications.email_notice &&
+        userSubscribedNotifications.sms_notice
       ) {
         return "Notifications Selected: Email, Text";
       } else if (
-        userSubscribedSubtopics.email_notice &&
-        !userSubscribedSubtopics.sms_notice
+        userSubscribedNotifications.email_notice &&
+        !userSubscribedNotifications.sms_notice
       ) {
         return "Notifications Selected: Email";
       } else {
@@ -280,7 +304,7 @@ const ViewTopicsCard = ({ selectedTopic }) => {
                 sx={{ mr: "1em" }}
                 onClick={() => setIsRotated(!isRotated)}
               >
-                View Subtopics
+                View Topics
               </Button>
               {userAlreadySubscribed ? (
                 <></>
@@ -355,7 +379,7 @@ const ViewTopicsCard = ({ selectedTopic }) => {
                 <FormControlLabel
                   key={index}
                   control={<Checkbox />}
-                  checked={selectedSubTopics.includes(`${title}/${subtopic}`)}
+                  checked={selectedSubTopics.includes(`${subtopic}`)}
                   label={subtopic}
                   onChange={(e) => handleChange(e, subtopic)}
                 />

@@ -7,16 +7,17 @@ import {
   Stack,
   Pagination,
   IconButton,
+  Checkbox,
+  FormControlLabel
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
-import { API, graphqlOperation } from "aws-amplify";
-import { getAllCategories } from "../../graphql/queries";
+import { Auth, API, graphqlOperation } from "aws-amplify";
+import { getAllCategories, getCategoriesByUserId, getUserByEmail } from "../../graphql/queries";
 import { styled } from "@mui/material/styles";
 import ViewTopicsCard from "./ViewTopicsCard";
-import { getAllCategoryTopics } from "../../graphql/queries";
 
 const StyledImageListItemBar = styled(ImageListItemBar)`
   .MuiImageListItemBar-title {
@@ -87,9 +88,9 @@ const ViewTopics = () => {
   const [sampleTopics, setSampleTopics] = useState([]);
 
   //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
-  // const [sampleTopics, setSampleTopics] = useState([])
+  const [topics, setTopics] = useState([])
   const [allSelectedTopics, setAllSelectedTopics] = useState();
-  const [selectedSubtopics, setSelectedSubtopics] = useState([]);
+  const [userData, setUserData] = useState([]);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
   //for pagination
   const [page, setPage] = useState(1);
@@ -99,21 +100,43 @@ const ViewTopics = () => {
   async function queriedData() {
     let categories = await API.graphql(graphqlOperation(getAllCategories));
     let allCategories = categories.data.getAllCategories;
+    setTopics(allCategories)
     setSampleTopics(allCategories);
+  }
+
+  async function userSubscribedData() {
+    const returnedUser = await Auth.currentAuthenticatedUser();
+    let getUserId = await API.graphql(graphqlOperation(getUserByEmail, {
+      user_email: returnedUser.attributes.email
+    }))
+    let categories = await API.graphql(graphqlOperation(getCategoriesByUserId, {
+      user_id: getUserId.data.getUserByEmail.user_id
+    }));
+    let allUserCategories = categories.data.getCategoriesByUserId;
+    setUserData(allUserCategories);
   }
 
   //updates pagination
   useEffect(() => {
     queriedData();
+    userSubscribedData()
     //change this to use queried data later
     const topicsPageCount =
-      sampleTopics &&
-      (sampleTopics.length % 10 === 0
-        ? Math.round(sampleTopics.length / 10)
-        : Math.floor(sampleTopics.length / 10 + 1));
+    topics &&
+      (topics.length % 10 === 0
+        ? Math.round(topics.length / 10)
+        : Math.floor(topics.length / 10 + 1));
     setPageCount(topicsPageCount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleCheck = (e) => {
+    if (e.target.checked) {
+      setSampleTopics(userData)
+    } else {
+      setSampleTopics(topics)
+    }
+  }
 
   const displayTopicOptions = () => {
     return (
@@ -158,10 +181,9 @@ const ViewTopics = () => {
       }}
     >
       <Typography variant="body1" sx={{ mb: "2em" }}>
-        Select topics of interest that you would like to receive notifications
+        Select categories of interest that you would like to receive notifications
         from. Your notification preferences can be changed at any time.
       </Typography>
-
       {currentlySelectedTopic ? (
         <Box>
           <IconButton
@@ -177,6 +199,11 @@ const ViewTopics = () => {
         </Box>
       ) : (
         <>
+          <FormControlLabel 
+            control={<Checkbox onChange={handleCheck} />}
+            label="Show user subscribed categories" 
+            />
+            <Box sx={{border: 1, borderColor: "grey.400", borderRadius: '6px' }}>
           <Box
             sx={{
               display: "grid",
@@ -214,6 +241,7 @@ const ViewTopics = () => {
                 size="small"
               />
             </Stack>
+          </Box>
           </Box>
         </>
       )}

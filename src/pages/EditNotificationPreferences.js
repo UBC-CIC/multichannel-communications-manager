@@ -190,13 +190,13 @@ const EditNotificationPreferences = () => {
   }
 
   function handleUnsubscribeClose() {
-    if (topicIndex.type === "email_notice") {
-      topics[topicIndex.index].email_notice =
-        !filterRemovedTopics[topicIndex.index].email_notice;
-    } else {
-      topics[topicIndex.index].sms_notice =
-        !filterRemovedTopics[topicIndex.index].sms_notice;
-    }
+    // if (topicIndex.type === "email_notice") {
+    //   topics[topicIndex.index].email_notice =
+    //     !filterRemovedTopics[topicIndex.index].email_notice;
+    // } else {
+    //   topics[topicIndex.index].sms_notice =
+    //     !filterRemovedTopics[topicIndex.index].sms_notice;
+    // }
     setOpenUnsubscribeDialog(false);
   }
 

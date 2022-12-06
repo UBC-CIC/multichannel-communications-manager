@@ -6,7 +6,7 @@ const SubscribeToTopics = () => {
   return (
     <Box>
       <Typography variant="h3" sx={{ mb: "1em" }}>
-        Topics of Interest
+        Categories of Interest
       </Typography>
       <ViewTopics />
     </Box>
