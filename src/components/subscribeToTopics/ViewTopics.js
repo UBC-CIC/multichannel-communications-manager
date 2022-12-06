@@ -12,10 +12,11 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
-import { API, graphqlOperation } from "aws-amplify"
+import { API, graphqlOperation } from "aws-amplify";
 import { getAllCategories } from "../../graphql/queries";
 import { styled } from "@mui/material/styles";
 import ViewTopicsCard from "./ViewTopicsCard";
+import { getAllCategoryTopics } from "../../graphql/queries";
 
 const StyledImageListItemBar = styled(ImageListItemBar)`
   .MuiImageListItemBar-title {
@@ -36,53 +37,54 @@ const StyledImageListItem = styled(ImageListItem)`
 
 const ViewTopics = () => {
   //hard coded mock data for now, to be replaced with queried data
-  const sampleTopics = [
-    {
-      title: "Health",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Insolvency",
-      description:
-        "Consumer proposals, bankruptcy and how to find a Licensed Insolvency Trustee.",
-    },
-    {
-      title: "Money and Finances",
-      description:
-        "Managing your money, debt and investments, planning for retirement and protecting yourself from consumer fraud.",
-    },
-    {
-      title: "Federal Corporations",
-      description:
-        "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
-    },
-    {
-      title: "Sample 5",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 6",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 7",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 8",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 9",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-  ];
+  // const sampleTopics = [
+  //   {
+  //     title: "Health",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Insolvency",
+  //     description:
+  //       "Consumer proposals, bankruptcy and how to find a Licensed Insolvency Trustee.",
+  //   },
+  //   {
+  //     title: "Money and Finances",
+  //     description:
+  //       "Managing your money, debt and investments, planning for retirement and protecting yourself from consumer fraud.",
+  //   },
+  //   {
+  //     title: "Federal Corporations",
+  //     description:
+  //       "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
+  //   },
+  //   {
+  //     title: "Sample 5",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Sample 6",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Sample 7",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Sample 8",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  //   {
+  //     title: "Sample 9",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+  //   },
+  // ];
+  const [sampleTopics, setSampleTopics] = useState([]);
 
   //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
   // const [sampleTopics, setSampleTopics] = useState([])
@@ -94,15 +96,15 @@ const ViewTopics = () => {
   const [pageCount, setPageCount] = useState();
   const topicsPerPage = 10;
 
-  // async function queriedData() {
-  //   let categories = await API.graphql(graphqlOperation(getAllCategories))
-  //   let allCategories = categories.data.getAllCategories
-  //   setSampleTopics(allCategories)
-  // }
+  async function queriedData() {
+    let categories = await API.graphql(graphqlOperation(getAllCategories));
+    let allCategories = categories.data.getAllCategories;
+    setSampleTopics(allCategories);
+  }
 
   //updates pagination
   useEffect(() => {
-    // queriedData()
+    queriedData();
     //change this to use queried data later
     const topicsPageCount =
       sampleTopics &&
@@ -171,9 +173,7 @@ const ViewTopics = () => {
           >
             <ArrowBackIcon />
           </IconButton>
-          <ViewTopicsCard
-            selectedTopic={currentlySelectedTopic}
-          />
+          <ViewTopicsCard selectedTopic={currentlySelectedTopic} />
         </Box>
       ) : (
         <>
@@ -184,7 +184,7 @@ const ViewTopics = () => {
               gridTemplateColumns: {
                 xs: "repeat(2, 2fr)",
                 sm: "repeat(3, 2fr)",
-                md: "repeat(5, 2fr)"
+                md: "repeat(5, 2fr)",
               },
               rowGap: 1,
               [`& .${imageListItemClasses.root}`]: {
