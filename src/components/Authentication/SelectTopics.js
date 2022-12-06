@@ -75,7 +75,6 @@ const SelectTopics = ({ handleNextStep }) => {
         ? Math.round(sampleTopics.length / 3)
         : Math.floor(sampleTopics.length / 3 + 1));
     setPageCount(topicsPageCount);
-    setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

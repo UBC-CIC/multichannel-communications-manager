@@ -92,7 +92,7 @@ const ViewTopics = () => {
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
-  const topicsPerPage = 8;
+  const topicsPerPage = 10;
 
   // async function queriedData() {
   //   let categories = await API.graphql(graphqlOperation(getAllCategories))
@@ -106,11 +106,10 @@ const ViewTopics = () => {
     //change this to use queried data later
     const topicsPageCount =
       sampleTopics &&
-      (sampleTopics.length % 8 === 0
-        ? Math.round(sampleTopics.length / 8)
-        : Math.floor(sampleTopics.length / 8 + 1));
+      (sampleTopics.length % 10 === 0
+        ? Math.round(sampleTopics.length / 10)
+        : Math.floor(sampleTopics.length / 10 + 1));
     setPageCount(topicsPageCount);
-    setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -183,7 +182,9 @@ const ViewTopics = () => {
               display: "grid",
               mt: "2em",
               gridTemplateColumns: {
-                xs: "repeat(4, 2fr)",
+                xs: "repeat(2, 2fr)",
+                sm: "repeat(3, 2fr)",
+                md: "repeat(5, 2fr)"
               },
               rowGap: 1,
               [`& .${imageListItemClasses.root}`]: {
