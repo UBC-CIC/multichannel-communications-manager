@@ -45,7 +45,7 @@ const EditTopicDialog = ({
       open={open}
     >
       <DialogTitle id="customized-dialog-title" onClose={handleClose}>
-        Edit Topic
+        Edit Category
         <IconButton
           aria-label="close"
           onClick={handleClose}

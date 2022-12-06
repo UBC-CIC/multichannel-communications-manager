@@ -11,66 +11,93 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
-  TextField,
+  TextField
 } from "@mui/material";
 import { Add, Edit } from "@mui/icons-material";
 import { useState, useEffect } from "react";
-import { API, graphqlOperation } from "aws-amplify";
+import { API, graphqlOperation } from "aws-amplify"
 import { getTopicsOfCategoryByAcronym } from "../graphql/queries";
-import { updateCategory } from "../graphql/mutations";
+import { createTopic, addTopicToCategory, deleteCategoryTopic } from "../graphql/mutations";
 import "./TopicCard.css";
 import EditTopicDialog from "./EditTopicDialog";
-
-const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
+  
+const AdminTopicCard = ({
+  selectedTopic,
+  setSelectedTopic
+  }) => {
   const { title, description, image } = selectedTopic;
-  const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [selectedSubTopics, setSelectedSubtopics] = useState([]);
+  const [openEditDialog, setOpenEditDialog] = useState(false)
+  const [selectedSubTopics, setSelectedSubtopics] = useState([])
   const [isRotated, setIsRotated] = useState(false);
-  const [subtopics, setSubtopics] = useState([]);
-  const [newSubtopic, setNewSubtopic] = useState("");
-  //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
-  // const sampleSubtopics = ["COVID-19", "Subtopic 2", "Subtopic 3", "Subtopic 4"];
-
+  const [invalidInputError, setInvalidInputError] = useState(false);
+  const [invalidInputErrorMsg, setInvalidInputErrorMsg] = useState('');
+  const [subtopics, setSubtopics] = useState([])
+  const [newSubtopic, setNewSubtopic] = useState('')
+  
   async function getSubtopics() {
-    let queriedTopics = await API.graphql(
-      graphqlOperation(getTopicsOfCategoryByAcronym, {
-        category_acronym: selectedTopic.acronym,
-      })
-    );
-    let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
-    let topics = onlyTopics.map((a) => a.acronym);
-    console.log("topics: ", topics);
-    setSubtopics(topics);
+    let queriedTopics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {category_acronym: selectedTopic.acronym}))
+    let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym
+    let topics = onlyTopics.map(a => a.acronym)
+    setSubtopics(topics)
   }
-
+  
   useEffect(() => {
-    getSubtopics();
+    getSubtopics()
   }, []);
-
+  
   //updates setSelectedSubtopics every time subtopics are selected/unselected by user
   const handleChange = (e, subtopic) => {
     if (e.target.checked) {
       setSelectedSubtopics((prev) => [...prev, subtopic]);
     } else if (!e.target.checked) {
-      setSelectedSubtopics((prev) => prev.filter((s) => s !== subtopic));
+      setSelectedSubtopics((prev) =>
+        prev.filter((s) => s !== subtopic)
+      );
     }
   };
 
   const handleCloseEditDialog = () => {
-    setOpenEditDialog(false);
-  };
+    setOpenEditDialog(false)
+  }
 
-  const handleDelete = () => {
-    console.log(selectedSubTopics);
+  const handleDelete = async () => {
     for (let i = 0; i < selectedSubTopics.length; i++) {
-      setSubtopics((prev) => prev.filter((s) => !(s === selectedSubTopics[i])));
+      await API.graphql(graphqlOperation(deleteCategoryTopic, {
+        category_acronym: selectedTopic.acronym,
+        topic_acronym: selectedSubTopics[i]
+      }))
+      setSubtopics((prev) => prev.filter((s) => !(s === selectedSubTopics[i])))
     }
-  };
+  }
 
-  const addTopic = () => {
-    console.log(newSubtopic);
-    setSubtopics([...subtopics, newSubtopic]);
-  };
+  const addTopic = async () => {
+    if (newSubtopic === "") {
+      setInvalidInputError(true)
+      setInvalidInputErrorMsg('No value entered.')
+    } else {
+      await API.graphql(graphqlOperation(createTopic, {acronym: newSubtopic}))
+        .then(async () => {
+          await API.graphql(graphqlOperation(addTopicToCategory, {
+            category_acronym: selectedTopic.acronym,
+            topic_acronym: newSubtopic
+          }))
+          setSubtopics([...subtopics, newSubtopic])
+        })
+        .catch((e) => {
+          const errorMsg = e.errors[0].message
+          if (errorMsg.includes("ER_DUP_ENTRY: Duplicate entry 'Jobs' for key 'acronym'")) {
+            setInvalidInputError(true)
+            setInvalidInputErrorMsg("Topic already exists.")
+          }
+        })
+    }
+  }
+
+  const handleNewTopic = (e) => {
+    setInvalidInputError(false)
+    setInvalidInputErrorMsg('')
+    setNewSubtopic(e.target.value)
+  }
 
   //renders front of the card displaying topic of interest information
   const renderCardFront = () => {
@@ -135,15 +162,13 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
       </>
     );
   };
-
+  
   //renders the back of the card displaying all subtopics for user to select
   const renderCardBack = () => {
     return (
       <Card>
-        <Box
-          sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}
-        >
-          <Box width={"100%"}>
+        <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+          <Box width={'100%'}>
             <CardHeader
               title={title}
               titleTypographyProps={{
@@ -152,12 +177,15 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
               }}
             />
           </Box>
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <TextField
+          <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
+            <TextField 
               size="small"
-              label="Add new..."
-              onChange={(e) => setNewSubtopic(e.target.value)}
-            />
+              label={newSubtopic === "" ? "Add.." : ""}
+              InputLabelProps={{shrink: false}}
+              error={invalidInputError}
+              helperText={invalidInputErrorMsg}
+              onChange={handleNewTopic}
+              />
             <IconButton onClick={addTopic}>
               <Add />
             </IconButton>
@@ -195,16 +223,16 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
       </Card>
     );
   };
-
-  return (
-    <div className={`card ${isRotated ? "rotated" : ""}`}>
-      {!isRotated ? (
-        <div className="front">{renderCardFront()}</div>
-      ) : (
-        <div className="back">{renderCardBack()}</div>
-      )}
-    </div>
-  );
-};
-
-export default AdminTopicCard;
+  
+    return (
+      <div className={`card ${isRotated ? "rotated" : ""}`}>
+        {!isRotated ? (
+          <div className="front">{renderCardFront()}</div>
+        ) : (
+          <div className="back">{renderCardBack()}</div>
+        )}
+      </div>
+    );
+  };
+  
+  export default AdminTopicCard;

@@ -40,56 +40,6 @@ const StyledImageListItem = styled(ImageListItem)`
 `;
 
 const Admin = () => {
-  //hard coded mock data for now, to be replaced with queried data
-  const sampleTopics = [
-    {
-      title: "Health",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Insolvency",
-      description:
-        "Consumer proposals, bankruptcy and how to find a Licensed Insolvency Trustee.",
-    },
-    {
-      title: "Money and Finances",
-      description:
-        "Managing your money, debt and investments, planning for retirement and protecting yourself from consumer fraud.",
-    },
-    {
-      title: "Federal Corporations",
-      description:
-        "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
-    },
-    {
-      title: "Sample 5",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 6",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 7",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 8",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-    {
-      title: "Sample 9",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-    },
-  ];
-
-  //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
   const [topics, setTopics] = useState([])
   const [topicsTemp, setTopicsTemp] = useState([])
   const [searchVal, setSearchVal] = useState("");
@@ -119,7 +69,7 @@ const Admin = () => {
         : Math.floor(topicsTemp.length / 10 + 1));
     setPageCount(topicsPageCount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topics]);
+  }, []);
 
   const handleAddNewTopicOpen = () => {
     setOpenNewTopicDialog(true)
@@ -204,15 +154,14 @@ const Admin = () => {
     >
       <Typography variant="h3" sx={{ mb: "1em" }}>
         Welcome!
-      </Typography>
-             
+      </Typography>    
       {currentlySelectedTopic ? (
         <Box>
           <IconButton
             color="primary"
             aria-label="back to topic options"
             component="label"
-            onClick={() => setCurrentlySelectedTopic()}
+            onClick={() => {queriedData(); setCurrentlySelectedTopic()}}
             sx={{ mb: "0.5em" }}
           >
             <ArrowBackIcon />
@@ -262,12 +211,13 @@ const Admin = () => {
               <AddTopicDialog 
                 open={openNewTopicDialog}
                 handleClose={handleAddNewTopicClose}
+                reload={queriedData}
                 />
               <DeleteTopicDialog 
                 open={openDeleteTopicDialog}
                 handleClose={handleDeleteTopicClose}
                 topics={topicsTemp}
-                setTopics={setTopicsTemp}
+                reload={queriedData}
                 />
             </Box>
           <Box sx={{border: 1, borderColor: "grey.400", borderRadius: '6px' }}>
