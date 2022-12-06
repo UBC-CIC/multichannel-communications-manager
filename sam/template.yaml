@@ -1026,6 +1026,35 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0   
 
+  getCategoriesByUserIdResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Query
+      FieldName: getCategoriesByUserId
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "select c.title, c.description, uct.email_notice, uct.sms_notice from `Category` c, `UserCategoryTopic` uct, `CategoryTopic` ct where uct.user_id = :user_id and ct.category_acronym = c.acronym and ct.categoryTopic_id = uct.categoryTopic_id;",
+        "SQLVariableMapping": {
+        ":user_id": $context.arguments.user_id,
+        }
+        }
+        }
+        
+      ResponseMappingTemplate: |
+        #if($ctx.error) 
+          $util.error($ctx.error.message, $ctx.error.type) 
+        #end 
+        $util.toJson($context.result.sqlResult)
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0   
+
   getCategoryTopicByIdResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:

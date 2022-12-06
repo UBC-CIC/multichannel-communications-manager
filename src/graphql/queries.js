@@ -34,6 +34,16 @@ export const getUserCategoryTopicByUserId = /* GraphQL */ `
     }
   }
 `;
+export const getCategoriesByUserId = /* GraphQL */ `
+  query GetCategoriesByUserId($user_id: Int!) {
+    getCategoriesByUserId(user_id: $user_id) {
+      title
+      description
+      email_notice
+      sms_notice
+    }
+  }
+`;
 export const getCategoryTopicById = /* GraphQL */ `
   query GetCategoryTopicById($categoryTopic_id: Int!) {
     getCategoryTopicById(categoryTopic_id: $categoryTopic_id) {

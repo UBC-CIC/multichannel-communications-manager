@@ -13,10 +13,7 @@ import {
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
 import { Auth, API, graphqlOperation } from "aws-amplify";
-import {
-  getUserByEmail,
-  getUserCategoryTopicByUserId,
-} from "../graphql/queries";
+import { getUserByEmail, getCategoriesByUserId } from "../graphql/queries";
 import UnsubscribeDialog from "../components/UnsubscribeDialog";
 
 const EditNotificationPreferences = () => {
@@ -105,13 +102,13 @@ const EditNotificationPreferences = () => {
       );
       console.log("user: ", JSON.stringify(user));
       let test = await API.graphql(
-        graphqlOperation(getUserCategoryTopicByUserId, {
+        graphqlOperation(getCategoriesByUserId, {
           user_id: user.data.getUserByEmail.user_id,
         })
       );
       console.log("test: ", JSON.stringify(test));
-      setTopics(test.data.getUserCategoryTopicByUserId);
-      setTopics(topics);
+      setTopics(test.data.getCategoriesByUserId);
+      // setTopics(topics);
       console.log("topics: ", JSON.stringify(topics));
     } catch (e) {
       console.log(e);
