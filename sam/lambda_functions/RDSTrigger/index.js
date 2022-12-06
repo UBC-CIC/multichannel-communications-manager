@@ -1,252 +1,276 @@
-// import { default as fetch, Request } from "node-fetch";
-// const fetch = require("node-fetch");
-// export const fetch = async function (...args: any) {
-//   const { default: fetch } = await _importDynamic("node-fetch");
-//   return fetch(...args);
-// };
-// const fetch = (...args) =>
-//   import("node-fetch").then(({ default: fetch }) => fetch(...args));
-// const Request = (...args) =>
-//   import("node-fetch").then(({ default: Request }) => Request(...args));
-// import { request, gql } from "graphql-request";
 const gqlRequest = require("graphql-request");
 
 const GRAPHQL_ENDPOINT =
-  // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIENDPOINTOUTPUT;
   "https://qxohgzahbvhytksiegrj4macla.appsync-api.ca-central-1.amazonaws.com/graphql";
 const GRAPHQL_API_KEY =
   // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIKEYOUTPUT;
   "da2-ghgkjvxhr5dgvgz7iopp2of6pm";
 const handler = require("./helpers.js");
 
-// const userStreamARN =
-//   "arn:aws:dynamodb:ca-central-1:834289487514:table/User-4aq47vftyrf2nmprur3qha4iue-dev/stream/";
-// const topicStreamARN =
-//   "arn:aws:dynamodb:ca-central-1:834289487514:table/Topic-4aq47vftyrf2nmprur3qha4iue-dev/stream/";
+const mysql = require("mysql");
+let dbInit = false;
 
-/*****************
- * Testing
- *****************/
+async function conditionallyCreateDB(connection) {
+  // if the database has not yet been made, make it
+  // otherwise, this throws an error, which is caught in the handler and
+  // the lambda handler function proceeds as usual
+  let adminName = process.env.ADMIN_NAME;
+  let adminEmail = process.env.ADMIN_EMAIL;
+  let createDBSQL = `
+    CREATE TABLE \`User\` (
+  \`user_id\` int PRIMARY KEY AUTO_INCREMENT,
+  \`email_address\` varchar(50) UNIQUE NOT NULL,
+  \`phone_address\` varchar(50) UNIQUE,
+  \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
+  \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL
+);
 
-// handler.getUserEndpoints("78ea5fbb-8d73-426e-82c0-4a6a3aa64283");
-// handler.handleInsertUser('787', '2@mail.com', '1353', 'BC', '6d93h5')
-// .then(r => console.log(r));
+CREATE TABLE \`Category\` (
+  \`category_id\` int PRIMARY KEY AUTO_INCREMENT,
+  \`acronym\` varchar(30) UNIQUE NOT NULL COMMENT 'letters only',
+  \`title\` varchar(50) NOT NULL,
+  \`description\` text
+);
 
-/**
- * @type {import('@types/aws-lambda').APIGatewayProxyHandler}
- */
-exports.handler = async (event) => {
-  // try setting the event loop setting
-  // console.log("context:", context);
-  // console.log("eventLoop var:", context.callbackWaitsForEmptyEventLoop);
-  // console.log("eventLoop type:", typeof context.callbackWaitsForEmptyEventLoop);
-  // console.log("new context:", context);
+CREATE TABLE \`Topic\` (
+  \`topic_id\` int PRIMARY KEY AUTO_INCREMENT,
+  \`acronym\` varchar(30) UNIQUE NOT NULL
+);
 
-  console.log(`EVENT: ${JSON.stringify(event)}`);
-  return new Promise(async (resolve, reject) => {
-    // try {
-    // const forLoop = async (_) => {
-    // for (let record of event.Records) {
-    //   let payload = record.kinesis;
-    //   console.log("printing the raw payload info ...");
-    //   console.log(payload.partitionKey);
-    //   let data = Buffer.from(payload.data, "base64").toString();
+CREATE TABLE \`CategoryTopic\` (
+  \`categoryTopic_id\` int PRIMARY KEY AUTO_INCREMENT,
+  \`category_acronym\` varchar(30) NOT NULL,
+  \`topic_acronym\` varchar(30) NOT NULL
+);
 
-    // migrateToPinpoint(JSON.parse(data), (response) =>
-    //   console.log(response)
-    // ).on((err) => reject(err));
-    // migrateToPinpoint(JSON.parse(data)).catch((err) => reject(err));
-    // }
-    // };
-    // event.Records.forEach(async (record) => {
-    //   let payload = record.kinesis;
-    //   console.log("printing the raw payload info ...");
-    //   console.log(payload.partitionKey);
-    //   let data = Buffer.from(payload.data, "base64").toString();
+CREATE TABLE \`UserCategoryTopic\` (
+  \`user_id\` Int NOT NULL,
+  \`categoryTopic_id\` int NOT NULL,
+  \`email_notice\` boolean NOT NULL,
+  \`sms_notice\` boolean NOT NULL,
+  PRIMARY KEY (\`user_id\`, \`categoryTopic_id\`)
+);
 
-    //   await migrateToPinpoint(JSON.parse(data));
-    // });
-    // } catch (err) {
-    //   reject(err);
-    // }
+CREATE INDEX \`User_index_0\` ON \`User\` (\`email_address\`);
 
-    // resolve("successfully processed all records");
-    (async () => {
-      try {
-        for (var i = 0; i < event.Records.length; i++) {
-          var record = event.Records[i];
-          let payload = record.kinesis;
-          console.log("printing the raw payload info ...");
-          console.log(payload.partitionKey);
-          let data = Buffer.from(payload.data, "base64").toString();
+CREATE INDEX \`Category_index_1\` ON \`Category\` (\`acronym\`);
 
-          await migrateToPinpoint(JSON.parse(data));
-        }
-        resolve("successfully processed all records");
-      } catch (err) {
-        reject(err);
-      }
-    })();
-  });
-};
+CREATE INDEX \`Topic_index_2\` ON \`Topic\` (\`acronym\`);
 
-/**
- * migrate changes in record to pinpoint
- * @param {Record} record
- * @return {Promise} a Promise object that contains the ids of the user and/or endpoint changed
- * TODO
- */
-async function migrateToPinpoint(record) {
-  console.log("record: ", record);
-  console.log("data: ", record.data);
-  console.log("operation: ", record.metadata.operation);
-  let data = record.data;
-  let table = record.metadata["table-name"];
-  let operation = record.metadata.operation;
-  return new Promise((resolve, reject) => {
-    switch (table) {
-      case "User":
-        switch (operation) {
-          case "insert":
-          case "update":
-            handler
-              .upsertUserProfile(
-                data.user_id.toString(),
-                data.province,
-                data.postal_code
-              )
-              .then((response) => {
-                console.log("upsertUserProfile response: ", response);
-                return handler.upsertEndpoint(
-                  data.user_id.toString(),
-                  "EMAIL" + "_" + data.user_id.toString(),
-                  data.email_address,
-                  "EMAIL"
-                );
-              })
-              .then((response) => {
-                console.log("upsertEndpoint response: ", response);
-                if (data.phone_address) {
-                  return handler.upsertEndpoint(
-                    data.user_id.toString(),
-                    "PHONE" + "_" + data.phone_address,
-                    data.phone_address,
-                    "SMS"
-                  );
-                } else {
-                  return "success";
-                }
-              })
-              .then((response) =>
-                console.log("second upsertEndpoint response: ", response)
-              )
-              .catch((err) => {
-                console.log("handler err: ", err);
-              });
-            break;
-          case "REMOVE":
-            return handler.deleteUser(data.user_id.toString());
-            break;
-        }
-        break;
-      // case "CategoryTopic":
-      //   switch (operation) {
-      //     case "insert":
-      //       handler
-      //         .createSegment(
-      //           data.category_acronym + "-" + data.topic_acronym,
-      //           "EMAIL"
-      //         )
-      //         .then((response) => {
-      //           console.log("createSegment response: ", response);
-      //           return handler.createSegment(
-      //             data.category_acronym + "-" + data.topic_acronym,
-      //             "SMS"
-      //           );
-      //         })
-      //         .then((response) => {
-      //           console.log("second createSegment response: ", response);
-      //           resolve(response);
-      //         })
-      //         .catch((err) => {
-      //           console.log(err);
-      //           reject(err);
-      //         });
-      //       break;
-      //     case "update":
-      //       break;
-      //     case "remove":
-      //       break;
-      //   }
-      //   break;
-      case "UserCategoryTopic":
-        switch (operation) {
-          case "insert":
-          case "update":
-            executeGraphQL(`
-            query MyQuery {
-              getCategoryTopicById(categoryTopic_id: ${data.categoryTopic_id}) {
-                topic_acronym
-                category_acronym
-              }
-            }`)
-              .then((response) => {
-                categorytopic = response.getCategoryTopicById;
-                handler.updateTopicChannel(
-                  data.user_id,
-                  categorytopic.category_acronym +
-                    "-" +
-                    categorytopic.topic_acronym,
-                  data.email_notice,
-                  data.sms_notice
-                );
-                resolve("pinpoint update channel preference succeeded");
-              })
-              .catch((err) => reject(err));
-            break;
-          case "delete":
-            executeGraphQL(`
-            query MyQuery {
-              getCategoryTopicById(categoryTopic_id: ${data.categoryTopic_id}) {
-                topic_acronym
-                category_acronym
-              }
-            }`)
-              .then((response) => {
-                categorytopic = response.data.getCategoryTopicById;
-                handler.updateTopicChannel(
-                  data.user_id,
-                  categorytopic.category_acronym +
-                    "-" +
-                    categorytopic.topic_acronym,
-                  false,
-                  false
-                );
-                resolve("pinpoint unfollow email and phone succeeded");
-              })
-              .catch((err) => reject(err));
-            break;
-        }
-        break;
+CREATE UNIQUE INDEX \`CategoryTopic_index_3\` ON \`CategoryTopic\` (\`category_acronym\`, \`topic_acronym\`);
+
+ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`category_acronym\`) REFERENCES \`Category\` (\`acronym\`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`topic_acronym\`) REFERENCES \`Topic\` (\`acronym\`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`user_id\`) REFERENCES \`User\` (\`user_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`categoryTopic_id\`) REFERENCES \`CategoryTopic\` (\`categoryTopic_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
+`;
+
+  let result;
+  let sql_statements = createDBSQL.split(";"); // splits up multiple SQL statements into an array
+  for (let sql_statement of sql_statements) {
+    // iterate through the SQL statements
+    if (sql_statement.length < 3) {
+      // sometimes an empty statement will try to be executed, this stops those from executing
+      continue;
     }
+    // execute the sql statement on our database
+    result = await executeSQL(connection, sql_statement);
+  }
+
+  result = await executeSQL(
+    connection,
+    "INSERT INTO `User` (user_id, email_address) VALUES (0, '" +
+      adminEmail +
+      "')"
+  );
+
+  return result;
+}
+
+function executeSQL(connection, sql_statement) {
+  // executes an sql statement as a promise, with included error handling
+  return new Promise((resolve, reject) => {
+    console.log("Executing SQL:", sql_statement);
+    connection.query({ sql: sql_statement, timeout: 60000 }, (err, data) => {
+      // if error, gets saved in \\`err\\`, else response from DB saved in \\`data\\`
+      if (err) {
+        return reject(err);
+      }
+      console.log("executeSQL return: ", data);
+      return resolve(data);
+    });
   });
 }
 
-/**
- * extract table name from the record
- * @param {Object} record
- * @return {String} the table name, one of 'User' or 'Topic'
- */
-// function getTableName(record) {
-//   let sourceARN = record.eventSourceARN;
-//   if (sourceARN.startsWith(userStreamARN)) {
-//     console.log("processing updates from User table");
-//     return "User";
-//   } else if (sourceARN.startsWith(topicStreamARN)) {
-//     console.log("processing updates from Topic table");
-//     return "Topic";
-//   }
-// }
+function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
+  // takes the variable mapping JSON, and inserts them into the sql string
+  // for each pair in SQLVariableMapping, replace the key with value in sql
+  Object.entries(SQLVariableMapping).forEach(([key, value]) => {
+    let escapedValue = connection.escape(value);
+    if (
+      String(escapedValue).length == 0 ||
+      escapedValue == "''" ||
+      escapedValue === "''" ||
+      escapedValue.charAt(0) == "$" ||
+      escapedValue.charAt(1) == "$"
+    ) {
+      // if in the GraphQL request, a user does not pass in the value of a variable required in the statement, set the variable to null
+      escapedValue = null;
+    }
+    sql = sql.replace(key, escapedValue);
+  });
+
+  return sql;
+}
+
+let connection;
+connection = mysql.createPool({
+  host: process.env.RDSPROXY_ENDPOINT,
+  user: process.env.USERNAME,
+  password: process.env.PASSWORD,
+  database: process.env.DBNAME,
+});
+console.log("connection:", connection);
+
+exports.handler = async (event) => {
+  console.log("event: ", event);
+  // called whenever a GraphQL event is received
+  console.log("Received event", JSON.stringify(event, null, 3));
+
+  let result = {};
+  if (!dbInit) {
+    try {
+      await conditionallyCreateDB(connection);
+    } catch (error) {
+      console.log(error);
+      console.log(
+        "The database has already been made, proceeding with the GQL request"
+      );
+    }
+    dbInit = true;
+  }
+
+  let sql_statements = event.sql.split(";"); // splits up multiple SQL statements into an array
+  // try {
+  for (let sql_statement of sql_statements) {
+    // iterate through the SQL statements
+    if (sql_statement.length < 3) {
+      // sometimes an empty statement will try to be executed, this stops those from executing
+      continue;
+    }
+    // 'fill in' the variables in the sql statement with ones from SQLVariableMapping
+    const inputSQL = populateAndSanitizeSQL(
+      sql_statement,
+      event.SQLVariableMapping,
+      connection
+    );
+    // execute the sql statement on our database
+    result.sqlResult = await executeSQL(connection, inputSQL);
+  }
+
+  // for secondary SQL statement to execute, like a SELECT after an INSERT
+  if (event.responseSQL) {
+    const responseSQL = populateAndSanitizeSQL(
+      event.responseSQL,
+      event.SQLVariableMapping,
+      connection
+    );
+    result.sqlResult = await executeSQL(connection, responseSQL);
+  }
+  console.log("Finished SQL execution");
+  console.log("sqlResult: ", result.sqlResult);
+  // } catch (err) {
+  //   result.sqlResult = err;
+  // }
+
+  try {
+    if (event.pinpoint) {
+      const pinpointAction = event.pinpoint;
+      switch (pinpointAction.type) {
+        case "userprofile":
+          switch (pinpointAction.action) {
+            case "insert":
+            case "update":
+              console.log(event.SQLVariableMapping);
+              let upsertUserProfileResponse = await handler.upsertUserProfile(
+                result.sqlResult[0].user_id.toString(),
+                event.SQLVariableMapping[":province"],
+                event.SQLVariableMapping[":postal_code"]
+              );
+              console.log(
+                "upsertUserProfile response: ",
+                upsertUserProfileResponse
+              );
+
+              if (event.SQLVariableMapping[":email_address"]) {
+                let upsertEmailResponse = await handler.upsertEndpoint(
+                  result.sqlResult[0].user_id.toString(),
+                  "EMAIL" + "_" + result.sqlResult[0].user_id.toString(),
+                  event.SQLVariableMapping[":email_address"],
+                  "EMAIL"
+                );
+                console.log("upsert email response: ", upsertEmailResponse);
+              }
+
+              if (event.SQLVariableMapping[":phone_address"]) {
+                let upsertPhoneResponse = await handler.upsertEndpoint(
+                  result.sqlResult[0].user_id.toString(),
+                  "SMS" + "_" + result.sqlResult[0].user_id.toString(),
+                  event.SQLVariableMapping[":phone_address"],
+                  "SMS"
+                );
+                console.log("upsert phone no. response: ", upsertPhoneResponse);
+                result.pinpointResult = "success";
+              }
+              result.pinpointResult = "success";
+
+              break;
+            case "delete":
+              result = handler.deleteUser(
+                event.SQLVariableMapping[":user_id"].toString()
+              );
+              result.pinpointResult = "success";
+              break;
+          }
+          break;
+        case "usersubscription":
+          switch (pinpointAction.action) {
+            case "insert":
+            case "update":
+              result.pinpointResult = await handler.updateTopicChannel(
+                event.SQLVariableMapping[":user_id"],
+                event.SQLVariableMapping[":category_acronym"] +
+                  "-" +
+                  event.SQLVariableMapping[":topic_acronym"],
+                event.SQLVariableMapping[":email_notice"],
+                event.SQLVariableMapping[":sms_notice"]
+              );
+              break;
+            case "delete":
+              result.pinpointResult = await handler.updateTopicChannel(
+                event.SQLVariableMapping[":user_id"],
+                event.SQLVariableMapping[":category_acronym"] +
+                  "-" +
+                  event.SQLVariableMapping[":topic_acronym"],
+                false,
+                false
+              );
+              result.pinpointResult = "success";
+              break;
+          }
+          break;
+      }
+    }
+  } catch (err) {
+    result.pinpointResult = err;
+  }
+
+  console.log("return: ", result);
+  return result;
+};
 
 async function executeGraphQL(query) {
   console.log("executing query: ", query);
@@ -259,6 +283,7 @@ async function executeGraphQL(query) {
     //   body: JSON.stringify({ query, variables }),
     // };
     let gqlQuery = gqlRequest.gql([query]);
+
     const gqlClient = new gqlRequest.GraphQLClient(GRAPHQL_ENDPOINT, {
       headers: {
         "x-api-key": GRAPHQL_API_KEY,
