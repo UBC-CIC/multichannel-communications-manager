@@ -27,20 +27,20 @@ async function conditionallyCreateDB(connection) {
 
 CREATE TABLE \`Category\` (
   \`category_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`acronym\` varchar(10) UNIQUE NOT NULL COMMENT 'letters only',
+  \`acronym\` varchar(30) UNIQUE NOT NULL COMMENT 'letters only',
   \`title\` varchar(50) NOT NULL,
   \`description\` text
 );
 
 CREATE TABLE \`Topic\` (
   \`topic_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`acronym\` varchar(10) UNIQUE NOT NULL
+  \`acronym\` varchar(30) UNIQUE NOT NULL
 );
 
 CREATE TABLE \`CategoryTopic\` (
   \`categoryTopic_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`category_acronym\` varchar(10) NOT NULL,
-  \`topic_acronym\` varchar(10) NOT NULL
+  \`category_acronym\` varchar(30) NOT NULL,
+  \`topic_acronym\` varchar(30) NOT NULL
 );
 
 CREATE TABLE \`UserCategoryTopic\` (
@@ -205,13 +205,15 @@ exports.handler = async (event) => {
                 upsertUserProfileResponse
               );
 
-              let upsertEmailResponse = await handler.upsertEndpoint(
-                result.sqlResult[0].user_id.toString(),
-                "EMAIL" + "_" + result.sqlResult[0].user_id.toString(),
-                event.SQLVariableMapping[":email_address"],
-                "EMAIL"
-              );
-              console.log("upsert email response: ", upsertEmailResponse);
+              if (event.SQLVariableMapping[":email_address"]) {
+                let upsertEmailResponse = await handler.upsertEndpoint(
+                  result.sqlResult[0].user_id.toString(),
+                  "EMAIL" + "_" + result.sqlResult[0].user_id.toString(),
+                  event.SQLVariableMapping[":email_address"],
+                  "EMAIL"
+                );
+                console.log("upsert email response: ", upsertEmailResponse);
+              }
 
               if (event.SQLVariableMapping[":phone_address"]) {
                 let upsertPhoneResponse = await handler.upsertEndpoint(
@@ -222,9 +224,9 @@ exports.handler = async (event) => {
                 );
                 console.log("upsert phone no. response: ", upsertPhoneResponse);
                 result.pinpointResult = "success";
-              } else {
-                result.pinpointResult = "success";
               }
+              result.pinpointResult = "success";
+
               break;
             case "delete":
               result = handler.deleteUser(

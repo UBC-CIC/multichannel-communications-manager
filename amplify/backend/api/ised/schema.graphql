@@ -28,6 +28,14 @@ type UserCategoryTopic {
   sms_notice: Boolean
 }
 
+type UserCategoryTopicFull {
+  user_id: Int!
+  category_acronym: String!
+  topic_acronym: String!
+  email_notice: Boolean!
+  sms_notice: Boolean!
+}
+
 type User {
   user_id: Int!
   email_address: String!
@@ -99,7 +107,7 @@ type Mutation {
 type Query {
   getUserById(user_id: Int!): User
   getUserByEmail(user_email: String!): User
-  getUserCategoryTopicByUserId(user_id: Int!): [CategoryTopic]
+  getUserCategoryTopicByUserId(user_id: Int!): [UserCategoryTopicFull]
   getCategoryTopicById(categoryTopic_id: Int!): CategoryTopic
   getCategoryByAcronym(acronym: String!): Category
   getTopicsOfCategoryByAcronym(category_acronym: String!): [Topic]

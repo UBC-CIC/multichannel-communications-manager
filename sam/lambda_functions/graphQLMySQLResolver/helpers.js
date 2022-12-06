@@ -125,7 +125,7 @@ async function upsertUserProfile(userID, province, postalCode) {
     console.log(userID);
     let request = {
       ApplicationId: PINPOINTID,
-      EndpointId: userID,
+      EndpointId: "email" + "_" + userID,
       EndpointRequest: {
         // User: {
         //   UserAttributes: {},

@@ -26,9 +26,11 @@ export const getUserByEmail = /* GraphQL */ `
 export const getUserCategoryTopicByUserId = /* GraphQL */ `
   query GetUserCategoryTopicByUserId($user_id: Int!) {
     getUserCategoryTopicByUserId(user_id: $user_id) {
-      categoryTopic_id
+      user_id
       category_acronym
       topic_acronym
+      email_notice
+      sms_notice
     }
   }
 `;

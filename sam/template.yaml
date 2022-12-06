@@ -913,6 +913,7 @@ Resources:
           getTopicByAcronym(topic_acronym: String!): Topic
           getAllCategories: [Category]
           getAllTopics: [Topic]
+          testSQL: String
         }
 
         schema {
@@ -1695,17 +1696,17 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": 
-          "alter table `User` modify phone_address varchar(50);",
+        "sql": "alter table `Topic` alter column topic_acronym varchar(30)",
         "SQLVariableMapping": {
         }
         }
         }
+
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
         #end
-        "succeeded"
+        "success"
       ApiId: !GetAtt GraphQlApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT

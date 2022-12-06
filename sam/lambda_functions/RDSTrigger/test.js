@@ -30,14 +30,14 @@ const pinpoint = new AWS.Pinpoint({ region: "ca-central-1" });
 // };
 
 // index.handler(e);
-// handler
-//   .getUserEndpoints("12")
-//   .then((response) => {
-//     console.log(JSON.stringify(response));
-//   })
-//   .catch((err) => {
-//     console.log(err);
-//   });
+handler
+  .getUserEndpoints("48")
+  .then((response) => {
+    console.log(JSON.stringify(response));
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 // let request = {
 //   ApplicationId: "4dd4f0be4a904c169c3cba73530a3f11",
@@ -77,14 +77,14 @@ let request = {
 //   }
 // });
 
-pinpoint.updateEndpoint(request, function (err, response) {
-  if (err) {
-    console.log("ppt.updateEndpoint err:");
-    console.log(err, err.stack);
-    console.log(err);
-  } else {
-    console.log("ppt.updateEndpoint response:");
-    console.log(response);
-    console.log(response);
-  }
-});
+// pinpoint.updateEndpoint(request, function (err, response) {
+//   if (err) {
+//     console.log("ppt.updateEndpoint err:");
+//     console.log(err, err.stack);
+//     console.log(err);
+//   } else {
+//     console.log("ppt.updateEndpoint response:");
+//     console.log(response);
+//     console.log(response);
+//   }
+// });
