@@ -17,76 +17,10 @@ import { getUserByEmail, getCategoriesByUserId } from "../graphql/queries";
 import UnsubscribeDialog from "../components/UnsubscribeDialog";
 
 const EditNotificationPreferences = () => {
-  //hard coded mock data for now, to be replaced with queried data
-  // const sampleTopics = [
-  //   {
-  //     title: "Health",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: true,
-  //   },
-  //   {
-  //     title: "Insolvency",
-  //     description:
-  //       "Consumer proposals, bankruptcy and how to find a Licensed Insolvency Trustee.",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  //   {
-  //     title: "Money and Finances",
-  //     description:
-  //       "Managing your money, debt and investments, planning for retirement and protecting yourself from consumer fraud.",
-  //     email_notice: false,
-  //     sms_notice: true,
-  //   },
-  //   {
-  //     title: "Federal Corporations",
-  //     description:
-  //       "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
-  //     email_notice: false,
-  //     sms_notice: true,
-  //   },
-  //   {
-  //     title: "Sample 5",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  //   {
-  //     title: "Sample 6",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  //   {
-  //     title: "Sample 7",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  //   {
-  //     title: "Sample 8",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  //   {
-  //     title: "Sample 9",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  // ];
-
   const [searchVal, setSearchVal] = useState("");
   const [topics, setTopics] = useState([]);
   const [topicIndex, setTopicIndex] = useState({ index: "", type: "" });
+  const [updateWithRemovedTopics, setUpdateWithRemovedTopics] = useState([]);
   const [filterRemovedTopics, setFilterRemovedTopics] = useState([]);
   const [title, setTitle] = useState("");
   const [notificationType, setNotificationType] = useState("");
@@ -100,16 +34,12 @@ const EditNotificationPreferences = () => {
           user_email: returnedUser.attributes.email,
         })
       );
-      console.log("user: ", JSON.stringify(user));
-      let test = await API.graphql(
+      let categories = await API.graphql(
         graphqlOperation(getCategoriesByUserId, {
           user_id: user.data.getUserByEmail.user_id,
         })
       );
-      console.log("test: ", JSON.stringify(test));
-      setTopics(test.data.getCategoriesByUserId);
-      // setTopics(topics);
-      console.log("topics: ", JSON.stringify(topics));
+      setTopics(categories.data.getCategoriesByUserId);
     } catch (e) {
       console.log(e);
     }
@@ -161,7 +91,8 @@ const EditNotificationPreferences = () => {
       setTitle(topic.title);
       setNotificationType("");
       setOpenUnsubscribeDialog(true);
-      setFilterRemovedTopics(topics.filter((s) => s !== topic));
+      setUpdateWithRemovedTopics(topics.filter((s) => s !== topic));
+      setFilterRemovedTopics(updatedTopics);
     } else if (topic.sms_notice === false && topic.email_notice === true) {
       setTitle(topic.title);
       setNotificationType("Text");
@@ -185,18 +116,19 @@ const EditNotificationPreferences = () => {
 
   function handleUnsubscribe() {
     console.log(filterRemovedTopics);
-    setTopics(filterRemovedTopics);
+    //
+    setTopics(updateWithRemovedTopics);
     setOpenUnsubscribeDialog(false);
   }
 
   function handleUnsubscribeClose() {
-    // if (topicIndex.type === "email_notice") {
-    //   topics[topicIndex.index].email_notice =
-    //     !filterRemovedTopics[topicIndex.index].email_notice;
-    // } else {
-    //   topics[topicIndex.index].sms_notice =
-    //     !filterRemovedTopics[topicIndex.index].sms_notice;
-    // }
+    if (topicIndex.type === "email_notice") {
+      topics[topicIndex.index].email_notice =
+        !topics[topicIndex.index].email_notice;
+    } else {
+      topics[topicIndex.index].sms_notice =
+        !topics[topicIndex.index].email_notice;
+    }
     setOpenUnsubscribeDialog(false);
   }
 
@@ -252,13 +184,12 @@ const EditNotificationPreferences = () => {
               >
                 <Switch
                   checked={topic.email_notice}
-                  id={i}
-                  key={i}
+                  id={i.toString()}
                   onChange={handleEmailChange}
                 />
                 <Switch
                   checked={topic.sms_notice}
-                  id={i}
+                  id={i.toString()}
                   onChange={handleTextChange}
                 />
               </Box>
@@ -290,7 +221,7 @@ const EditNotificationPreferences = () => {
             size="small"
             InputProps={{
               endAdornment: (
-                <InputAdornment>
+                <InputAdornment position="end">
                   <IconButton onClick={search}>
                     <Search />
                   </IconButton>

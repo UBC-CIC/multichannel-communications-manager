@@ -31,7 +31,7 @@ const EditAccountInfo = () => {
   const [emptyEmailError, setEmptyEmailError] = useState(false);
   const [emptyPostalCodeError, setEmptyPostalCodeError] = useState(false);
   const [invalidEmailError, setInvalidEmailError] = useState(false);
-  const [emailExistError, setEmailExist] = useState(false);
+  const [emailExistError, setEmailExistError] = useState(false);
   const [invalidPostalCodeError, setInvalidPostalCodeError] = useState(false);
   const [invalidPhoneError, setInvalidPhoneError] = useState(false);
   const [canShowPrompt, setCanShowPrompt] = useState(false)
@@ -134,6 +134,7 @@ const EditAccountInfo = () => {
     setInvalidPostalCodeError(false)
     setEmptyEmailError(false)
     setEmptyPostalCodeError(false)
+    setEmailExistError(false)
   }
 
   function onChange(e, value) {
@@ -169,13 +170,13 @@ const EditAccountInfo = () => {
       } else if (!checkEmail(userData.email_address)) {
         setInvalidEmailError(true)
       } else {
-        updateUser()
+        update()
       }
     }
     setCanShowPrompt(false)
   }
 
-  async function updateUser() {
+  async function update() {
     const user = await Auth.currentAuthenticatedUser();
     await Auth.updateUserAttributes(user, {
       'email': userData.email_address,
@@ -183,7 +184,12 @@ const EditAccountInfo = () => {
       'custom:postal_code': userData.postal_code
     })
       .then(successAlert)
-      .catch((e) => console.log(e));
+      .catch((e) => {
+        const errorMsg = e.errors[0].message
+        if (errorMsg.includes("ER_DUP_ENTRY")) {
+          setEmailExistError(true)
+        }
+      });
   }
 
   async function successAlert() {
@@ -193,96 +199,98 @@ const EditAccountInfo = () => {
   }
 
   return (
-    <Grid
-      container
-      direction="column"
-      style={{ minHeight: "80vh" }}
-      >
-        {alert ? <Collapse in={alert}><Alert severity={"success"} onClose={() => setAlert(false)}>{alertContent}</Alert></Collapse> : <></> }
-        <LeaveWithoutSavingDialog
-          showDialog={showPrompt}
-          setShowDialog={setCanShowPrompt}
-          confirmNavigation={confirmNav}
-          cancelNavigation={cancelNav}
-          />
-        <Grid item>
-          <Typography variant="h3" sx={{ mb: "1.5em" }}>
-            Edit Account Information
-          </Typography>
-        </Grid>
-        <Grid 
-          container
-          marginLeft={{ md: "25%"}}
-          alignItems="center"
-          justifyContent={"center"}
-          marginBottom={2}
-          gap={3}
-          md={6}
-          >
-            <TextField
-              fullWidth
-              size="small"
-              label={"Email"}
-              InputLabelProps={{ shrink: true }}
-              name={"email_address"}
-              type="email"
-              value={userData.email_address}
-              error={emailExistError || invalidEmailError || emptyEmailError}
-              helperText={
-                (!!emailExistError &&
-                  "An account with the given email already exists.") ||
-                (!!invalidEmailError && "Please enter a valid email.") ||
-                (!!emptyEmailError && "This field cannot be empty.")
-              }
-              onChange={onChange}
+    <>
+      {alert ? <Collapse in={alert}><Alert severity={"success"} onClose={() => setAlert(false)}>{alertContent}</Alert></Collapse> : <></> }
+      <Grid
+        container
+        direction="column"
+        style={{ minHeight: "80vh" }}
+        >
+          <LeaveWithoutSavingDialog
+            showDialog={showPrompt}
+            setShowDialog={setCanShowPrompt}
+            confirmNavigation={confirmNav}
+            cancelNavigation={cancelNav}
             />
-            <TextField
-              fullWidth
-              size="small"
-              label={"Phone Number"}
-              InputLabelProps={{ shrink: true }}
-              name={"phone"}
-              value={userData.phone_address}
-              type="text"
-              error={invalidPhoneError}
-              helperText={
-                (!!invalidPhoneError && "Please enter a valid phone number.")
-              }
-              onChange={onChange}
-            />
-            <Autocomplete
-              fullWidth
-              size="small"
-              disablePortal
-              id={"province"}
-              value={province || null}
-              options={provinceOptions}
-              renderInput={(params) => (
-                <TextField {...params} label="Province" InputLabelProps={{ shrink: true }} />
-              )}
-              ListboxProps={{ style: { maxHeight: "7rem" } }}
-              onChange={onChange}
-            />
-            <TextField
-              fullWidth
-              size="small"
-              label={"Postal Code"}
-              value={userData.postal_code}
-              InputLabelProps={{ shrink: true }}
-              name={"postal_code"}
-              error={invalidPostalCodeError || emptyPostalCodeError}
-              helperText={
-                (!!invalidPostalCodeError && "Please enter a valid postal code.") ||
-                (!!emptyPostalCodeError && "This field cannot be empty.")
-              }
-              type="text"
-              onChange={onChange}
-            />
-            <Button variant="contained" fullWidth onClick={buttonClicked}>
-            Save
-          </Button>
-        </Grid>
-    </Grid>
+          <Grid item>
+            <Typography variant="h3" sx={{ mb: "1.5em" }}>
+              Edit Account Information
+            </Typography>
+          </Grid>
+          <Grid 
+            container
+            marginLeft={{ md: "25%"}}
+            alignItems="center"
+            justifyContent={"center"}
+            marginBottom={2}
+            gap={3}
+            md={6}
+            >
+              <TextField
+                fullWidth
+                size="small"
+                label={"Email"}
+                InputLabelProps={{ shrink: true }}
+                name={"email_address"}
+                type="email"
+                value={userData.email_address}
+                error={emailExistError || invalidEmailError || emptyEmailError}
+                helperText={
+                  (!!emailExistError &&
+                    "An account with the given email already exists.") ||
+                  (!!invalidEmailError && "Please enter a valid email.") ||
+                  (!!emptyEmailError && "This field cannot be empty.")
+                }
+                onChange={onChange}
+              />
+              <TextField
+                fullWidth
+                size="small"
+                label={"Phone Number"}
+                InputLabelProps={{ shrink: true }}
+                name={"phone"}
+                value={userData.phone_address}
+                type="text"
+                error={invalidPhoneError}
+                helperText={
+                  (!!invalidPhoneError && "Please enter a valid phone number.")
+                }
+                onChange={onChange}
+              />
+              <Autocomplete
+                fullWidth
+                size="small"
+                disablePortal
+                id={"province"}
+                value={province || null}
+                options={provinceOptions}
+                renderInput={(params) => (
+                  <TextField {...params} label="Province" InputLabelProps={{ shrink: true }} />
+                )}
+                ListboxProps={{ style: { maxHeight: "7rem" } }}
+                onChange={onChange}
+              />
+              <TextField
+                fullWidth
+                size="small"
+                label={"Postal Code"}
+                value={userData.postal_code}
+                InputLabelProps={{ shrink: true }}
+                name={"postal_code"}
+                error={invalidPostalCodeError || emptyPostalCodeError}
+                helperText={
+                  (!!invalidPostalCodeError && "Please enter a valid postal code.") ||
+                  (!!emptyPostalCodeError && "This field cannot be empty.")
+                }
+                type="text"
+                onChange={onChange}
+              />
+              <Button variant="contained" fullWidth onClick={buttonClicked}>
+              Save
+            </Button>
+          </Grid>
+      </Grid>
+    </>
   );
 };
 

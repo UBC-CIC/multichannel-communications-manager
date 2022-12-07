@@ -89,7 +89,6 @@ const ViewTopics = () => {
 
   //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
   const [topics, setTopics] = useState([])
-  const [allSelectedTopics, setAllSelectedTopics] = useState();
   const [userData, setUserData] = useState([]);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
   //for pagination
@@ -128,7 +127,7 @@ const ViewTopics = () => {
         : Math.floor(topics.length / 10 + 1));
     setPageCount(topicsPageCount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentlySelectedTopic]);
 
   const handleCheck = (e) => {
     if (e.target.checked) {

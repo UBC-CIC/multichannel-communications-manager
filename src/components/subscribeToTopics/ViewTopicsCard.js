@@ -21,7 +21,7 @@ import "../TopicCard.css";
 import PhoneNumberDialog from "../PhoneNumberDialog";
 import { API, graphqlOperation } from "aws-amplify";
 import { getTopicsOfCategoryByAcronym, getUserByEmail, getUserCategoryTopicByUserId } from "../../graphql/queries";
-import { userFollowCategoryTopic } from "../../graphql/mutations";
+import { userFollowCategoryTopic, userUnfollowCategoryTopic } from "../../graphql/mutations";
 
 const ViewTopicsCard = ({ selectedTopic }) => {
   const { title, description, image } = selectedTopic;
@@ -35,7 +35,9 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   const [noTopicSelected, setNoTopicSelected] = useState(false);
   const [noPreferenceSelected, setNoPreferenceSelected] = useState(false);
   const [selectedSubTopics, setSelectedSubtopics] = useState([]);
+  const [initialUserSelectedSubTopics, setInitialUserSelectedSubtopics] = useState([]);
   const [userSelectedSubTopics, setUserSelectedSubtopics] = useState([]);
+  const [userUnfollow, setUserUnfollow] = useState([]);
   const [isRotated, setIsRotated] = useState(false);
   const [userPhone, setUserPhone] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -68,7 +70,8 @@ const ViewTopicsCard = ({ selectedTopic }) => {
       setUserSubscribedNotifications(notifPreference)
       for (let i = 0; i < userSubscribedSubtopics.length; i++) {
         // setSubtopics([...subtopics, userSubscribedSubtopics[i].topic_acronym])
-        setUserSelectedSubtopics([...userSelectedSubTopics, userSubscribedSubtopics[i].topic_acronym]);
+        setUserSelectedSubtopics((prev) => [...prev, userSubscribedSubtopics[i].topic_acronym]);
+        setInitialUserSelectedSubtopics((prev) => [...prev, userSubscribedSubtopics[i].topic_acronym]);
       }
       // setSubtopics(userSubscribedSubtopics.topic_acronym);
       // setUserSelectedSubtopics(userSubscribedSubtopics.topic_acronym);
@@ -210,18 +213,44 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   const handleAlreadySubscribedChange = (e, subtopic) => {
     if (e.target.checked) {
       setUserSelectedSubtopics((prev) => [...prev, `${subtopic}`]);
+      setUserUnfollow((prev) =>
+        prev.filter((s) => s !== `${subtopic}`)
+      );
     } else if (!e.target.checked) {
       setUserSelectedSubtopics((prev) =>
         prev.filter((s) => s !== `${subtopic}`)
       );
+      setUserUnfollow((prev) => [...prev, `${subtopic}`]);
     }
   };
 
-  const handleButtonSave = () => {
+  const handleButtonSave = async () => {
     if (userAlreadySubscribed) {
-      console.log(userSelectedSubTopics)
-    } else {
-      console.log(selectedSubTopics)
+      let newUserSelectedSubtopics = []
+      let subtopicsToUnfollow = []
+      subtopicsToUnfollow = userUnfollow.filter((s) => initialUserSelectedSubTopics.includes(s))
+      newUserSelectedSubtopics = userSelectedSubTopics.filter((s) => !(initialUserSelectedSubTopics.includes(s)))
+  
+      if (newUserSelectedSubtopics.length !== 0) {
+        for (let x = 0; x < newUserSelectedSubtopics.length; x++) {
+          await API.graphql(graphqlOperation(userFollowCategoryTopic, {
+            user_id: userID,
+            category_acronym: selectedTopic.acronym,
+            topic_acronym: newUserSelectedSubtopics[x],
+            email_notice: userSubscribedNotifications.email_notice,
+            sms_notice: userSubscribedNotifications.sms_notice
+          }))
+        }
+      }
+      if (subtopicsToUnfollow.length !== 0) {
+        for (let n = 0; n < subtopicsToUnfollow.length; n++) {
+          await API.graphql(graphqlOperation(userUnfollowCategoryTopic, {
+            user_id: userID,
+            category_acronym: selectedTopic.acronym,
+            topic_acronym: subtopicsToUnfollow[n]
+          }))
+        }
+      }
     }
     setIsRotated(!isRotated);
   };
