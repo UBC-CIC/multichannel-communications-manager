@@ -1498,11 +1498,12 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `Category` (acronym, title, description) values (:acronym, :title, :description);",
+        "sql": "insert into `Category` (acronym, title, description, picture_location) values (:acronym, :title, :description, :picture_location);",
         "SQLVariableMapping": {
         ":acronym": "$context.arguments.acronym",
         ":title": "$context.arguments.title",
-        ":description": $description
+        ":description": $description,
+        ":picture_location": "$context.arguments.picture_location"
         },
         "responseSQL": "select * from `Category` where acronym=:acronym;"
         }
