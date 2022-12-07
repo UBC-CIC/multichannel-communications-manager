@@ -1867,6 +1867,37 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
+  userUnfollowCategoryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: userUnfollowCategory
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": 
+          "delete from `UserCategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id in (select categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym);",
+        "SQLVariableMapping": {
+        ":user_id": $context.arguments.user_id,
+        ":category_acronym": "$context.arguments.category_acronym",
+        },
+        "pinpoint": {"type": "usersubscription", "action": "delete"}
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        "success"
+      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
   # SES
   SESIdentity:
     Type: AWS::SES::EmailIdentity

@@ -109,6 +109,7 @@ type Mutation {
     category_acronym: String!
     topic_acronym: String!
   ): User
+  userUnfollowCategory(user_id: Int!, category_acronym: String!): String
 }
 
 type Query {
