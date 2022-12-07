@@ -54,7 +54,7 @@ type UserCategoryTopicFull {
 }
 
 type CategorySubscription {
-  category_id: String
+  acronym: String
   title: String
   description: String
   email_notice: Boolean
@@ -120,7 +120,7 @@ type Mutation {
   userUpdateChannelPrefrence(
     user_id: Int!
     category_acronym: String!
-    topic_acronym: String
+    topic_acronym: String!
     email_notice: Boolean!
     sms_notice: Boolean!
   ): UserCategoryTopic

@@ -37,7 +37,7 @@ export const getUserCategoryTopicByUserId = /* GraphQL */ `
 export const getCategoriesByUserId = /* GraphQL */ `
   query GetCategoriesByUserId($user_id: Int!) {
     getCategoriesByUserId(user_id: $user_id) {
-      category_id
+      acronym
       title
       description
       email_notice

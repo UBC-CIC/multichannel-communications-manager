@@ -1045,7 +1045,7 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select c.category_id, c.title, c.description, uct.email_notice, uct.sms_notice from `Category` c, `UserCategoryTopic` uct, `CategoryTopic` ct where uct.user_id = :user_id and ct.category_acronym = c.acronym and ct.categoryTopic_id = uct.categoryTopic_id;",
+        "sql": "select c.acronym, c.title, c.description, uct.email_notice, uct.sms_notice from `Category` c, `UserCategoryTopic` uct, `CategoryTopic` ct where uct.user_id = :user_id and ct.category_acronym = c.acronym and ct.categoryTopic_id = uct.categoryTopic_id;",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         }
@@ -1526,7 +1526,7 @@ Resources:
       FieldName: updateCategory
       RequestMappingTemplate: |
         #if( $context.arguments.acronym )
-          #if( $context.arguments.title || $context.arguments.description || $context.arguments.picture_path)
+          #if( $context.arguments.title || $context.arguments.description || $context.arguments.picture_location)
             #set( $acronym = "acronym=:acronym," )
           #else
             #set( $acronym = "acronym=:acronym" )
@@ -1535,7 +1535,7 @@ Resources:
           #set( $acronym = "" )
         #end
         #if( $context.arguments.title )
-          #if( $context.arguments.description || $context.arguments.picture_path)
+          #if( $context.arguments.description || $context.arguments.picture_location)
             #set( $title = "title=:title," )
           #else
             #set( $title = "title=:title" )
@@ -1544,7 +1544,7 @@ Resources:
           #set( $title = "" )
         #end
         #if( $context.arguments.description )
-          #if( $context.arguments.picture_path)
+          #if( $context.arguments.picture_location)
             #set( $description = "description=:description," )
           #else
             #set( $description = "description=:description" )
@@ -1552,23 +1552,23 @@ Resources:
         #else
           #set( $description = "" )
         #end
-        #if( $context.arguments.picture_path )
-          #set( $picture_path = "picture_path=:picture_path" )
+        #if( $context.arguments.picture_location )
+          #set( $picture_location = "picture_location=:picture_location" )
         #else
-          #set( $picture_path = "" )
+          #set( $picture_location = "" )
         #end
 
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `Category` SET $acronym $title $description $picture_path WHERE `Category`.category_id = :category_id;",
+        "sql": "UPDATE `Category` SET $acronym $title $description $picture_location WHERE `Category`.category_id = :category_id;",
         "SQLVariableMapping": {
         ":category_id": $context.arguments.category_id,
         ":acronym": "$context.arguments.acronym",
         ":title": "$context.arguments.title",
         ":description": "$context.arguments.description",
-        ":picture_path": "$context.arguments.picture_path"
+        ":picture_location": "$context.arguments.picture_location"
         },
         "responseSQL": "select * from `Category` where category_id=:category_id;"
         }
