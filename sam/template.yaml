@@ -25,15 +25,16 @@ Parameters:
     Type: String
     Default: dev
     Description: A name to identify the environment (ex. dev, prod, test)
-  # AmplifyBucket:
-  #   Type: String
-  #   Description: "The name of the S3 bucket for the Amplify project (ex. projectname-storage-0123456789-dev)"
-  # AppSyncApiId:
-  #   Type: String
-  #   Description: "The ID of the AppSync API for the Amplify project (ex. AbcdeF1234567)"
-  # AmplifyCognitoUserPoolId:
-  #   Type: String
-  #   Description: "The ID of the Cognito User Pool for the Amplify project (ex. us-east-1_aBcDeFgh)"
+
+      # AmplifyBucket:
+      #   Type: String
+      #   Description: "The name of the S3 bucket for the Amplify project (ex. projectname-storage-0123456789-dev)"
+      # AppSyncApiId:
+      #   Type: String
+      #   Description: "The ID of the AppSync API for the Amplify project (ex. AbcdeF1234567)"
+      # AmplifyCognitoUserPoolId:
+      #   Type: String
+      #   Description: "The ID of the Cognito User Pool for the Amplify project (ex. us-east-1_aBcDeFgh)"
   DBName:
     Default: sys
     Description: The database name
@@ -97,7 +98,7 @@ Parameters:
   CognitoAdminEmail:
     Type: String
     Description: The email of the admin user to use
-  
+      
 
 Resources:
   # TODO: figure out how to connect this to amplify
@@ -466,6 +467,11 @@ Resources:
           Value: !Ref 'ProjectName'
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
+      
+  PicturesBucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: category-pictures-bucket
 
   RDSClusterParameterGroup:
     Type: "AWS::RDS::DBClusterParameterGroup"
@@ -687,6 +693,7 @@ Resources:
           RDSPROXY_ENDPOINT: !GetAtt RDSProxy.Endpoint
           ADMIN_NAME: !Ref CognitoAdminName
           ADMIN_EMAIL: !Ref CognitoAdminEmail
+          BUCKET_NAME: !Ref PicturesBucket
       VpcConfig:
         SecurityGroupIds:
           # - !Ref ClosedSecurityGroup
@@ -1038,7 +1045,7 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select c.title, c.description, uct.email_notice, uct.sms_notice from `Category` c, `UserCategoryTopic` uct, `CategoryTopic` ct where uct.user_id = :user_id and ct.category_acronym = c.acronym and ct.categoryTopic_id = uct.categoryTopic_id;",
+        "sql": "select c.category_id, c.title, c.description, uct.email_notice, uct.sms_notice from `Category` c, `UserCategoryTopic` uct, `CategoryTopic` ct where uct.user_id = :user_id and ct.category_acronym = c.acronym and ct.categoryTopic_id = uct.categoryTopic_id;",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         }
@@ -1519,7 +1526,7 @@ Resources:
       FieldName: updateCategory
       RequestMappingTemplate: |
         #if( $context.arguments.acronym )
-          #if( $context.arguments.title || $context.arguments.description)
+          #if( $context.arguments.title || $context.arguments.description || $context.arguments.picture_path)
             #set( $acronym = "acronym=:acronym," )
           #else
             #set( $acronym = "acronym=:acronym" )
@@ -1528,7 +1535,7 @@ Resources:
           #set( $acronym = "" )
         #end
         #if( $context.arguments.title )
-          #if( $context.arguments.description)
+          #if( $context.arguments.description || $context.arguments.picture_path)
             #set( $title = "title=:title," )
           #else
             #set( $title = "title=:title" )
@@ -1537,21 +1544,31 @@ Resources:
           #set( $title = "" )
         #end
         #if( $context.arguments.description )
-          #set( $description = "description=:description" )
+          #if( $context.arguments.picture_path)
+            #set( $description = "description=:description," )
+          #else
+            #set( $description = "description=:description" )
+          #end        
         #else
           #set( $description = "" )
+        #end
+        #if( $context.arguments.picture_path )
+          #set( $picture_path = "picture_path=:picture_path" )
+        #else
+          #set( $picture_path = "" )
         #end
 
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `Category` SET $acronym $title $description WHERE `Category`.category_id = :category_id;",
+        "sql": "UPDATE `Category` SET $acronym $title $description $picture_path WHERE `Category`.category_id = :category_id;",
         "SQLVariableMapping": {
         ":category_id": $context.arguments.category_id,
         ":acronym": "$context.arguments.acronym",
         ":title": "$context.arguments.title",
-        ":description": "$context.arguments.description"
+        ":description": "$context.arguments.description",
+        ":picture_path": "$context.arguments.picture_path"
         },
         "responseSQL": "select * from `Category` where category_id=:category_id;"
         }
