@@ -164,7 +164,7 @@ export const userUpdateChannelPrefrence = /* GraphQL */ `
   mutation UserUpdateChannelPrefrence(
     $user_id: Int!
     $category_acronym: String!
-    $topic_acronym: String
+    $topic_acronym: String!
     $email_notice: Boolean!
     $sms_notice: Boolean!
   ) {
