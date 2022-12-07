@@ -37,6 +37,7 @@ export const getUserCategoryTopicByUserId = /* GraphQL */ `
 export const getCategoriesByUserId = /* GraphQL */ `
   query GetCategoriesByUserId($user_id: Int!) {
     getCategoriesByUserId(user_id: $user_id) {
+      category_id
       title
       description
       email_notice
@@ -60,6 +61,7 @@ export const getCategoryByAcronym = /* GraphQL */ `
       acronym
       title
       description
+      picture_location
     }
   }
 `;
@@ -86,6 +88,7 @@ export const getAllCategories = /* GraphQL */ `
       acronym
       title
       description
+      picture_location
     }
   }
 `;

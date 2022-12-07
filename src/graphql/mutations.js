@@ -55,16 +55,19 @@ export const createCategory = /* GraphQL */ `
     $acronym: String!
     $title: String!
     $description: String
+    $picture_location: String
   ) {
     createCategory(
       acronym: $acronym
       title: $title
       description: $description
+      picture_location: $picture_location
     ) {
       category_id
       acronym
       title
       description
+      picture_location
     }
   }
 `;
@@ -74,17 +77,20 @@ export const updateCategory = /* GraphQL */ `
     $acronym: String
     $title: String
     $description: String
+    $picture_location: String
   ) {
     updateCategory(
       category_id: $category_id
       acronym: $acronym
       title: $title
       description: $description
+      picture_location: $picture_location
     ) {
       category_id
       acronym
       title
       description
+      picture_location
     }
   }
 `;
@@ -154,15 +160,15 @@ export const userFollowCategoryTopic = /* GraphQL */ `
     }
   }
 `;
-export const userUpdateChannelPrefence = /* GraphQL */ `
-  mutation UserUpdateChannelPrefence(
+export const userUpdateChannelPrefrence = /* GraphQL */ `
+  mutation UserUpdateChannelPrefrence(
     $user_id: Int!
     $category_acronym: String!
-    $topic_acronym: String!
+    $topic_acronym: String
     $email_notice: Boolean!
     $sms_notice: Boolean!
   ) {
-    userUpdateChannelPrefence(
+    userUpdateChannelPrefrence(
       user_id: $user_id
       category_acronym: $category_acronym
       topic_acronym: $topic_acronym
