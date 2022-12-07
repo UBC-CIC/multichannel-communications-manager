@@ -329,7 +329,7 @@ function Login(props) {
               postal_code: formState.postal_code,
               province: prov
             }
-            await API.graphql(graphqlOperation(createUser, userData))
+            // await API.graphql(graphqlOperation(createUser, userData))
             handleNextStep()
           })
           .catch((e) => {
