@@ -195,3 +195,8 @@ export const userUnfollowCategoryTopic = /* GraphQL */ `
     }
   }
 `;
+export const userUnfollowCategory = /* GraphQL */ `
+  mutation UserUnfollowCategory($user_id: Int!, $category_acronym: String!) {
+    userUnfollowCategory(user_id: $user_id, category_acronym: $category_acronym)
+  }
+`;

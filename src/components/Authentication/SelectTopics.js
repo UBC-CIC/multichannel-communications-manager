@@ -15,8 +15,8 @@ import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
 import { styled } from "@mui/material/styles";
-import { API, graphqlOperation } from "aws-amplify"
-import { userFollowCategoryTopic } from "../../graphql/mutations"
+import { API, graphqlOperation } from "aws-amplify";
+import { userFollowCategoryTopic } from "../../graphql/mutations";
 import { getAllCategories } from "../../graphql/queries";
 import "./Login.css";
 import theme from "../../themes";
@@ -61,14 +61,14 @@ const SelectTopics = ({ handleNextStep }) => {
   const topicsPerPage = 3;
 
   async function queriedData() {
-    let categories = await API.graphql(graphqlOperation(getAllCategories))
-    let filteredData = categories.data.getAllCategories
-    setSampleTopics(filteredData)
+    let categories = await API.graphql(graphqlOperation(getAllCategories));
+    let filteredData = categories.data.getAllCategories;
+    setSampleTopics(filteredData);
   }
 
   //updates pagination
   useEffect(() => {
-    queriedData()
+    queriedData();
     const topicsPageCount =
       sampleTopics &&
       (sampleTopics.length % 3 === 0
@@ -112,29 +112,40 @@ const SelectTopics = ({ handleNextStep }) => {
   };
 
   async function nextClicked() {
-    const allSelectedTopicsTemp = allSelectedTopics
+    const allSelectedTopicsTemp = allSelectedTopics;
+    console.log("allSelectedTopics: ", allSelectedTopics);
     for (var i = 0; i < allSelectedTopicsTemp.length; i++) {
-      await API.graphql(graphqlOperation(userFollowCategoryTopic, allSelectedTopicsTemp[i]))   
+      await API.graphql(
+        graphqlOperation(userFollowCategoryTopic, allSelectedTopicsTemp[i])
+      );
     }
-    handleNextStep()
+    handleNextStep();
   }
 
   function backClicked() {
-    const allSelectedTopicsTemp = allSelectedTopics
-    if (allSelectedTopicsTemp.filter((s) => s.category_acronym === currentlySelectedTopic.acronym).length === 0) {
+    const allSelectedTopicsTemp = allSelectedTopics;
+    if (
+      allSelectedTopicsTemp.filter(
+        (s) => s.category_acronym === currentlySelectedTopic.acronym
+      ).length === 0
+    ) {
       if (!saveEnabled) {
-        let splitSubtopics = []
+        let splitSubtopics = [];
         for (let x = 0; x < selectedSubtopics.length; x++) {
-          let topicTitle = selectedSubtopics[x].split("/")
-          splitSubtopics.push(topicTitle)
+          let topicTitle = selectedSubtopics[x].split("/");
+          splitSubtopics.push(topicTitle);
         }
-        let subtopicsForThisTopic = splitSubtopics.filter((s) => s[0] === currentlySelectedTopic.title)
+        let subtopicsForThisTopic = splitSubtopics.filter(
+          (s) => s[0] === currentlySelectedTopic.title
+        );
         for (let i = 0; i < subtopicsForThisTopic.length; i++) {
-          setSelectedSubtopics((prev) => prev.filter((s) => !(s.includes(currentlySelectedTopic.title))))
+          setSelectedSubtopics((prev) =>
+            prev.filter((s) => !s.includes(currentlySelectedTopic.title))
+          );
         }
       }
     }
-    setCurrentlySelectedTopic()
+    setCurrentlySelectedTopic();
   }
 
   return (
