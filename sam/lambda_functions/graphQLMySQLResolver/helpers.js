@@ -1,33 +1,12 @@
-// const { v4: uuidv4 } = require("uuid");
-// const PINPOINTID = process.env.PINPOINT_APPID;
-const PINPOINTID = "4dd4f0be4a904c169c3cba73530a3f11";
+const PINPOINTID = process.env.PINPOINT_APPID;
 const AWS = require("aws-sdk");
-// const pinpoint = new AWS.Pinpoint({ region: process.env.REGION });
-const pinpoint = new AWS.Pinpoint({ region: "ca-central-1" });
-
-/*****************
- * Testing
- *****************/
-
-// upsertUserEndpoint("7", '7', {
-//   Address: "777@gmail.com",
-//   ChannelType: "EMAIL",
-// });
-// deleteUser('2');
-// getUserEndpoints("78ea5fbb-8d73-426e-82c0-4a6a3aa64283");
-// createSegment('topic1', 'SMS');
-// pinpoint.getSegment({ApplicationId: PINPOINTID, SegmentId: '1063bf68f7334998a6d71bae94ae2f54'},
-// function(err, data){
-//   console.log(data);
-// });
-// updateTopicChannel('7', 'topic4', true, true);
-// deleteTopic('topic4');
+const pinpoint = new AWS.Pinpoint({ region: process.env.AWS_REGION });
 
 /*****************
  * Helpers
  *****************/
 /**
- * get all the endpoints of a user
+ * get all the active endpoints of a user
  * @param  {Int} userID The User.UserID to retrieve
  * @return {Promise} A Promise object that contatins a collection of user endpoints
  */
@@ -63,7 +42,7 @@ function getUserEndpoints(userID) {
 /**
  * upsert an endpoint to an existing user
  * @param  {String} userID The id of the user, required
- * @param  {String} endpointID The id of the email/phone endpoint to modify, required
+ * @param  {String} endpointID The id of the endpoint to upsert, required
  * @param  {String} endpoint_address The address of the endpoint to upsert, required
  * @param  {String} endpoint_type The type the endpoint eg. SMS or EMAIL, required
  * @return {Promise} A Promise object that contains the ids of the user and endpoint that was updated
@@ -73,7 +52,6 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
   return new Promise((resolve, reject) => {
     var request = {
       ApplicationId: PINPOINTID,
-      // EndpointId: endpoint_type === "EMAIL" ? userID : endpointID,
       EndpointId: endpointID,
       EndpointRequest: {
         Address: endpoint_address,
@@ -88,8 +66,6 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
       "sending request to pinpoint ...",
       JSON.stringify(request, null, 2)
     );
-
-    // console.log('about to call updateEndpoint ...');
 
     // changedAccount = {
     //   userId: params.User.UserId,
@@ -111,10 +87,8 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
 }
 
 /**
- * format the upsert request and call upsertUserEndpoint()
- * @param {String} userID
- * @param {String} emailAdress
- * @param {Int} phoneAddress
+ * Upsert a user profile
+ * @param {String} userID required
  * @param {String} province
  * @param {String} postalCode
  * @return {Promise} a promise containing the accounts changed
@@ -178,6 +152,7 @@ function deleteUser(userID) {
     pinpoint.deleteUserEndpoints(request, function (err, response) {
       if (err) {
         console.error(err, err.stack);
+        reject(err);
       } else {
         console.log("deleteUser return: ");
         console.debug(JSON.stringify(response));
@@ -301,17 +276,9 @@ function updateTopicChannel(
   userID = userID.toString();
   let emailID = userID;
 
-  let params = {
-    User: {
-      UserAttributes: {
-        [categoryTopicName]: [],
-      },
-    },
-  };
-
   let request = {
     ApplicationId: PINPOINTID,
-    EndpointId: "email" + "_" + userID,
+    EndpointId: "email" + "_" + emailID,
     EndpointRequest: {
       OptOut: "NONE",
       User: {
@@ -330,7 +297,6 @@ function updateTopicChannel(
     request.EndpointRequest.User.UserAttributes[categoryTopicName].push("SMS");
   }
 
-  // return upsertEndpoint(userID, emailID, params);
   console.log(
     "sending request to pinpoint ...",
     JSON.stringify(request, null, 2)
@@ -339,11 +305,11 @@ function updateTopicChannel(
   return new Promise((resolve, reject) => {
     pinpoint.updateEndpoint(request, function (err, response) {
       if (err) {
-        console.log("ppt.updateEndpoint err:");
+        console.log("pinpoint.updateEndpoint err:");
         console.log(err, err.stack);
         reject(err);
       } else {
-        console.log("ppt.updateEndpoint response:");
+        console.log("pinpoint.updateEndpoint response:");
         console.log(response);
         resolve(response);
       }
@@ -353,8 +319,8 @@ function updateTopicChannel(
 
 /**
  * remove attribute topicID from all users
- * NOT WORKING cuz of pinpoint bug
- * @param {Int} topicID
+ * NOT WORKING because of pinpoint bug
+ * @param {String} topicID
  */
 function deleteTopic(topicID) {
   let request = {
