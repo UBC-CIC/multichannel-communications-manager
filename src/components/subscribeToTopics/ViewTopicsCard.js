@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import React, { useState, useEffect } from "react";
-import { Auth } from "aws-amplify";
+import { Auth, Storage } from "aws-amplify";
 import NotificationPreferencesDialog from "../NotificationPreferencesDialog";
 import NotificationSuccessDialog from "../NotificationSuccessDialog";
 import "../TopicCard.css";
@@ -24,7 +24,7 @@ import { getTopicsOfCategoryByAcronym, getUserByEmail, getUserCategoryTopicByUse
 import { userFollowCategoryTopic, userUnfollowCategoryTopic } from "../../graphql/mutations";
 
 const ViewTopicsCard = ({ selectedTopic }) => {
-  const { title, description, image } = selectedTopic;
+  const { title, description, picture_location } = selectedTopic;
   const initialNotificationSelection = { text: false, email: false };
   const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
   const [openNotificationDialog, setOpenNotificationDialog] = useState(false);
@@ -49,6 +49,8 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   const [subtopics, setSubtopics] = useState([]);
   const [userAlreadySubscribed, setUserAlreadySubscribed] = useState(false);
   const [userSubscribedNotifications, setUserSubscribedNotifications] = useState({})
+  const [image, setImage] = useState([]);
+
   //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
   // const sampleSubtopics = [
   //   "COVID-19",
@@ -102,6 +104,11 @@ const ViewTopicsCard = ({ selectedTopic }) => {
         console.log(e);
       }
     }
+    async function getCategoryImage() {
+      let imageURL = await Storage.get(picture_location)
+      setImage(imageURL)
+    }
+    getCategoryImage()
     retrieveUser();
   }, []);
 
@@ -295,8 +302,8 @@ const ViewTopicsCard = ({ selectedTopic }) => {
               fontWeight: "400",
             }}
           />
-          {image ? (
-            <CardMedia component={"img"} height="120" />
+          {picture_location !== null ? (
+            <CardMedia component={"img"} image={image} sx={{objectFit: 'fill'}} height="150" />
           ) : (
             <Box
               sx={{

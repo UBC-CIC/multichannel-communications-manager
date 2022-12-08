@@ -13,15 +13,18 @@ import {
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
 import { Auth, API, graphqlOperation } from "aws-amplify";
-import { getUserByEmail, getCategoriesByUserId } from "../graphql/queries";
+import { getUserByEmail, getCategoriesByUserId, getTopicsOfCategoryByAcronym } from "../graphql/queries";
 import UnsubscribeDialog from "../components/UnsubscribeDialog";
+import { userUnfollowCategory, userUpdateChannelPrefrence } from "../graphql/mutations";
 
 const EditNotificationPreferences = () => {
   const [searchVal, setSearchVal] = useState("");
   const [topics, setTopics] = useState([]);
+  const [initialTopics, setInitialTopics] = useState([]);
   const [topicIndex, setTopicIndex] = useState({ index: "", type: "" });
   const [updateWithRemovedTopics, setUpdateWithRemovedTopics] = useState([]);
-  const [filterRemovedTopics, setFilterRemovedTopics] = useState([]);
+  const [filterRemovedTopics, setFilterRemovedTopics] = useState({});
+  const [userID, setUserID] = useState("");
   const [title, setTitle] = useState("");
   const [notificationType, setNotificationType] = useState("");
   const [openUnsubscribeDialog, setOpenUnsubscribeDialog] = useState(false);
@@ -39,6 +42,8 @@ const EditNotificationPreferences = () => {
           user_id: user.data.getUserByEmail.user_id,
         })
       );
+      setUserID(user.data.getUserByEmail.user_id)
+      setInitialTopics(categories.data.getCategoriesByUserId);
       setTopics(categories.data.getCategoriesByUserId);
     } catch (e) {
       console.log(e);
@@ -64,13 +69,13 @@ const EditNotificationPreferences = () => {
   function onChange(e) {
     setSearchVal(e.target.value);
     if (e.target.value === "") {
-      setTopics(topics);
+      setTopics(initialTopics);
     }
   }
 
   function handleEmailChange(e) {
     const test = [...topics];
-    console.log(test);
+    // console.log(test);
     const { id } = e.target;
     setTopicIndex({ index: id, type: "email_notice" });
     test[id].email_notice = !topics[id].email_notice;
@@ -86,24 +91,36 @@ const EditNotificationPreferences = () => {
     unSubscribe(test[id], test);
   }
 
-  function unSubscribe(topic, updatedTopics) {
-    if (topic.sms_notice === false && topic.email_notice === false) {
+  async function unSubscribe(topic, updatedTopics) {
+    if (!topic.sms_notice && !topic.email_notice) {
       setTitle(topic.title);
       setNotificationType("");
       setOpenUnsubscribeDialog(true);
       setUpdateWithRemovedTopics(topics.filter((s) => s !== topic));
-      setFilterRemovedTopics(updatedTopics);
-    } else if (topic.sms_notice === false && topic.email_notice === true) {
+      setFilterRemovedTopics(topic);
+    } else if (!topic.sms_notice && topic.email_notice) {
       setTitle(topic.title);
       setNotificationType("Text");
       setOpenUnsubscribeDialog(true);
-      setFilterRemovedTopics(updatedTopics);
-    } else if (topic.sms_notice === true && topic.email_notice === false) {
+      setFilterRemovedTopics(topic);
+    } else if (topic.sms_notice && !topic.email_notice) {
       setTitle(topic.title);
       setNotificationType("Email");
       setOpenUnsubscribeDialog(true);
-      setFilterRemovedTopics(updatedTopics);
+      setFilterRemovedTopics(topic);
     } else {
+      let topics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
+        category_acronym: filterRemovedTopics.category_acronym
+      }))
+      for (let i = 0; i < topics.length; i++) {
+        await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
+          user_id: userID,
+          category_acronym: topic.category_acronym,
+          topic_acronym: topics[i].acronym,
+          email_notice: topic.email_notice,
+          sms_notice: topic.sms_notice
+        }))
+      }
       setTopics(updatedTopics);
     }
   }
@@ -114,10 +131,29 @@ const EditNotificationPreferences = () => {
     }
   }
 
-  function handleUnsubscribe() {
+  async function handleUnsubscribe() {
     console.log(filterRemovedTopics);
-    //
-    setTopics(updateWithRemovedTopics);
+    if (!filterRemovedTopics.email_notice && !filterRemovedTopics.sms_notice) {
+      await API.graphql(graphqlOperation(userUnfollowCategory, {
+        user_id: userID,
+        category_acronym: filterRemovedTopics.category_acronym
+      }))
+      setInitialTopics(updateWithRemovedTopics)
+      setTopics(updateWithRemovedTopics);
+    } else {
+        let topics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
+          category_acronym: filterRemovedTopics.category_acronym
+        }))
+        for (let i = 0; i < topics.length; i++) {
+          await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
+            user_id: userID,
+            category_acronym: filterRemovedTopics.category_acronym,
+            topic_acronym: topics[i].acronym,
+            email_notice: filterRemovedTopics.email_notice,
+            sms_notice: filterRemovedTopics.sms_notice
+          }))
+        }
+    }
     setOpenUnsubscribeDialog(false);
   }
 

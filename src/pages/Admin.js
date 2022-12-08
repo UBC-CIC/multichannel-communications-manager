@@ -15,7 +15,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
-import { API, graphqlOperation } from "aws-amplify"
+import { API, graphqlOperation, Storage } from "aws-amplify"
 import { getAllCategories } from "../graphql/queries";
 import { styled } from "@mui/material/styles";
 import AdminTopicCard from "../components/AdminTopicCard";
@@ -46,6 +46,7 @@ const Admin = () => {
   const [openNewTopicDialog, setOpenNewTopicDialog] = useState(false)
   const [openDeleteTopicDialog, setOpenDeleteTopicDialog] = useState(false)
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
+  const [image, setImage] = useState([]);
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
@@ -56,6 +57,10 @@ const Admin = () => {
     let allCategories = categories.data.getAllCategories
     setTopics(allCategories)
     setTopicsTemp(allCategories)
+    for (let i = 0; i < allCategories.length; i++) {
+      let imageURL = await Storage.get(allCategories[i].picture_location)
+      setImage((prev) => [...prev, imageURL])
+    }    
   }
 
   //updates pagination
@@ -129,14 +134,16 @@ const Admin = () => {
             }}
             onClick={() => setCurrentlySelectedTopic(topic)}
           >
-            <Box
+            {topic.picture_location !== null ? 
+              <img src={image[index]} alt={topic.title} /> :
+              <Box
               sx={{
                 backgroundColor: "#738DED",
                 width: "100px",
                 height: "100px",
                 borderRadius: "7px",
               }}
-            ></Box>
+            ></Box>}
             <StyledImageListItemBar title={topic.title} position="below" />
           </StyledImageListItem>
         ))

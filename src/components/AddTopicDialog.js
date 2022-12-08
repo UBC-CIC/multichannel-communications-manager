@@ -15,8 +15,8 @@ import {
   MenuItem,
   FormControl
 } from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
-import { API, graphqlOperation } from 'aws-amplify'
+import { Upload, Close } from '@mui/icons-material';
+import { API, graphqlOperation, Storage } from 'aws-amplify'
 import { createCategory, createTopic, addTopicToCategory } from '../graphql/mutations';
 import { getAllTopics } from '../graphql/queries';
 
@@ -32,6 +32,8 @@ const AddTopicDialog = ({
   const [acronym, setAcronym] = useState('')
   const [description, setDescription] = useState('')
   const [topicExistsError, setTopicsExistError] = useState(false)
+  const [uploadFile, setUploadFile] = useState();
+  const [selectedUploadFile, setSelectedUploadFile] = useState('');
 
   useEffect(() => {
     async function getTopics() {
@@ -52,6 +54,8 @@ const AddTopicDialog = ({
     setDescription('')
     setTopicsExistError(false)
     handleClose()
+    setUploadFile()
+    setSelectedUploadFile('')
   }
 
   const handleAddSubtopic = () => {
@@ -79,10 +83,18 @@ const AddTopicDialog = ({
   }
 
   const handleSave = async () => {
+    let s3Key = ''
+    if (document.getElementById("uploadFile").value === '') {
+      s3Key = null
+    } else {
+      await Storage.put(uploadFile.name, uploadFile)
+        .then(resp => s3Key = resp.key)
+    }
     let createdTopic = {
       acronym: acronym,
       title: title,
-      description: description
+      description: description,
+      picture_location: s3Key
     }
     try {
       await API.graphql(graphqlOperation(createCategory, createdTopic))
@@ -98,7 +110,7 @@ const AddTopicDialog = ({
               topic_acronym: allSubtopics[i]
             }))
           }
-          handleClose()
+          clearFields()
           reload()
         })
     } catch (e) {
@@ -116,6 +128,12 @@ const AddTopicDialog = ({
     );
   };
 
+  async function handleUploadFileChange(e) {
+    const chosenUploadFile = e.target.files[0];
+    setSelectedUploadFile(chosenUploadFile.name);
+    setUploadFile(chosenUploadFile);
+  }
+
   return (
     <Dialog 
       PaperProps={{
@@ -126,18 +144,18 @@ const AddTopicDialog = ({
       }}
       open={open}
     >
-      <DialogTitle id="customized-dialog-title" onClose={clearFields}>
+      <DialogTitle id="customized-dialog-title">
         Create A New Category
         <IconButton
           aria-label="close"
-          onClick={handleClose}
+          onClick={clearFields}
           sx={{
             position: 'absolute',
             right: 8,
             top: 8,
             color: (theme) => theme.palette.grey[500],
           }}>
-          <CloseIcon />
+          <Close />
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
@@ -161,6 +179,15 @@ const AddTopicDialog = ({
                 onChange={(e) => setAcronym(e.target.value)}
               />
             </Box>
+            <Button
+              size='small'
+              component="label"
+              variant="outlined"
+              startIcon={<Upload />}
+            >
+              { selectedUploadFile ? selectedUploadFile : 'Upload Image' }
+              <input type="file" id="uploadFile" accept="image/png, image/jpeg" hidden onChange={handleUploadFileChange}/>
+            </Button>
           </Box>
           <TextField
             type="text"
@@ -246,7 +273,7 @@ const InputRow = ({
         helperText={helperText}
       />
         <IconButton onClick={handleRemove}>
-          <CloseIcon />
+          <Close />
         </IconButton>
     </Box>
   )
