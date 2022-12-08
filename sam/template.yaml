@@ -1804,13 +1804,13 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
-  userUpdateChannelPrefenceResolver:
+  userUpdateChannelPrefrenceResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaAppSyncDataSource
     Properties:
       TypeName: Mutation
-      FieldName: userUpdateChannelPrefence
+      FieldName: userUpdateChannelPrefrence
       RequestMappingTemplate: |
         #if($context.arguments.email_notice)
           #set( $email_notice = true )

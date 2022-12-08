@@ -13,7 +13,7 @@ async function conditionallyCreateDB(connection) {
   let createDBSQL = `
     CREATE TABLE \`User\` (
   \`user_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`email_address\` varchar(50) UNIQUE NOT NULL,
+  \`email_address\` text UNIQUE NOT NULL,
   \`phone_address\` varchar(50) UNIQUE,
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
   \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL
@@ -21,7 +21,7 @@ async function conditionallyCreateDB(connection) {
 
 CREATE TABLE \`Category\` (
   \`category_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`acronym\` varchar(30) UNIQUE NOT NULL COMMENT 'letters only',
+  \`acronym\` varchar(30) UNIQUE NOT NULL,
   \`title\` varchar(50) NOT NULL,
   \`description\` text
 );
