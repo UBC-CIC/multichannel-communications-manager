@@ -59,6 +59,7 @@ type CategorySubscription {
   description: String
   email_notice: Boolean
   sms_notice: Boolean
+  picture_location: String
 }
 
 type User {
