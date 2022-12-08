@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { Add, Edit } from "@mui/icons-material";
 import { useState, useEffect } from "react";
-import { API, graphqlOperation } from "aws-amplify"
+import { API, graphqlOperation, Storage } from "aws-amplify"
 import { getTopicsOfCategoryByAcronym } from "../graphql/queries";
 import { createTopic, addTopicToCategory, deleteCategoryTopic } from "../graphql/mutations";
 import "./TopicCard.css";
@@ -25,7 +25,7 @@ const AdminTopicCard = ({
   selectedTopic,
   setSelectedTopic
   }) => {
-  const { title, description, image } = selectedTopic;
+  const { title, description, picture_location } = selectedTopic;
   const [openEditDialog, setOpenEditDialog] = useState(false)
   const [selectedSubTopics, setSelectedSubtopics] = useState([])
   const [isRotated, setIsRotated] = useState(false);
@@ -33,6 +33,7 @@ const AdminTopicCard = ({
   const [invalidInputErrorMsg, setInvalidInputErrorMsg] = useState('');
   const [subtopics, setSubtopics] = useState([])
   const [newSubtopic, setNewSubtopic] = useState('')
+  const [image, setImage] = useState('')
   
   async function getSubtopics() {
     let queriedTopics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {category_acronym: selectedTopic.acronym}))
@@ -43,6 +44,11 @@ const AdminTopicCard = ({
   
   useEffect(() => {
     getSubtopics()
+    async function getCategoryImage() {
+      let imageURL = await Storage.get(picture_location)
+      setImage(imageURL)
+    }
+    getCategoryImage()
   }, []);
   
   //updates setSelectedSubtopics every time subtopics are selected/unselected by user
@@ -111,8 +117,8 @@ const AdminTopicCard = ({
               fontWeight: "400",
             }}
           />
-          {image ? (
-            <CardMedia component={"img"} height="120" />
+          {picture_location !== null ? (
+            <CardMedia component={"img"} image={image} sx={{objectFit: 'fill'}} height="150" />
           ) : (
             <Box
               sx={{

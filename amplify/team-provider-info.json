@@ -56,6 +56,9 @@
           "deploymentBucketName": "amplify-ised-rds-210447-deployment",
           "s3Key": "amplify-builds/isedf0082716f0082716VerifyAuthChallengeResponse-33374f73717776723767-build.zip"
         }
+      },
+      "storage": {
+        "categoryImages": {}
       }
     }
   },

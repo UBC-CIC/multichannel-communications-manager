@@ -13,81 +13,18 @@ import {
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
 import { Auth, API, graphqlOperation } from "aws-amplify";
-import { getUserByEmail, getCategoriesByUserId } from "../graphql/queries";
+import { getUserByEmail, getCategoriesByUserId, getTopicsOfCategoryByAcronym } from "../graphql/queries";
 import UnsubscribeDialog from "../components/UnsubscribeDialog";
+import { userUnfollowCategory, userUpdateChannelPrefrence } from "../graphql/mutations";
 
 const EditNotificationPreferences = () => {
-  //hard coded mock data for now, to be replaced with queried data
-  // const sampleTopics = [
-  //   {
-  //     title: "Health",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: true,
-  //   },
-  //   {
-  //     title: "Insolvency",
-  //     description:
-  //       "Consumer proposals, bankruptcy and how to find a Licensed Insolvency Trustee.",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  //   {
-  //     title: "Money and Finances",
-  //     description:
-  //       "Managing your money, debt and investments, planning for retirement and protecting yourself from consumer fraud.",
-  //     email_notice: false,
-  //     sms_notice: true,
-  //   },
-  //   {
-  //     title: "Federal Corporations",
-  //     description:
-  //       "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
-  //     email_notice: false,
-  //     sms_notice: true,
-  //   },
-  //   {
-  //     title: "Sample 5",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  //   {
-  //     title: "Sample 6",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  //   {
-  //     title: "Sample 7",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  //   {
-  //     title: "Sample 8",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  //   {
-  //     title: "Sample 9",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //     email_notice: true,
-  //     sms_notice: false,
-  //   },
-  // ];
-
   const [searchVal, setSearchVal] = useState("");
   const [topics, setTopics] = useState([]);
+  const [initialTopics, setInitialTopics] = useState([]);
   const [topicIndex, setTopicIndex] = useState({ index: "", type: "" });
-  const [filterRemovedTopics, setFilterRemovedTopics] = useState([]);
+  const [updateWithRemovedTopics, setUpdateWithRemovedTopics] = useState([]);
+  const [filterRemovedTopics, setFilterRemovedTopics] = useState({});
+  const [userID, setUserID] = useState("");
   const [title, setTitle] = useState("");
   const [notificationType, setNotificationType] = useState("");
   const [openUnsubscribeDialog, setOpenUnsubscribeDialog] = useState(false);
@@ -100,16 +37,14 @@ const EditNotificationPreferences = () => {
           user_email: returnedUser.attributes.email,
         })
       );
-      console.log("user: ", JSON.stringify(user));
-      let test = await API.graphql(
+      let categories = await API.graphql(
         graphqlOperation(getCategoriesByUserId, {
           user_id: user.data.getUserByEmail.user_id,
         })
       );
-      console.log("test: ", JSON.stringify(test));
-      setTopics(test.data.getCategoriesByUserId);
-      // setTopics(topics);
-      console.log("topics: ", JSON.stringify(topics));
+      setUserID(user.data.getUserByEmail.user_id)
+      setInitialTopics(categories.data.getCategoriesByUserId);
+      setTopics(categories.data.getCategoriesByUserId);
     } catch (e) {
       console.log(e);
     }
@@ -134,13 +69,13 @@ const EditNotificationPreferences = () => {
   function onChange(e) {
     setSearchVal(e.target.value);
     if (e.target.value === "") {
-      setTopics(topics);
+      setTopics(initialTopics);
     }
   }
 
   function handleEmailChange(e) {
     const test = [...topics];
-    console.log(test);
+    // console.log(test);
     const { id } = e.target;
     setTopicIndex({ index: id, type: "email_notice" });
     test[id].email_notice = !topics[id].email_notice;
@@ -156,23 +91,36 @@ const EditNotificationPreferences = () => {
     unSubscribe(test[id], test);
   }
 
-  function unSubscribe(topic, updatedTopics) {
-    if (topic.sms_notice === false && topic.email_notice === false) {
+  async function unSubscribe(topic, updatedTopics) {
+    if (!topic.sms_notice && !topic.email_notice) {
       setTitle(topic.title);
       setNotificationType("");
       setOpenUnsubscribeDialog(true);
-      setFilterRemovedTopics(topics.filter((s) => s !== topic));
-    } else if (topic.sms_notice === false && topic.email_notice === true) {
+      setUpdateWithRemovedTopics(topics.filter((s) => s !== topic));
+      setFilterRemovedTopics(topic);
+    } else if (!topic.sms_notice && topic.email_notice) {
       setTitle(topic.title);
       setNotificationType("Text");
       setOpenUnsubscribeDialog(true);
-      setFilterRemovedTopics(updatedTopics);
-    } else if (topic.sms_notice === true && topic.email_notice === false) {
+      setFilterRemovedTopics(topic);
+    } else if (topic.sms_notice && !topic.email_notice) {
       setTitle(topic.title);
       setNotificationType("Email");
       setOpenUnsubscribeDialog(true);
-      setFilterRemovedTopics(updatedTopics);
+      setFilterRemovedTopics(topic);
     } else {
+      let topics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
+        category_acronym: filterRemovedTopics.category_acronym
+      }))
+      for (let i = 0; i < topics.length; i++) {
+        await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
+          user_id: userID,
+          category_acronym: topic.category_acronym,
+          topic_acronym: topics[i].acronym,
+          email_notice: topic.email_notice,
+          sms_notice: topic.sms_notice
+        }))
+      }
       setTopics(updatedTopics);
     }
   }
@@ -183,20 +131,40 @@ const EditNotificationPreferences = () => {
     }
   }
 
-  function handleUnsubscribe() {
+  async function handleUnsubscribe() {
     console.log(filterRemovedTopics);
-    setTopics(filterRemovedTopics);
+    if (!filterRemovedTopics.email_notice && !filterRemovedTopics.sms_notice) {
+      await API.graphql(graphqlOperation(userUnfollowCategory, {
+        user_id: userID,
+        category_acronym: filterRemovedTopics.category_acronym
+      }))
+      setInitialTopics(updateWithRemovedTopics)
+      setTopics(updateWithRemovedTopics);
+    } else {
+        let topics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
+          category_acronym: filterRemovedTopics.category_acronym
+        }))
+        for (let i = 0; i < topics.length; i++) {
+          await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
+            user_id: userID,
+            category_acronym: filterRemovedTopics.category_acronym,
+            topic_acronym: topics[i].acronym,
+            email_notice: filterRemovedTopics.email_notice,
+            sms_notice: filterRemovedTopics.sms_notice
+          }))
+        }
+    }
     setOpenUnsubscribeDialog(false);
   }
 
   function handleUnsubscribeClose() {
-    // if (topicIndex.type === "email_notice") {
-    //   topics[topicIndex.index].email_notice =
-    //     !filterRemovedTopics[topicIndex.index].email_notice;
-    // } else {
-    //   topics[topicIndex.index].sms_notice =
-    //     !filterRemovedTopics[topicIndex.index].sms_notice;
-    // }
+    if (topicIndex.type === "email_notice") {
+      topics[topicIndex.index].email_notice =
+        !topics[topicIndex.index].email_notice;
+    } else {
+      topics[topicIndex.index].sms_notice =
+        !topics[topicIndex.index].email_notice;
+    }
     setOpenUnsubscribeDialog(false);
   }
 
@@ -252,13 +220,12 @@ const EditNotificationPreferences = () => {
               >
                 <Switch
                   checked={topic.email_notice}
-                  id={i}
-                  key={i}
+                  id={i.toString()}
                   onChange={handleEmailChange}
                 />
                 <Switch
                   checked={topic.sms_notice}
-                  id={i}
+                  id={i.toString()}
                   onChange={handleTextChange}
                 />
               </Box>
@@ -290,7 +257,7 @@ const EditNotificationPreferences = () => {
             size="small"
             InputProps={{
               endAdornment: (
-                <InputAdornment>
+                <InputAdornment position="end">
                   <IconButton onClick={search}>
                     <Search />
                   </IconButton>

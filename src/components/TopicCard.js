@@ -286,7 +286,7 @@ const TopicCard = ({
                 sx={{ mr: "1em" }}
                 onClick={() => setIsRotated(!isRotated)}
               >
-                View Subtopics
+                View Topics
               </Button>
               <IconButton
                 aria-label="subscribe to topic"

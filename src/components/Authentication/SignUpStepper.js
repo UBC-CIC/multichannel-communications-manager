@@ -11,7 +11,7 @@ const SignUpStepper = ({ activeStep }) => {
   const steps = [
     "General Information",
     "Email Verification",
-    "Topics of Interest",
+    "Categories of Interest",
   ];
 
   const theme = useTheme();

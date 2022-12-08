@@ -158,10 +158,10 @@ const SelectTopics = ({ handleNextStep }) => {
       }}
     >
       <Typography sx={{ my: "0.5em" }} className={"login-wrapper-top-header"}>
-        Select Topics of Interest
+        Select Categories of Interest
       </Typography>
       <Typography variant="body2">
-        Select topics of interest that you would like to receive notifications
+        Select categories of interest that you would like to receive notifications
         from. Your notification preferences can be changed at any time.
       </Typography>
 

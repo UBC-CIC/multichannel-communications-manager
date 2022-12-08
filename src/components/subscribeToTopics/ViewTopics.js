@@ -14,7 +14,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
-import { Auth, API, graphqlOperation } from "aws-amplify";
+import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
 import { getAllCategories, getCategoriesByUserId, getUserByEmail } from "../../graphql/queries";
 import { styled } from "@mui/material/styles";
 import ViewTopicsCard from "./ViewTopicsCard";
@@ -37,61 +37,11 @@ const StyledImageListItem = styled(ImageListItem)`
 `;
 
 const ViewTopics = () => {
-  //hard coded mock data for now, to be replaced with queried data
-  // const sampleTopics = [
-  //   {
-  //     title: "Health",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //   },
-  //   {
-  //     title: "Insolvency",
-  //     description:
-  //       "Consumer proposals, bankruptcy and how to find a Licensed Insolvency Trustee.",
-  //   },
-  //   {
-  //     title: "Money and Finances",
-  //     description:
-  //       "Managing your money, debt and investments, planning for retirement and protecting yourself from consumer fraud.",
-  //   },
-  //   {
-  //     title: "Federal Corporations",
-  //     description:
-  //       "Incorporating or making changes to a business corporation, not-for-profit, cooperative or board of trade.",
-  //   },
-  //   {
-  //     title: "Sample 5",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //   },
-  //   {
-  //     title: "Sample 6",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //   },
-  //   {
-  //     title: "Sample 7",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //   },
-  //   {
-  //     title: "Sample 8",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //   },
-  //   {
-  //     title: "Sample 9",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-  //   },
-  // ];
   const [sampleTopics, setSampleTopics] = useState([]);
-
-  //this state is unused for now, but is for later to update the user form with all the topics they've selected during the sign up process
   const [topics, setTopics] = useState([])
-  const [allSelectedTopics, setAllSelectedTopics] = useState();
   const [userData, setUserData] = useState([]);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
+  const [image, setImage] = useState([])
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
@@ -102,6 +52,10 @@ const ViewTopics = () => {
     let allCategories = categories.data.getAllCategories;
     setTopics(allCategories)
     setSampleTopics(allCategories);
+    for (let i = 0; i < allCategories.length; i++) {
+      let imageURL = await Storage.get(allCategories[i].picture_location)
+      setImage((prev) => [...prev, imageURL])
+    }    
   }
 
   async function userSubscribedData() {
@@ -128,7 +82,7 @@ const ViewTopics = () => {
         : Math.floor(topics.length / 10 + 1));
     setPageCount(topicsPageCount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentlySelectedTopic]);
 
   const handleCheck = (e) => {
     if (e.target.checked) {
@@ -157,14 +111,16 @@ const ViewTopics = () => {
             }}
             onClick={() => setCurrentlySelectedTopic(topic)}
           >
-            <Box
+            {topic.picture_location !== null ? 
+              <img src={image[index]} alt={topic.title} /> :
+              <Box
               sx={{
                 backgroundColor: "#738DED",
                 width: "100px",
                 height: "100px",
                 borderRadius: "7px",
               }}
-            ></Box>
+            ></Box>}
             <StyledImageListItemBar title={topic.title} position="below" />
           </StyledImageListItem>
         ))
