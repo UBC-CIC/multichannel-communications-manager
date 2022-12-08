@@ -1,10 +1,4 @@
 const gqlRequest = require("graphql-request");
-
-const GRAPHQL_ENDPOINT =
-  "https://qxohgzahbvhytksiegrj4macla.appsync-api.ca-central-1.amazonaws.com/graphql";
-const GRAPHQL_API_KEY =
-  // process.env.API_ < YOUR_API_NAME > _GRAPHQLAPIKEYOUTPUT;
-  "da2-ghgkjvxhr5dgvgz7iopp2of6pm";
 const handler = require("./helpers.js");
 
 const mysql = require("mysql");
@@ -82,9 +76,7 @@ ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`categoryTopic_id\`) REFEREN
 
   result = await executeSQL(
     connection,
-    "INSERT INTO `User` (user_id, email_address) VALUES (0, '" +
-      adminEmail +
-      "')"
+    "INSERT INTO `User` (email_address) VALUES ('" + adminEmail + "');"
   );
 
   return result;
@@ -182,9 +174,6 @@ exports.handler = async (event) => {
   }
   console.log("Finished SQL execution");
   console.log("sqlResult: ", result.sqlResult);
-  // } catch (err) {
-  //   result.sqlResult = err;
-  // }
 
   try {
     if (event.pinpoint) {
@@ -229,7 +218,7 @@ exports.handler = async (event) => {
 
               break;
             case "delete":
-              result = handler.deleteUser(
+              result = await handler.deleteUser(
                 event.SQLVariableMapping[":user_id"].toString()
               );
               result.pinpointResult = "success";
@@ -266,6 +255,7 @@ exports.handler = async (event) => {
     }
   } catch (err) {
     result.pinpointResult = err;
+    Promise.reject(err);
   }
 
   console.log("return: ", result);

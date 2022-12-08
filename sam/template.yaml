@@ -5,7 +5,7 @@
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >-
-  ISED SAM deployment
+  Multichannel Communications Manager SAM deployment
 
 # Transform section specifies one or more macros that AWS CloudFormation uses to process your template
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
@@ -15,7 +15,7 @@ Transform:
 Parameters:
   ProjectName:
     Type: String
-    Default: ised
+    Default: newsletterManager
     Description: A name to identify the project
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
     MinLength: 1
@@ -85,30 +85,28 @@ Parameters:
   #     - PriceClass_100
   #     - PriceClass_200
   #     - PriceClass_All
-  # MinConfidenceThreshold:
-  #   Type: Number
-  #   Description: The minimum percent confidence required to accept a label during image validation with Rekognition (ex. 70)
-  #   Default: 70
-  #   MinValue: 30
-  #   MaxValue: 100
-  #   ConstraintDescription: The number should be between 30 and 100
   CognitoAdminName:
     Type: String
-    Description: The name of the admin user
+    Description: The name of the admin user for Cognito
   CognitoAdminEmail:
     Type: String
-    Description: The email of the admin user to use
-      
+    Description: The email of the admin user for Cognito
+  PinpointAdminName:
+    Type: String
+    Description: The name of the admin user for Pinpoint. 
+  PinpointAdminEmail:
+    Type: String
+    Description: The email of the admin user for Pinpoint. Pinpoint email notifications will be sent out from this email
 
 Resources:
   # TODO: figure out how to connect this to amplify
-  GraphQlApiIdParameter:
+  GraphQLApiIdParameter:
       Type: AWS::SSM::Parameter
       Properties: 
-        Name: "/Commit2Act/GraphqlApiId"
+        Name: "/communicationsManager/GraphqlApiId"
         Type: String 
         Value: "{{resolve:ssm:GraphQLAPIId:1}}"
-        Description: Commit2Act GraphQL Api Id
+        Description: Communication Manager GraphQL Api Id
 
   IGW:
     Type: AWS::EC2::InternetGateway
@@ -212,21 +210,21 @@ Resources:
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
 
-  PrivateSubnet3:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
-      CidrBlock: 10.0.4.0/24
-      MapPublicIpOnLaunch: false
+  # PrivateSubnet3:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+  #     CidrBlock: 10.0.4.0/24
+  #     MapPublicIpOnLaunch: false
 
-  PrivateSubnet4:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
-      CidrBlock: 10.0.5.0/24
-      MapPublicIpOnLaunch: false
+  # PrivateSubnet4:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+  #     CidrBlock: 10.0.5.0/24
+  #     MapPublicIpOnLaunch: false
   
 
   PublicRouteTable:
@@ -525,20 +523,20 @@ Resources:
                 Action: lambda:InvokeFunction
                 Resource: '*'
 
-  EndpointSSM:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
-      PrivateDnsEnabled: true
-      SecurityGroupIds:
-        - !Ref OpenSecurityGroup
-      SubnetIds:
-        # - !Ref PublicSubnet1
-        # - !Ref PublicSubnet2
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-      VpcEndpointType: Interface
-      VpcId: !Ref VPC
+  # EndpointSSM:
+  #   Type: AWS::EC2::VPCEndpoint
+  #   Properties:
+  #     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
+  #     PrivateDnsEnabled: true
+  #     SecurityGroupIds:
+  #       - !Ref OpenSecurityGroup
+  #     SubnetIds:
+  #       # - !Ref PublicSubnet1
+  #       # - !Ref PublicSubnet2
+  #       - !Ref PrivateSubnet1
+  #       - !Ref PrivateSubnet2
+  #     VpcEndpointType: Interface
+  #     VpcId: !Ref VPC
     
   EIP:
     Type: 'AWS::EC2::EIP'
@@ -683,7 +681,7 @@ Resources:
         - x86_64
       MemorySize: 1000
       Timeout: 100
-      Description: Called by AppSync to resolve SQL statements in the form of a request mapping
+      Description: Called by AppSync to resolve SQL statements in the form of a request mapping and send requests to Pinpoint
       Role: !GetAtt GraphQLResolverRole.Arn
       Environment:
         Variables:
@@ -694,6 +692,7 @@ Resources:
           ADMIN_NAME: !Ref CognitoAdminName
           ADMIN_EMAIL: !Ref CognitoAdminEmail
           BUCKET_NAME: !Ref PicturesBucket
+          PINPOINT_APPID: !Ref PinpointApp
       VpcConfig:
         SecurityGroupIds:
           # - !Ref ClosedSecurityGroup
@@ -810,140 +809,140 @@ Resources:
     Type: AWS::AppSync::DataSource
     DependsOn:
     - graphQLMySQLResolver
-    - GraphQLApiSchema
+    # - GraphQLApiSchema
+    - GraphQLApiIdParameter
     Properties:
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       Name: LambdaHandler
       Type: AWS_LAMBDA
       ServiceRoleArn: !GetAtt LambdaServiceRole.Arn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt graphQLMySQLResolver.Arn
 
-  GraphQLApiSchema:
-    Type: AWS::AppSync::GraphQLSchema
-    Properties:
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
-      # TODO: replace this w reference
-      Definition: |
-        type Category {
-          category_id: Int!
-          acronym: String!
-          title: String!
-          description: String
-        }
+  # GraphQLApiSchema:
+  #   Type: AWS::AppSync::GraphQLSchema
+  #   Properties:
+  #     ApiId: !GetAtt GraphQLApiIdParameter.Value
+  #     # TODO: replace this w reference
+  #     Definition: |
+  #       type Category {
+  #         category_id: Int!
+  #         acronym: String!
+  #         title: String!
+  #         description: String
+  #       }
 
-        type Topic {
-          topic_id: Int!
-          acronym: String!
-        }
+  #       type Topic {
+  #         topic_id: Int!
+  #         acronym: String!
+  #       }
 
-        type CategoryTopic {
-          categoryTopic_id: Int!
-          category_acronym: String!
-          topic_acronym: String!
-        }
+  #       type CategoryTopic {
+  #         categoryTopic_id: Int!
+  #         category_acronym: String!
+  #         topic_acronym: String!
+  #       }
 
-        type UserCategoryTopic {
-          user_id: Int!
-          categoryTopic_id: Int!
-          email_notice: Boolean!
-          sms_notice: Boolean
-        }
+  #       type UserCategoryTopic {
+  #         user_id: Int!
+  #         categoryTopic_id: Int!
+  #         email_notice: Boolean!
+  #         sms_notice: Boolean
+  #       }
 
-        type User {
-          user_id: Int!
-          email_address: String!
-          phone_address: Int
-          phone_id: Int
-          postal_code: String
-          province: Province!
-        }
+  #       type User {
+  #         user_id: Int!
+  #         email_address: String!
+  #         phone_address: Int
+  #         phone_id: Int
+  #         postal_code: String
+  #         province: Province!
+  #       }
 
-        type Mutation {
-          createUser(
-            email_address: String!
-            phone_address: Int
-            postal_code: String
-            province: Province!
-          ): User
-          updateUser(
-            user_id: Int!
-            email_address: String
-            phone_address: Int
-            postal_code: String
-            province: Province
-          ): User
-          deleteUser(user_id: Int!): String
+  #       type Mutation {
+  #         createUser(
+  #           email_address: String!
+  #           phone_address: Int
+  #           postal_code: String
+  #           province: Province!
+  #         ): User
+  #         updateUser(
+  #           user_id: Int!
+  #           email_address: String
+  #           phone_address: Int
+  #           postal_code: String
+  #           province: Province
+  #         ): User
+  #         deleteUser(user_id: Int!): String
 
-          createCategory(
-            acronym: String!
-            title: String!
-            description: String
-          ): Category
-          updateCategory(
-            category_id: Int!
-            acronym: String
-            title: String
-            description: String
-          ): Category
-          # TODO: delete or archive?
-          deleteCategory(category_id: Int!): String
+  #         createCategory(
+  #           acronym: String!
+  #           title: String!
+  #           description: String
+  #         ): Category
+  #         updateCategory(
+  #           category_id: Int!
+  #           acronym: String
+  #           title: String
+  #           description: String
+  #         ): Category
+  #         # TODO: delete or archive?
+  #         deleteCategory(category_id: Int!): String
 
-          createTopic(acronym: String!): Topic
-          updateTopic(topic_id: Int!, acronym: String): Topic
-          deleteTopic(topic_id: Int!): String
-          addTopicToCategory(
-            category_acronym: String!
-            topic_acronym: String!
-          ): CategoryTopic
-          deleteCategoryTopic(category_acronym: String!, topic_acronym: String!): String
-          userFollowCategoryTopic(
-            user_id: Int!
-            category_acronym: String!
-            topic_acronym: String!
-            email_notice: Boolean!
-            sms_notice: Boolean!
-          ): UserCategoryTopic
-          userUnfollowCategoryTopic(
-            user_id: Int!
-            category_acronym: String!
-            topic_acronym: String!
-          ): User
-        }
+  #         createTopic(acronym: String!): Topic
+  #         updateTopic(topic_id: Int!, acronym: String): Topic
+  #         deleteTopic(topic_id: Int!): String
+  #         addTopicToCategory(
+  #           category_acronym: String!
+  #           topic_acronym: String!
+  #         ): CategoryTopic
+  #         deleteCategoryTopic(category_acronym: String!, topic_acronym: String!): String
+  #         userFollowCategoryTopic(
+  #           user_id: Int!
+  #           category_acronym: String!
+  #           topic_acronym: String!
+  #           email_notice: Boolean!
+  #           sms_notice: Boolean!
+  #         ): UserCategoryTopic
+  #         userUnfollowCategoryTopic(
+  #           user_id: Int!
+  #           category_acronym: String!
+  #           topic_acronym: String!
+  #         ): User
+  #       }
 
-        type Query {
-          getUserById(user_id: Int!): User
-          getUserByEmail(user_email: String!): User
-          getUserCategoryTopicByUserId(user_id: String!): [CategoryTopic]
-          getCategoryByAcronym(acronym: String!): Category
-          getTopicsOfCategoryByAcronym(category_acronym: String!): [Topic]
-          getTopicByAcronym(topic_acronym: String!): Topic
-          getAllCategories: [Category]
-          getAllTopics: [Topic]
-          testSQL: String
-        }
+  #       type Query {
+  #         getUserById(user_id: Int!): User
+  #         getUserByEmail(user_email: String!): User
+  #         getUserCategoryTopicByUserId(user_id: String!): [CategoryTopic]
+  #         getCategoryByAcronym(acronym: String!): Category
+  #         getTopicsOfCategoryByAcronym(category_acronym: String!): [Topic]
+  #         getTopicByAcronym(topic_acronym: String!): Topic
+  #         getAllCategories: [Category]
+  #         getAllTopics: [Topic]
+  #         testSQL: String
+  #       }
 
-        schema {
-          query: Query
-          mutation: Mutation
-        }
+  #       schema {
+  #         query: Query
+  #         mutation: Mutation
+  #       }
 
-        enum Province {
-          AB
-          BC
-          MB
-          NB
-          NL
-          NT
-          NS
-          NU
-          ON
-          PE
-          QC
-          SK
-          YT
-        }
-
+  #       enum Province {
+  #         AB
+  #         BC
+  #         MB
+  #         NB
+  #         NL
+  #         NT
+  #         NS
+  #         NU
+  #         ON
+  #         PE
+  #         QC
+  #         SK
+  #         YT
+  #       }
 
 
   getUserByIdResolver:
@@ -970,7 +969,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -999,7 +998,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
@@ -1028,7 +1027,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
@@ -1057,7 +1056,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
@@ -1086,7 +1085,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
@@ -1115,7 +1114,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
@@ -1143,7 +1142,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1172,7 +1171,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1200,7 +1199,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1228,7 +1227,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1256,7 +1255,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1298,7 +1297,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       # DataSourceName: !GetAtt LambdaAppSyncDataSource.Name      
       MaxBatchSize: 0
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
@@ -1310,7 +1309,7 @@ Resources:
   # CreatePinpointUserFunction:
   #   Type: AWS::AppSync::FunctionConfiguration
   #   Properties: 
-  #     ApiId: !GetAtt GraphQlApiIdParameter.Value
+  #     ApiId: !GetAtt GraphQLApiIdParameter.Value
   #     Code: String
   #     DataSourceName: NONE
   #     Name: createPinpointUserFunction
@@ -1379,7 +1378,7 @@ Resources:
   #         $util.error($ctx.error.message, $ctx.error.type)
   #       #end
   #       $util.toJson($context.result.sqlResult[0])
-  #     ApiId: !GetAtt GraphQlApiIdParameter.Value
+  #     ApiId: !GetAtt GraphQLApiIdParameter.Value
   #     DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
   #     Kind: UNIT
   #     MaxBatchSize: 0
@@ -1451,7 +1450,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1480,7 +1479,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "Succeeded"
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1513,7 +1512,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1579,7 +1578,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1608,7 +1607,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "'delete succeeded'"
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1638,7 +1637,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1666,7 +1665,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "Delete succeeded"
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1696,7 +1695,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1725,7 +1724,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1754,7 +1753,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "success"
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1800,7 +1799,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1848,7 +1847,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1880,7 +1879,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1911,7 +1910,7 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "success"
-      ApiId: !GetAtt GraphQlApiIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
@@ -1920,7 +1919,7 @@ Resources:
   SESIdentity:
     Type: AWS::SES::EmailIdentity
     Properties:
-      EmailIdentity: !Ref CognitoAdminEmail
+      EmailIdentity: !Ref PinpointAdminEmail
   # Pinpoint Resources
   PinpointApp:
     Type: AWS::Pinpoint::App
@@ -1928,18 +1927,23 @@ Resources:
       Name: PinpointApp
   PinpointSMSChannel:
     Type: AWS::Pinpoint::SMSChannel
+    DependsOn: 
+    - PinpointApp
     Properties:
       ApplicationId: !Ref PinpointApp
       Enabled: true
   PinpointEmailChannel:
     Type: AWS::Pinpoint::EmailChannel
+    DependsOn: 
+    - SESIdentity
+    - PinpointApp
     Properties:
       ApplicationId: !Ref PinpointApp
       FromAddress: !Ref CognitoAdminEmail
       Identity: 
         # TODO: replace with parameter
         # !GetAtt SESIdentity.Arn
-        "arn:aws:ses:ca-central-1:834289487514:identity/mminting@mail.ubc.ca"
+        !Sub 'arn:aws:ses:ca-central-1:${AWS::AccountId}:identity/${PinpointAdminEmail}'
       Enabled: true
 
   #Lambda Resources
@@ -1958,7 +1962,7 @@ Resources:
           Action:
             - 'sts:AssumeRole'
       Policies:
-      - PolicyName: allow-lambda-access-appsync-n-pinpoint
+      - PolicyName: lambda-resolver-policy
         PolicyDocument:
           Version: "2012-10-17"
           Statement:
@@ -2034,132 +2038,6 @@ Resources:
   #     Roles:
   #       - !Ref HelperLambdaRole
   
-  # RDSPinPointLambda:
-  #   Type: AWS::Lambda::Function
-  #   Properties:
-  #     # Code:
-  #     #   ZipFile: |
-  #     #     from __future__ import print_function
-  #     #     import os
-  #     #     import json
-  #     #     import base64
-  #     #     import boto3
-  #     #     from datetime import date
-
-  #     #     pinpoint_app_id = os.environ['PINPOINT_APPID']
-
-  #     #     # Lambda handler
-  #     #     def lambda_handler(event, context):
-  #     #       # Loop over all records and print out
-  #     #       for record in event['Records']:
-  #     #         # Decode data
-  #     #         payload = json.loads(base64.b64decode(record["kinesis"]["data"]))
-  #     #         optOut = 'ALL' if payload['data']['optin'] == 0 else 'NONE'
-  #     #         # Validate phone nunber
-  #     #         phone_valid = validate_phone(payload['data']['phone'])
-  #     #         if phone_valid != False:
-  #     #           print('# Phone=VALID OptOut=' + optOut + ' ' + str(payload['data']['optin']))
-  #     #           # Update Pinpoint endpoint
-  #     #           update_endpoint(payload['metadata']['operation'], payload['data'], phone_valid)
-  #     #         else:
-  #     #           print('# Phone=ERROR OptOut=' + optOut + ' ' + str(payload['data']['optin']))
-
-  #     #     # Validate phone number
-  #     #     def validate_phone(phone):
-  #     #       client = boto3.client('pinpoint')
-  #     #       response = client.phone_number_validate(
-  #     #         NumberValidateRequest={
-  #     #           'PhoneNumber': phone
-  #     #         }
-  #     #       )
-  #     #       return response
-
-  #     #     # Pinpoint update endpoint
-  #     #     def update_endpoint(operation, data, phone):
-  #     #       client = boto3.client('pinpoint')
-  #     #       endpoint_id = data['userid'] + '_' + data['phone']
-  #     #       if operation == 'insert' or operation == 'update':
-  #     #         print('# Operation=' + operation + ' ' + endpoint_id)
-  #     #         optout = 'ALL' if data['optin'] == 0 else 'NONE'
-  #     #         response = client.update_endpoint(
-  #     #           ApplicationId=pinpoint_app_id,
-  #     #           EndpointId=endpoint_id,
-  #     #           EndpointRequest={
-  #     #             'Address': phone['NumberValidateResponse']['CleansedPhoneNumberE164'],
-  #     #             'ChannelType': 'SMS',
-  #     #             'EffectiveDate': data['lastupdate'],
-  #     #             'EndpointStatus': 'ACTIVE',
-  #     #             'Demographic': {
-  #     #               'Make': 'apple',
-  #     #               'Model': 'iPhone',
-  #     #               'ModelVersion': '13.5',
-  #     #               'Platform': 'ios'
-  #     #             },
-  #     #             'Location': {
-  #     #               'City': 'Boston',
-  #     #               'Country': 'US'
-  #     #             },
-  #     #             'OptOut': optout,
-  #     #             'User': {
-  #     #               'UserId': data['userid']
-  #     #             }
-  #     #           }
-  #     #         )
-  #     #       elif operation == 'delete':
-  #     #         print('# Operation=' + operation + ' ' + endpoint_id)
-  #     #         response = client.delete_endpoint(
-  #     #           ApplicationId=pinpoint_app_id,
-  #     #           EndpointId=endpoint_id
-  #     #         )
-  #     CodeUri: ./lambda_functions/RDSTrigger/
-  #     Handler: index.lambda_handler
-  #     Runtime: python3.7
-  #     #Timeout: 30
-  #     Role: 
-  #       # !Ref HelperLambdaRoleArn
-  #       !GetAtt HelperLambdaRole.Arn
-  #     Environment:
-  #       Variables:
-  #         PINPOINT_APPID: !Ref PinpointApp
-  # RDSPinPointLambda:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: ./lambda_functions/RDSTrigger/
-  #     Handler: index.handler
-  #     Runtime: nodejs16.x
-  #     Timeout: 30
-  #     MemorySize: 3008
-  #     Role: 
-  #       # !Ref HelperLambdaRoleArn
-  #       !GetAtt HelperLambdaRole.Arn
-  #     # Layers:
-  #     # - !Ref RDSPinpointLambdaLayers
-  #     Environment:
-  #       Variables:
-  #         PINPOINT_APPID: !Ref PinpointApp
-  #       # TODO: Add graphql endpoint variable here
-  #         # GRAPHQL_ENDPOINT: !Ref 
-  #         REGION: "ca-central-1"
-  #     Events:
-  #       # Properties: Kinesis
-  #       # Type: Kinesis
-  #       KinesisEvent:
-  #         Type: Kinesis
-  #         Properties:
-  #           Stream: !GetAtt RDSKinesisStream.Arn
-  #           BatchSize: 10
-  #           MaximumBatchingWindowInSeconds: 10
-  #           MaximumRecordAgeInSeconds: 60
-  #           StartingPosition: "LATEST"
-
-  # RDSPinpointLambdaLayers:
-  #   Type: AWS::Serverless::LayerVersion
-  #   Properties:
-  #     LayerName: RDSPinpointLambdaLayers
-  #     Description: Dependency for RDS Pinpoint Lambda
-  #     ContentUri: ./lambda_functions/RDSTrigger/nodejs/node_modules/
-
-
 
 # OUTPUTS ######################
 
@@ -2184,4 +2062,4 @@ Resources:
   #     - './scripts/lambda_trigger.sh ${Bucket} ${Lambda} ${Oai}'
   #     - Bucket: '{{resolve:ssm:BucketName}}'
   #       Lambda: !GetAtt validateImageWithRekognition.Arn
-  #       Oai: !Ref OriginAccessIdentity
+  #       Oai: !Ref OriginAccessIdentity 
