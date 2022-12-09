@@ -1,12 +1,12 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Resources:
   AmplifyRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: amplifyconsole-ised-backend-role
-      Description: IAM Role to deploy amplify ISED Project
+      RoleName: amplifyconsole-commit2act-backend-role
+      Description: IAM Role to deploy amplify Commit2Act Project
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
@@ -17,3 +17,18 @@ Resources:
       Path: /
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess-Amplify
+      Policies:
+        - PolicyName: commit2act-extended-policy
+          PolicyDocument: # JSON policy document
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:*
+                  - ssm:AddTagsToResource
+                  - iam:ListPolicies
+                  - iam:CreatePolicies
+                  - iam:ReadPolicies
+                  - iam:ListRoles
+                  - iam:AttachRolePolicy
+                Resource: '*'
