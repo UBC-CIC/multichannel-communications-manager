@@ -44,7 +44,7 @@ const TopicCard = ({
   const [phoneNumber, setPhoneNumber] = useState("")
   const [verificationCode, setVerificationCode] = useState("")
   const [invalidInputError, setInvalidInputError] = useState(false)
-  const [phoneDialogState, setPhoneDiologState] = useState("noPhone")
+  const [phoneDialogState, setPhoneDialogState] = useState("noPhone")
   const [subtopics, setSubtopics] = useState([])
   const [noTopicSelected, setNoTopicSelected] = useState(false)
   const [noPreferenceSelected, setNoPreferenceSelected] = useState(false)
@@ -82,39 +82,30 @@ const TopicCard = ({
     setSaveEnabled(false)
   }, []);
 
+  function checkPhone(num) {
+    var regex = new RegExp(/\+1\d{10}/);
+    if (regex.test(num)) return true;
+    else return false;
+  }
+
   const handleSavePhoneDialog = async () => {
     if (phoneDialogState === "noPhone") {
-      if (phoneNumber === "") {
+      if (phoneNumber === "" || !checkPhone(phoneNumber)) {
         setInvalidInputError(true)
       } else {
-        await Auth.updateUserAttributes(user, {
-          "phone_number": phoneNumber,
-        })
-        .then(async (res) => {
-          console.log(res);
-          await Auth.verifyCurrentUserAttribute("phone_number");
-          setPhoneDiologState("verifyPhone");
-        })
-        .catch((e) => {
-          console.log(e);
-          setInvalidInputError(e.message);
-        });
+        setPhoneDialogState("verifyPhone")
       }
     } else if (phoneDialogState === "verifyPhone") {
-      if (verificationCode === "") {
-        setInvalidInputError(true)
-      } else {
-        await Auth.verifyCurrentUserAttributeSubmit(
-          "phone_number",
-          verificationCode
-        )
-        .then(() => {
-          setPhoneDiologState("phoneSaved");
-        })
-        .catch((e) => {
-          setInvalidInputError(true);
-        });
-      }
+      await Auth.verifyCurrentUserAttributeSubmit(
+        "phone_number",
+        verificationCode
+      )
+      .then(() => {
+        setPhoneDialogState("phoneSaved");
+      })
+      .catch((e) => {
+        setInvalidInputError(true);
+      });
     } else {
       setOpenPhoneDialog(false);
     }
@@ -194,7 +185,7 @@ const TopicCard = ({
   const handleClosePhoneDialog = () => {
     setSelectedNotifications({text: false})
     setOpenPhoneDialog(false);
-    setPhoneDiologState("noPhone")
+    setPhoneDialogState("noPhone")
   };
 
   const handleCloseSuccessDialog = () => {
