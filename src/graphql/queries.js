@@ -42,6 +42,7 @@ export const getCategoriesByUserId = /* GraphQL */ `
       description
       email_notice
       sms_notice
+      picture_location
     }
   }
 `;
