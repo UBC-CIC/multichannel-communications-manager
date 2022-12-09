@@ -33,14 +33,12 @@ const EditNotificationPreferences = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [invalidInputError, setInvalidInputError] = useState(false);
-  const [phoneDialogState, setPhoneDialogState] = useState("verifyPhone");
-  const [user, setUser] = useState("");
+  const [phoneDialogState, setPhoneDialogState] = useState("noPhone");
   const [openPhoneDialog, setOpenPhoneDialog] = useState(false);
 
   async function queriedData() {
     try {
       const returnedUser = await Auth.currentAuthenticatedUser();
-      setUser(returnedUser);
       setUserPhone(returnedUser.attributes.phoneNumber);
       let databaseUser = await API.graphql(
         graphqlOperation(getUserByEmail, {
@@ -107,6 +105,7 @@ const EditNotificationPreferences = () => {
   const handleClosePhoneDialog = () => {
     handleUnsubscribeClose()
     setOpenPhoneDialog(false);
+    setInvalidInputError(false)
     setPhoneDialogState("noPhone")
   };
 
@@ -117,25 +116,28 @@ const EditNotificationPreferences = () => {
   }
 
   const handleSavePhoneDialog = async () => {
-    if (phoneDialogState === "noPhone") {
-      if (phoneNumber === "" || checkPhone(phoneNumber)) {
-        setInvalidInputError(true)
+    try {
+      if (phoneDialogState === "noPhone") {
+        if (phoneNumber === "" || !checkPhone(phoneNumber)) {
+          setInvalidInputError(true)
+        } else {
+          setPhoneDialogState("verifyPhone")
+        }
+      } else if (phoneDialogState === "verifyPhone") {
+        if (verificationCode === "") {
+          setInvalidInputError(true)
+        } else {
+          await Auth.verifyCurrentUserAttributeSubmit(
+            "phone_number",
+            verificationCode
+          ).then(setPhoneDialogState("phoneSaved"))
+        }
       } else {
-        setPhoneDialogState("verifyPhone")
+        setOpenPhoneDialog(false);
       }
-    } else if (phoneDialogState === "verifyPhone") {
-      await Auth.verifyCurrentUserAttributeSubmit(
-        "phone_number",
-        verificationCode
-      )
-      .then(() => {
-        setPhoneDialogState("phoneSaved");
-      })
-      .catch((e) => {
-        setInvalidInputError(true);
-      });
-    } else {
-      setOpenPhoneDialog(false);
+    } catch (e) {
+      console.log(e)
+      setInvalidInputError(true)
     }
   };
 

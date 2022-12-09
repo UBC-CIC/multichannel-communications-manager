@@ -44,7 +44,6 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   const [verificationCode, setVerificationCode] = useState("");
   const [invalidInputError, setInvalidInputError] = useState(false);
   const [phoneDialogState, setPhoneDialogState] = useState("noPhone");
-  const [user, setUser] = useState("");
   const [userID, setUserID] = useState("");
   const [subtopics, setSubtopics] = useState([]);
   const [userAlreadySubscribed, setUserAlreadySubscribed] = useState(false);
@@ -83,7 +82,6 @@ const ViewTopicsCard = ({ selectedTopic }) => {
     async function retrieveUser() {
       try {
         const returnedUser = await Auth.currentAuthenticatedUser();
-        setUser(returnedUser);
         setUserPhone(returnedUser.attributes.phoneNumber);
         let getUserId = await API.graphql(graphqlOperation(getUserByEmail, {
           user_email: returnedUser.attributes.email

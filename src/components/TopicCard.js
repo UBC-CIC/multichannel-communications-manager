@@ -48,7 +48,6 @@ const TopicCard = ({
   const [subtopics, setSubtopics] = useState([])
   const [noTopicSelected, setNoTopicSelected] = useState(false)
   const [noPreferenceSelected, setNoPreferenceSelected] = useState(false)
-  const [user, setUser] = useState("")
   const [userID, setUserID] = useState("")
   const [image, setImage] = useState('')
 
@@ -64,7 +63,6 @@ const TopicCard = ({
     async function retrieveUser() {
       try {
         const returnedUser = await Auth.currentAuthenticatedUser();
-        setUser(returnedUser)
         let user = await API.graphql(graphqlOperation(getUserByEmail, { user_email: returnedUser.attributes.email }));
         let id = user.data.getUserByEmail.user_id
         setUserID(id)
