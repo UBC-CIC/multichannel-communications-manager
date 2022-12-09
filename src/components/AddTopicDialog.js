@@ -27,6 +27,7 @@ const AddTopicDialog = ({
   }) => {
   const [inputFields, setInputFields] = useState([])
   const [allTopics, setAllTopics] = useState([])
+  const [newTopic, setNewTopic] = useState('')
   const [selectedTopics, setSelectedTopics] = useState([])
   const [title, setTitle] = useState('')
   const [acronym, setAcronym] = useState('')
@@ -72,49 +73,51 @@ const AddTopicDialog = ({
   }
 
   const handleChange = (event, index) => {
-    if (allTopics.includes(event.target.value)) {
-      setTopicsExistError(true)
-    } else {
-      setTopicsExistError(false)
-      const values = [...inputFields]
-      values[index][event.target.name] = event.target.value
-      setInputFields(values)
-    }
+    setNewTopic(event.target.value)
+    setTopicsExistError(false)
+    const values = [...inputFields]
+    values[index][event.target.name] = event.target.value
+    setInputFields(values)
   }
 
   const handleSave = async () => {
-    let s3Key = ''
-    if (document.getElementById("uploadFile").value === '') {
-      s3Key = null
+    if (allTopics.includes(newTopic)) {
+      setTopicsExistError(true)
     } else {
-      await Storage.put(uploadFile.name, uploadFile)
-        .then(resp => s3Key = resp.key)
-    }
-    let createdTopic = {
-      acronym: acronym,
-      title: title,
-      description: description,
-      picture_location: s3Key
-    }
-    try {
-      await API.graphql(graphqlOperation(createCategory, createdTopic))
-        .then(async () => {
-          for (let i = 0; i < inputFields.length; i++) {
-            await API.graphql(graphqlOperation(createTopic, inputFields[i]))
-          }
-          let newSubtopics = inputFields.map(a => a.acronym)
-          let allSubtopics = newSubtopics.concat(selectedTopics)
-          for (let i = 0; i < allSubtopics.length; i++) {
-            await API.graphql(graphqlOperation(addTopicToCategory, {
-              category_acronym: createdTopic.acronym,
-              topic_acronym: allSubtopics[i]
-            }))
-          }
-          clearFields()
-          reload()
-        })
-    } catch (e) {
-      console.log(e)
+      setTopicsExistError(false)
+      let s3Key = ''
+      if (document.getElementById("uploadFile").value === '') {
+        s3Key = null
+      } else {
+        await Storage.put(uploadFile.name, uploadFile)
+          .then(resp => s3Key = resp.key)
+      }
+      let createdTopic = {
+        acronym: acronym,
+        title: title,
+        description: description,
+        picture_location: s3Key
+      }
+      try {
+        await API.graphql(graphqlOperation(createCategory, createdTopic))
+          .then(async () => {
+            for (let i = 0; i < inputFields.length; i++) {
+              await API.graphql(graphqlOperation(createTopic, inputFields[i]))
+            }
+            let newSubtopics = inputFields.map(a => a.acronym)
+            let allSubtopics = newSubtopics.concat(selectedTopics)
+            for (let i = 0; i < allSubtopics.length; i++) {
+              await API.graphql(graphqlOperation(addTopicToCategory, {
+                category_acronym: createdTopic.acronym,
+                topic_acronym: allSubtopics[i]
+              }))
+            }
+            clearFields()
+            reload()
+          })
+      } catch (e) {
+        console.log(e)
+      }
     }
   }
 
@@ -164,6 +167,7 @@ const AddTopicDialog = ({
             <Box width={'40%'}>
               <TextField
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ maxLength: 49 }}
                 size="small"
                 type="text"
                 label="Title"
@@ -173,6 +177,7 @@ const AddTopicDialog = ({
             <Box width={'20%'}>
               <TextField
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ maxLength: 29 }}
                 size="small"
                 type="text"
                 label="Acronym"

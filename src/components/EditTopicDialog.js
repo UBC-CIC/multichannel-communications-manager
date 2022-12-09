@@ -9,8 +9,8 @@ import {
   Box,
   TextField
 } from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
-import { API, graphqlOperation } from 'aws-amplify'
+import { Close, Upload } from '@mui/icons-material';
+import { API, graphqlOperation, Storage } from 'aws-amplify'
 import { updateCategory } from '../graphql/mutations';
 
 const EditTopicDialog = ({
@@ -21,17 +21,33 @@ const EditTopicDialog = ({
   }) => {
   const [newTitle, setNewTitle] = useState(selectedTopic.title)
   const [newDescription, setNewDescription] = useState(selectedTopic.description)
+  const [uploadFile, setUploadFile] = useState();
+  const [selectedUploadFile, setSelectedUploadFile] = useState('');
 
   const handleSave = async () => {
+    let s3Key = ''
+    if (document.getElementById("uploadFile").value === '') {
+      s3Key = null
+    } else {
+      await Storage.put(uploadFile.name, uploadFile)
+        .then(resp => s3Key = resp.key)
+    }
     let updatedCategory = {
       category_id: selectedTopic.category_id,
       acronym: selectedTopic.acronym,
       title: newTitle,
-      description: newDescription
+      description: newDescription,
+      picture_location: s3Key
     }
     await API.graphql(graphqlOperation(updateCategory, updatedCategory))
       .then(() => {setSelectedTopic(updatedCategory); handleClose()})
       .catch(e => console.log(e))
+  }
+
+  async function handleUploadFileChange(e) {
+    const chosenUploadFile = e.target.files[0];
+    setSelectedUploadFile(chosenUploadFile.name);
+    setUploadFile(chosenUploadFile);
   }
 
   return (
@@ -56,7 +72,7 @@ const EditTopicDialog = ({
             color: (theme) => theme.palette.grey[500],
           }}
         >
-          <CloseIcon />
+          <Close />
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
@@ -78,6 +94,15 @@ const EditTopicDialog = ({
             onChange={(e) => setNewDescription(e.target.value)}
             value={newDescription}
           />
+          <Button
+            size='small'
+            component="label"
+            variant="outlined"
+            startIcon={<Upload />}
+          >
+            { selectedUploadFile ? selectedUploadFile : 'Upload Image' }
+            <input type="file" id="uploadFile" accept="image/png, image/jpeg" hidden onChange={handleUploadFileChange}/>
+          </Button>
         </Box>
       </DialogContent>
       <DialogActions>

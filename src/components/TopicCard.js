@@ -48,10 +48,9 @@ const TopicCard = ({
   const [subtopics, setSubtopics] = useState([])
   const [noTopicSelected, setNoTopicSelected] = useState(false)
   const [noPreferenceSelected, setNoPreferenceSelected] = useState(false)
+  const [user, setUser] = useState("")
   const [userID, setUserID] = useState("")
   const [image, setImage] = useState('')
-  //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
-  // const subtopics = ["COVID-19", "Subtopic 2", "Subtopic 3", "Subtopic 4"];
 
   async function queriedSubtopics() {
     let queriedTopics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {category_acronym: selectedTopic.acronym}))
@@ -65,6 +64,7 @@ const TopicCard = ({
     async function retrieveUser() {
       try {
         const returnedUser = await Auth.currentAuthenticatedUser();
+        setUser(returnedUser)
         let user = await API.graphql(graphqlOperation(getUserByEmail, { user_email: returnedUser.attributes.email }));
         let id = user.data.getUserByEmail.user_id
         setUserID(id)
@@ -84,48 +84,41 @@ const TopicCard = ({
 
   const handleSavePhoneDialog = async () => {
     if (phoneDialogState === "noPhone") {
-      await Auth.verifyCurrentUserAttribute("phone_number")
-        .then(() => setPhoneDiologState("verifyPhone"))
-        .catch((e) => console.log(e))
-        // await Auth.updateUserAttributes(user, {
-        //   phone_number: phoneNumber,
-        // })
-        //   .then(async () => {
-        //     await Auth.verifyCurrentUserAttribute("phone_number")
-        //     setPhoneDiologState("verifyPhone")
-        //   })
-        //   .catch((e) => {
-        //     console.log(e)
-        //     setInvalidInputError(e.message)
-        //   })
-      // if (phoneNumber === "" || !checkPhone(phoneNumber)) {
-      //   setInvalidInputError(true)
-      // } else {
-      //   await Auth.updateUserAttributes(user, {
-      //     phone_number: phoneNumber,
-      //   })
-      //     .catch((e) => {
-      //       console.log(e)
-      //     })
-      //   setPhoneDiologState("verifyPhone")
-      // }
-    } else if (phoneDialogState === "verifyPhone") {
-      // if (verificationCode === "") {
-      //   setInvalidInputError(true)
-      // } else {
-      await Auth.verifyCurrentUserAttributeSubmit('phone_number', verificationCode)
-        .then(() => {
-          console.log('phone number verified');
-          setPhoneDiologState("phoneSaved")
-        }).catch((e) => {
-          console.log('failed with error', e);
-          setInvalidInputError(true)
+      if (phoneNumber === "") {
+        setInvalidInputError(true)
+      } else {
+        await Auth.updateUserAttributes(user, {
+          "phone_number": phoneNumber,
+        })
+        .then(async (res) => {
+          console.log(res);
+          await Auth.verifyCurrentUserAttribute("phone_number");
+          setPhoneDiologState("verifyPhone");
+        })
+        .catch((e) => {
+          console.log(e);
+          setInvalidInputError(e.message);
         });
-      // }
+      }
+    } else if (phoneDialogState === "verifyPhone") {
+      if (verificationCode === "") {
+        setInvalidInputError(true)
+      } else {
+        await Auth.verifyCurrentUserAttributeSubmit(
+          "phone_number",
+          verificationCode
+        )
+        .then(() => {
+          setPhoneDiologState("phoneSaved");
+        })
+        .catch((e) => {
+          setInvalidInputError(true);
+        });
+      }
     } else {
-      setOpenPhoneDialog(false)
+      setOpenPhoneDialog(false);
     }
-  }
+  };
 
   const handleCloseNotificationDialog = () => {
     setNoTopicSelected(false)

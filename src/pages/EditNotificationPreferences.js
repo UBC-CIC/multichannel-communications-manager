@@ -13,8 +13,9 @@ import {
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
 import { Auth, API, graphqlOperation } from "aws-amplify";
-import { getUserByEmail, getCategoriesByUserId, getTopicsOfCategoryByAcronym } from "../graphql/queries";
+import { getUserByEmail, getCategoriesByUserId, getUserCategoryTopicByUserId } from "../graphql/queries";
 import UnsubscribeDialog from "../components/UnsubscribeDialog";
+import PhoneNumberDialog from "../components/PhoneNumberDialog";
 import { userUnfollowCategory, userUpdateChannelPrefrence } from "../graphql/mutations";
 
 const EditNotificationPreferences = () => {
@@ -28,18 +29,27 @@ const EditNotificationPreferences = () => {
   const [title, setTitle] = useState("");
   const [notificationType, setNotificationType] = useState("");
   const [openUnsubscribeDialog, setOpenUnsubscribeDialog] = useState(false);
+  const [userPhone, setUserPhone] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [invalidInputError, setInvalidInputError] = useState(false);
+  const [phoneDialogState, setPhoneDiologState] = useState("verifyPhone");
+  const [user, setUser] = useState("");
+  const [openPhoneDialog, setOpenPhoneDialog] = useState(false);
 
   async function queriedData() {
     try {
       const returnedUser = await Auth.currentAuthenticatedUser();
-      let user = await API.graphql(
+      setUser(returnedUser);
+      setUserPhone(returnedUser.attributes.phoneNumber);
+      let databaseUser = await API.graphql(
         graphqlOperation(getUserByEmail, {
           user_email: returnedUser.attributes.email,
         })
       );
       let categories = await API.graphql(
         graphqlOperation(getCategoriesByUserId, {
-          user_id: user.data.getUserByEmail.user_id,
+          user_id: databaseUser.data.getUserByEmail.user_id,
         })
       );
       let noDuplicates = categories.data.getCategoriesByUserId.filter((value, index, self) =>
@@ -47,8 +57,7 @@ const EditNotificationPreferences = () => {
           t.acronym === value.acronym
         ))
       )
-      console.log(noDuplicates)
-      setUserID(user.data.getUserByEmail.user_id)
+      setUserID(databaseUser.data.getUserByEmail.user_id)
       setInitialTopics(noDuplicates);
       setTopics(noDuplicates);
     } catch (e) {
@@ -81,7 +90,6 @@ const EditNotificationPreferences = () => {
 
   function handleEmailChange(e) {
     const test = [...topics];
-    // console.log(test);
     const { id } = e.target;
     setTopicIndex({ index: id, type: "email_notice" });
     test[id].email_notice = !topics[id].email_notice;
@@ -90,12 +98,58 @@ const EditNotificationPreferences = () => {
 
   function handleTextChange(e) {
     const test = [...topics];
-    // console.log(test)
     const { id } = e.target;
     setTopicIndex({ index: id, type: "sms_notice" });
     test[id].sms_notice = !topics[id].sms_notice;
     unSubscribe(test[id], test);
   }
+
+  const handleClosePhoneDialog = () => {
+    handleUnsubscribeClose()
+    setOpenPhoneDialog(false);
+  };
+
+  const handleSavePhoneDialog = async () => {
+    // await Auth.verifyCurrentUserAttribute(
+    //   "phone_number",
+    //   verificationCode
+    // ).then(setPhoneDiologState("phoneSaved")).catch(e=>console.log(e))
+    if (phoneDialogState === "noPhone") {
+      if (phoneNumber === "") {
+        setInvalidInputError(true)
+      } else {
+        await Auth.updateUserAttributes(user, {
+          "phone_number": phoneNumber,
+        })
+        .then(async (res) => {
+          console.log(res);
+          await Auth.verifyCurrentUserAttribute("phone_number");
+          setPhoneDiologState("verifyPhone");
+        })
+        .catch((e) => {
+          console.log(e);
+          setInvalidInputError(e.message);
+        });
+      }
+    } else if (phoneDialogState === "verifyPhone") {
+      if (verificationCode === "") {
+        setInvalidInputError(true)
+      } else {
+        await Auth.verifyCurrentUserAttributeSubmit(
+          "phone_number",
+          verificationCode
+        )
+        .then(() => {
+          setPhoneDiologState("phoneSaved");
+        })
+        .catch((e) => {
+          setInvalidInputError(true);
+        });
+      }
+    } else {
+      setOpenPhoneDialog(false);
+    }
+  };
 
   async function unSubscribe(topic, updatedTopics) {
     if (!topic.sms_notice && !topic.email_notice) {
@@ -115,20 +169,26 @@ const EditNotificationPreferences = () => {
       setOpenUnsubscribeDialog(true);
       setFilterRemovedTopics(topic);
     } else {
-      let getTopics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
-        category_acronym: topic.acronym
-      }))
-      let topics = getTopics.data.getTopicsOfCategoryByAcronym
-      for (let i = 0; i < topics.length; i++) {
-        await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
-          user_id: userID,
-          category_acronym: topic.acronym,
-          topic_acronym: topics[i].acronym,
-          email_notice: topic.email_notice,
-          sms_notice: topic.sms_notice
-        })).then(res => console.log(res))
+      // setOpenPhoneDialog(true)
+      if (userPhone === undefined) {
+        setOpenPhoneDialog(true);
+      } else {
+        let getTopics = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {
+          user_id: userID
+        }))
+        let topics = getTopics.data.getUserCategoryTopicByUserId
+        let topicsUserSubscribedTo = topics.filter((s) => s.category_acronym === topic.acronym)
+        for (let i = 0; i < topicsUserSubscribedTo.length; i++) {
+          await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
+            user_id: userID,
+            category_acronym: topic.acronym,
+            topic_acronym: topicsUserSubscribedTo[i].topic_acronym,
+            email_notice: topic.email_notice,
+            sms_notice: topic.sms_notice
+          }))
+        }
+        setTopics(updatedTopics);
       }
-      setTopics(updatedTopics);
     }
   }
 
@@ -147,19 +207,20 @@ const EditNotificationPreferences = () => {
       setInitialTopics(updateWithRemovedTopics)
       setTopics(updateWithRemovedTopics);
     } else {
-        let getTopics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
-          category_acronym: filterRemovedTopics.acronym
+      let getTopics = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {
+        user_id: userID
+      }))
+      let topics = getTopics.data.getUserCategoryTopicByUserId
+      let topicsUserSubscribedTo = topics.filter((s) => s.category_acronym === filterRemovedTopics.acronym)
+      for (let i = 0; i < topicsUserSubscribedTo.length; i++) {
+        await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
+          user_id: userID,
+          category_acronym: filterRemovedTopics.acronym,
+          topic_acronym: topicsUserSubscribedTo[i].topic_acronym,
+          email_notice: filterRemovedTopics.email_notice,
+          sms_notice: filterRemovedTopics.sms_notice
         }))
-        let topics = getTopics.data.getTopicsOfCategoryByAcronym
-        for (let i = 0; i < topics.length; i++) {
-          await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
-            user_id: userID,
-            category_acronym: filterRemovedTopics.acronym,
-            topic_acronym: topics[i].acronym,
-            email_notice: filterRemovedTopics.email_notice,
-            sms_notice: filterRemovedTopics.sms_notice
-          }))
-        }
+      }
     }
     setOpenUnsubscribeDialog(false);
   }
@@ -170,7 +231,7 @@ const EditNotificationPreferences = () => {
         !topics[topicIndex.index].email_notice;
     } else {
       topics[topicIndex.index].sms_notice =
-        !topics[topicIndex.index].email_notice;
+        !topics[topicIndex.index].sms_notice;
     }
     setOpenUnsubscribeDialog(false);
   }
@@ -283,6 +344,18 @@ const EditNotificationPreferences = () => {
         title={title}
         notificationType={notificationType}
         handleSave={handleUnsubscribe}
+      />
+      <PhoneNumberDialog
+        open={openPhoneDialog}
+        handleClose={handleClosePhoneDialog}
+        handleSave={handleSavePhoneDialog}
+        state={phoneDialogState}
+        phone={phoneNumber}
+        setPhone={setPhoneNumber}
+        code={verificationCode}
+        setCode={setVerificationCode}
+        inputError={invalidInputError}
+        setInputError={setInvalidInputError}
       />
     </>
   );

@@ -93,10 +93,12 @@ const ViewTopics = () => {
   }, [currentlySelectedTopic]);
 
   const handleCheck = async (e) => {
+    setImage([])
     if (e.target.checked) {
-      // getCategoryImages(userData)
+      getCategoryImages(userData)
       setSampleTopics(userData)
     } else {
+      getCategoryImages(topics)
       setSampleTopics(topics)
     }
   }

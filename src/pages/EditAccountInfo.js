@@ -6,6 +6,7 @@ import useLeavingDialogPrompt from "../hooks/useLeavingDialogPrompt"
 import { LeaveWithoutSavingDialog } from "../components/LeaveWithoutSavingDialog";
 import { getUserByEmail } from "../graphql/queries";
 import { updateUser } from "../graphql/mutations";
+import EmailChangeDialog from "../components/EmailChangeDialog";
 
 const EditAccountInfo = () => {
   const provinceOptions = [
@@ -25,6 +26,7 @@ const EditAccountInfo = () => {
   ];
 
   const [userData, setUserData] = useState({});
+  const [originalEmail, setOriginalEmail] = useState('');
   const [province, setProvince] = useState("")
   const [alert, setAlert] = useState(false);
   const [alertContent, setAlertContent] = useState('');
@@ -36,6 +38,10 @@ const EditAccountInfo = () => {
   const [invalidPhoneError, setInvalidPhoneError] = useState(false);
   const [canShowPrompt, setCanShowPrompt] = useState(false)
   const [showPrompt, confirmNav, cancelNav] = useLeavingDialogPrompt(canShowPrompt)
+  const [openEmailConfirmDialog, setOpenEmailConfirmDialog] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [invalidInputError, setInvalidInputError] = useState(false);
+  const [emailConfirmDialogState, setEmailConfirmDialogState] = useState("verifyEmail");
 
   function convertAcronymToProvince(acronym) {
     let province;
@@ -105,6 +111,7 @@ const EditAccountInfo = () => {
     async function retrieveUser() {
       try {
         const returnedUser = await Auth.currentAuthenticatedUser();
+        setOriginalEmail(returnedUser.attributes.email)
         let user = await API.graphql(graphqlOperation(getUserByEmail, { user_email: returnedUser.attributes.email }));
         setUserData(user.data.getUserByEmail)
         setProvince(convertAcronymToProvince(user.data.getUserByEmail.province))
@@ -179,7 +186,7 @@ const EditAccountInfo = () => {
   async function update() {
     const user = await Auth.currentAuthenticatedUser();
     await Auth.updateUserAttributes(user, {
-      'email': userData.email_address,
+      email: userData.email_address,
       'custom:province': userData.province,
       'custom:postal_code': userData.postal_code
     })
@@ -193,10 +200,39 @@ const EditAccountInfo = () => {
   }
 
   async function successAlert() {
-    await API.graphql(graphqlOperation(updateUser, userData))
-    setAlert(true);
-    setAlertContent('Your changes have been successfully saved.');
+    if (originalEmail !== userData.email_address) {
+      setOpenEmailConfirmDialog(true)
+    } else {
+      await API.graphql(graphqlOperation(updateUser, userData))
+      setAlert(true);
+      setAlertContent('Your changes have been successfully saved.');
+    }
   }
+
+  const handleEmailConfirmDialog = async () => {
+    if (emailConfirmDialogState === "verifyEmail") {
+      if (verificationCode === "") {
+        setInvalidInputError(true)
+      } else {
+        await Auth.verifyCurrentUserAttributeSubmit(
+          "email",
+          verificationCode
+        )
+        .then(() => {
+          setEmailConfirmDialogState("emailUpdated");
+        })
+        .catch((e) => {
+          setInvalidInputError(true);
+        });
+      }
+    } else {
+      setOpenEmailConfirmDialog(false);
+      await API.graphql(graphqlOperation(updateUser, userData))
+      setAlert(true);
+      setAlertContent('Your changes have been successfully saved.');
+      await Auth.currentSession().then(await Auth.currentAuthenticatedUser({ bypassCache: true }))
+    }
+  };
 
   return (
     <>
@@ -290,6 +326,17 @@ const EditAccountInfo = () => {
             </Button>
           </Grid>
       </Grid>
+      <EmailChangeDialog
+        open={openEmailConfirmDialog}
+        handleClose={() => {setInvalidInputError(false); setOpenEmailConfirmDialog(false)}}
+        handleSave={handleEmailConfirmDialog}
+        state={emailConfirmDialogState}
+        email={userData.email_address}
+        code={verificationCode}
+        setCode={setVerificationCode}
+        inputError={invalidInputError}
+        setInputError={setInvalidInputError}
+      />
     </>
   );
 };

@@ -53,6 +53,7 @@ const Admin = () => {
   const topicsPerPage = 10;
 
   async function queriedData() {
+    setImage([])
     let categories = await API.graphql(graphqlOperation(getAllCategories))
     let allCategories = categories.data.getAllCategories
     setTopics(allCategories)

@@ -51,16 +51,6 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   const [userSubscribedNotifications, setUserSubscribedNotifications] = useState({})
   const [image, setImage] = useState('');
 
-  //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
-  // const sampleSubtopics = [
-  //   "COVID-19",
-  //   "Subtopic 2",
-  //   "Subtopic 3",
-  //   "Subtopic 4",
-  // ];
-  // const userSubscribedSubtopics = {topic_acronym: ['Covid-19', 'Subtopic 2'], email_notice: true, sms_notice: false};
-  // const userSubscribedSubtopics = null;
-
   async function getSubtopics(id) {
     let getUserSubscribed = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {user_id: id}))
     let userSubscribedSubtopics = getUserSubscribed.data.getUserCategoryTopicByUserId
@@ -120,9 +110,12 @@ const ViewTopicsCard = ({ selectedTopic }) => {
 
   const handleSavePhoneDialog = async () => {
     if (phoneDialogState === "noPhone") {
-      await Auth.updateUserAttributes(user, {
-        phone_number: phoneNumber,
-      })
+      if (phoneNumber === "") {
+        setInvalidInputError(true)
+      } else {
+        await Auth.updateUserAttributes(user, {
+          "phone_number": phoneNumber,
+        })
         .then(async (res) => {
           console.log(res);
           await Auth.verifyCurrentUserAttribute("phone_number");
@@ -132,34 +125,22 @@ const ViewTopicsCard = ({ selectedTopic }) => {
           console.log(e);
           setInvalidInputError(e.message);
         });
-      // if (phoneNumber === "" || !checkPhone(phoneNumber)) {
-      //   setInvalidInputError(true)
-      // } else {
-      //   await Auth.updateUserAttributes(user, {
-      //     phone_number: phoneNumber,
-      //   })
-      //     .catch((e) => {
-      //       console.log(e)
-      //     })
-      //   setPhoneDiologState("verifyPhone")
-      // }
+      }
     } else if (phoneDialogState === "verifyPhone") {
-      // if (verificationCode === "") {
-      //   setInvalidInputError(true)
-      // } else {
-      await Auth.verifyCurrentUserAttributeSubmit(
-        "phone_number",
-        verificationCode
-      )
+      if (verificationCode === "") {
+        setInvalidInputError(true)
+      } else {
+        await Auth.verifyCurrentUserAttributeSubmit(
+          "phone_number",
+          verificationCode
+        )
         .then(() => {
-          console.log("phone number verified");
           setPhoneDiologState("phoneSaved");
         })
         .catch((e) => {
-          console.log("failed with error", e);
           setInvalidInputError(true);
         });
-      // }
+      }
     } else {
       setOpenPhoneDialog(false);
     }
