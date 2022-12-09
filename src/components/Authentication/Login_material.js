@@ -114,17 +114,22 @@ function Login(props) {
   };
 
   function checkPostal(postal) {
-    var regex = new RegExp(/^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ]( )?\d[ABCEGHJKLMNPRSTVWXYZ]\d$/i);
-    if (regex.test(postal))
-      return true;
+    var regex = new RegExp(
+      /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ]( )?\d[ABCEGHJKLMNPRSTVWXYZ]\d$/i
+    );
+    if (regex.test(postal)) return true;
     else return false;
   }
 
   const handleDisplayStep2 = () => {
-    if (formState.email === "" || formState.postal_code === "" || formState.province === "") {
-      setInputsNotFilled(true)
+    if (
+      formState.email === "" ||
+      formState.postal_code === "" ||
+      formState.province === ""
+    ) {
+      setInputsNotFilled(true);
     } else if (!checkPostal(formState.postal_code)) {
-      setInvalidPostalCodeError(true)
+      setInvalidPostalCodeError(true);
     } else {
       //sign user up
       signUp();
@@ -137,10 +142,10 @@ function Login(props) {
     setVerificationError(false);
     setNewVerification(false);
     setInvalidEmailError(false);
-    setInvalidPostalCodeError(false)
-    setInputsNotFilled(false)
-    setEmptyAuthCode(false)
-    setUserExistError(false)
+    setInvalidPostalCodeError(false);
+    setInputsNotFilled(false);
+    setEmptyAuthCode(false);
+    setUserExistError(false);
   }
 
   //updates province dropdown value or text box input fields for the General Information form step
@@ -159,7 +164,7 @@ function Login(props) {
   function onKeyDownSignIn(e) {
     if (e.keyCode === 13) {
       if (e.target.value === "") {
-        setInvalidEmailError(true)
+        setInvalidEmailError(true);
       } else {
         signIn();
       }
@@ -199,13 +204,13 @@ function Login(props) {
           "custom:postal_code": postal_code,
         },
         autoSignIn: {
-          enabled: true
-        }
+          enabled: true,
+        },
       });
       setCognitoUser(data.user);
       // updateFormState(() => ({ ...initialFormState, email }));
       setLoading(false);
-      
+
       updateLoginState("confirmSignUp");
       handleNextStep();
     } catch (e) {
@@ -250,10 +255,10 @@ function Login(props) {
     try {
       await Auth.sendCustomChallengeAnswer(cognitoUser, formState.authCode);
     } catch (e) {
-      const errorMsg = e.message
+      const errorMsg = e.message;
       if (errorMsg.includes("Incorrect username or password.")) {
-        updateLoginState("signIn")
-        setAccountLoginError(true)
+        updateLoginState("signIn");
+        setAccountLoginError(true);
       }
     }
     // It we get here, the answer was sent successfully,
@@ -261,19 +266,19 @@ function Login(props) {
     // So we should test if the user is authenticated now
     try {
       // This will throw an error if the user is not yet authenticated:
-      let user = await Auth.currentAuthenticatedUser()
-      let group = user.signInUserSession.accessToken.payload['cognito:groups']
+      let user = await Auth.currentAuthenticatedUser();
+      let group = user.signInUserSession.accessToken.payload["cognito:groups"];
       if (group === undefined) {
         updateLoginState("signedIn");
       } else {
-        if (group.includes('Admins')) {
+        if (group.includes("Admins")) {
           updateLoginState("Admin");
         }
       }
     } catch (e) {
-      const errorMsg = e.message 
+      const errorMsg = e.message;
       if (errorMsg.includes("No current user")) {
-        setVerificationError(true)
+        setVerificationError(true);
       }
     }
   }
@@ -281,38 +286,38 @@ function Login(props) {
   function convertProvinceToAcronym(province) {
     let acronym;
     if (province === "Alberta") {
-      acronym = "AB"
+      acronym = "AB";
     } else if (province === "British Columbia") {
-      acronym = "BC"
+      acronym = "BC";
     } else if (province === "Manitoba") {
-      acronym = "MB"
+      acronym = "MB";
     } else if (province === "New Brunswick") {
-      acronym = "NB"
+      acronym = "NB";
     } else if (province === "Newfoundland and Labrador") {
-      acronym = "NL"
+      acronym = "NL";
     } else if (province === "Northwest Territories") {
-      acronym = "NT"
+      acronym = "NT";
     } else if (province === "Nova Scotia") {
-      acronym = "NS"
+      acronym = "NS";
     } else if (province === "Nunavut") {
-      acronym = "NU"
+      acronym = "NU";
     } else if (province === "Ontario") {
-      acronym = "ON"
+      acronym = "ON";
     } else if (province === "Prince Edward Island") {
-      acronym = "PE"
+      acronym = "PE";
     } else if (province === "Quebec") {
-      acronym = "QC"
+      acronym = "QC";
     } else if (province === "Saskatchewan") {
-      acronym = "SK"
+      acronym = "SK";
     } else {
-      acronym = "YT"
+      acronym = "YT";
     }
-    return acronym
+    return acronym;
   }
 
   const verifyEmail = () => {
     if (formState.authCode === "") {
-      setEmptyAuthCode(true)
+      setEmptyAuthCode(true);
     } else {
       //the following if block runs during user sign up
       if (loginState === "confirmSignUp" && formState.authCode) {
@@ -323,20 +328,24 @@ function Login(props) {
           forceAliasCreation: true,
         })
           .then(async (data) => {
-            let prov = convertProvinceToAcronym(formState.province)
+            let prov = convertProvinceToAcronym(formState.province);
             const userData = {
               email_address: formState.email,
               postal_code: formState.postal_code,
-              province: prov
-            }
-            // await API.graphql(graphqlOperation(createUser, userData))
-            handleNextStep()
+              province: prov,
+            };
+            await API.graphql(graphqlOperation(createUser, userData));
+            handleNextStep();
           })
           .catch((e) => {
             const errorMsg = e.message;
-            console.log(e)
-            if (errorMsg.includes("Invalid verification code provided, please try again.")) {
-              setVerificationError(true)
+            console.log(e);
+            if (
+              errorMsg.includes(
+                "Invalid verification code provided, please try again."
+              )
+            ) {
+              setVerificationError(true);
             }
           });
       }
@@ -350,22 +359,22 @@ function Login(props) {
   /* functions for user sign in */
   async function signIn() {
     try {
-      setLoading(true)
+      setLoading(true);
       const { email } = formState;
       if (email === "") {
-        setInvalidEmailError(true)
+        setInvalidEmailError(true);
       } else {
         let currentUser = await Auth.signIn(email);
         setCognitoUser(currentUser);
         updateLoginState("verifyEmail");
         setActiveStep(1);
       }
-      setLoading(false)
+      setLoading(false);
     } catch (e) {
       setLoading(false);
       const errorMsg = e.message;
       if (errorMsg.includes("User does not exist.")) {
-        setUserExistError(true)
+        setUserExistError(true);
       }
     }
   }
@@ -529,7 +538,7 @@ function Login(props) {
                   type={"email"}
                   error={accountCreationEmailExistError || invalidEmailError}
                   helperText={
-                    (!!invalidEmailError && "Please enter a valid email.")
+                    !!invalidEmailError && "Please enter a valid email."
                   }
                   onChange={onChange}
                   onKeyDown={onKeyDownSignIn}
@@ -631,7 +640,8 @@ function Login(props) {
                     name={"postal_code"}
                     error={invalidPostalCodeError}
                     helperText={
-                      (!!invalidPostalCodeError && "Please enter a valid postal code.")
+                      !!invalidPostalCodeError &&
+                      "Please enter a valid postal code."
                     }
                     type="text"
                     onChange={onChange}
@@ -677,8 +687,7 @@ function Login(props) {
                     name={"authCode"}
                     error={emptyAuthCode}
                     helperText={
-                      (!!emptyAuthCode &&
-                        "This field must be filled out.")
+                      !!emptyAuthCode && "This field must be filled out."
                     }
                     type="text"
                     autoComplete={"new-password"}
@@ -708,7 +717,11 @@ function Login(props) {
             )}
 
             {/* Redirect to Homepage Step*/}
-            {activeStep === 3 && <ProfileCreationSuccess login={() => updateLoginState("signedIn")} />}
+            {activeStep === 3 && (
+              <ProfileCreationSuccess
+                login={() => updateLoginState("signedIn")}
+              />
+            )}
           </Grid>
         </Grid>
       </Grid>

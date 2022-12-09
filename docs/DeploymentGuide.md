@@ -35,7 +35,7 @@ cd multichannel-communications-manager
 
 # Step 2: Frontend Deployment
 
-Before installing Amplify we need to create the IAM Role that gives us the permissions needed to implement this solution. Run the following line of code:
+<!-- Before installing Amplify we need to create the IAM Role that gives us the permissions needed to implement this solution. Run the following line of code:
 
 ```bash
 aws cloudformation deploy --template-file cfn-amplifyRole.yaml --stack-name amplifyconsole-commit2act-backend-role --capabilities CAPABILITY_NAMED_IAM
@@ -51,11 +51,11 @@ This step creates the IAM role called **amplifyconsole-commit2act-backend-role**
 
 The **Deploy to Amplify Console** button will take you to your AWS console to deploy the front-end solution.
 
-<a href="https://console.aws.amazon.com/amplify/home#/deploy?repo=https://github.com/UBC-CIC/commit2act">
+<!-- <a href="https://console.aws.amazon.com/amplify/home#/deploy?repo=https://github.com/UBC-CIC/commit2act"> -->
     <img src="https://oneclick.amplifyapp.com/button.svg" alt="Deploy to Amplify Console">
-</a>
+<!-- </a> -->
 
-1. On the AWS console. select your region on the top right, then connect to GitHub. The region you deploy to has to be one of the following, or the process will fail: [us-east-1, us-east-2, us-west-1, us-west-2, ap-south-1, ap-northeast-1, ap-northeast-2, ap-southeast-1, ap-southeast-2, eu-central-1, eu-west-1, eu-west-2]![Amplify console main screen](images/amplify-console-01.PNG)
+<!-- 1. On the AWS console. select your region on the top right, then connect to GitHub. The region you deploy to has to be one of the following, or the process will fail: [us-east-1, us-east-2, us-west-1, us-west-2, ap-south-1, ap-northeast-1, ap-northeast-2, ap-southeast-1, ap-southeast-2, eu-central-1, eu-west-1, eu-west-2]![Amplify console main screen](images/amplify-console-01.PNG)
 2. Select the **amplifyconsole-commit2act-backend-role** we made previously for the deployment role, and then press the orange button at the bottom of the page, and then press `Continue` when that pops up![alt text](images/amplify-console-02.png)
 3. The deployment will take a few minutes. Wait until the status shows **Verify** in green![alt text](images/amplify-console-03.png)
 4. Click on left taskbar to open menu, click on Rewrites and redirects, and click on edit![alt text](images/amplify-console-04.png)
@@ -63,7 +63,7 @@ The **Deploy to Amplify Console** button will take you to your AWS console to de
    Refer to [AWS's Page on Single Page Apps](https://docs.aws.amazon.com/amplify/latest/userguide/redirects.html#redirects-for-single-page-web-apps-spa) for further information on why we did that
    ![alt text](images/amplify-console-05.png)
 
-The frontend is almost finished being set up, but first we need to deploy our backend.
+The frontend is almost finished being set up, but first we need to deploy our backend.  -->
 
 # Step 3: Backend Deployment
 
@@ -92,7 +92,7 @@ If at any point you make a typo, you can press CTRL+C to cancel the process, and
 
 The following block of text is what will appear when running the command. It is a series of inputs to enter into the template, which will go line by line. Any text in `[square brackets]` is part of what will appear on screen, and these are the default values. If you are satisfied with that value for the input, you can just press enter. If there is no text in the brackets, that means it is required you enter something yourself as the input. Text in `<angled brackets>` has been added by me to help explain what to input. If there are no angled brackets, that means it is recommended just to use the default value provided, however they can be modified if wanted. Any text in `(rounded brackets)` will appear below a certain input. This will tell any important information to know about the input that is above. Spacing has been added for clarity.
 
-```
+<!-- ```
 Configuring SAM deploy
 ======================
    Looking for config file [samconfig.toml] :  Not found
@@ -146,13 +146,13 @@ Configuring SAM deploy
       (This file will be made for you, just press enter)
    SAM configuration environment [default]:
       (You can have multiple different environments, each having different saved inputs, but for now just press enter since we do not need to worry about that for this deployment)
-```
+``` -->
 
-Be sure to not close the window after this process has completed, as the Outputs section produced will be imortant for the next step.
+Be sure to not close the window after this process has completed, as the Outputs section produced will be important for the next step.
 
 # Step 5: Wrap up Frontend Deployment
 
-We need to add one more thing to our Amplify project before we are all done with deploying.
+<!-- We need to add one more thing to our Amplify project before we are all done with deploying.
 
 1. Copy the CloudFormation output called CloudFrontDistributionDomainName
 
@@ -165,7 +165,7 @@ We need to add one more thing to our Amplify project before we are all done with
 4. Click the `Redeploy this version` button to rebuild the app with the updated environment variables
    ![alt text](images/amplify-console-07.png)
 
-Congratulations, your web app is now deployed! You can find the website URL on the main screen of Amplify under `Hosting environments`, and then clicking on the web-browser-esque image under `main`.
+Congratulations, your web app is now deployed! You can find the website URL on the main screen of Amplify under `Hosting environments`, and then clicking on the web-browser-esque image under `main`. -->
 
 # Step 6: Log into Admin Account
 
