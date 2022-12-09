@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "serviceConfiguration": {
+    "apiName": "ised",
+    "serviceName": "AppSync",
+    "defaultAuthType": {
+      "mode": "API_KEY",
+      "expirationTime": 10,
+      "apiKeyExpirationDate": "2022-12-05T22:53:02.346Z",
+      "keyDescription": "rds appsync api key"
+    },
+    "conflictResolution": {},
+    "additionalAuthTypes": []
+  }
+}
