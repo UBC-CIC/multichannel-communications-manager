@@ -24,7 +24,7 @@ First, clone the GitHub repository onto your machine. To do this:
 3. Clone the github repository by entering the following:
 
 ```bash
-git clone <link to public repo>
+git clone https://github.com/UBC-CIC/multichannel-communications-manager.git
 ```
 
 The code should now be in the folder you created. Navigate into the frontend folder containing the Amplify project by running the command:
@@ -35,10 +35,10 @@ cd multichannel-communications-manager
 
 # Step 2: Frontend Deployment
 
-<!-- Before installing Amplify we need to create the IAM Role that gives us the permissions needed to implement this solution. Run the following line of code:
+Before installing Amplify we need to create the IAM Role that gives us the permissions needed to implement this solution. Run the following line of code:
 
 ```bash
-aws cloudformation deploy --template-file cfn-amplifyRole.yaml --stack-name amplifyconsole-commit2act-backend-role --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation deploy --template-file cfn-amplifyRole.yaml --stack-name amplifyconsole-ised-backend-role --capabilities CAPABILITY_NAMED_IAM
 ```
 
 If you have multiple AWS Profiles, specify one with sufficient admin permissions by appending the following text to the end of the command, replacing the profile name with the profile you would like to use for the solution (If you do this, be sure to include the same `--profile` argument for the rest of the commands starting with `aws`. The profile you are using for this project should have administrator privliges).
@@ -47,13 +47,13 @@ If you have multiple AWS Profiles, specify one with sufficient admin permissions
 --profile [PROFILE NAME]
 ```
 
-This step creates the IAM role called **amplifyconsole-commit2act-backend-role** that will be used on the next step.
+This step creates the IAM role called **amplifyconsole-ised-backend-role** that will be used on the next step.
 
 The **Deploy to Amplify Console** button will take you to your AWS console to deploy the front-end solution.
 
-<!-- <a href="https://console.aws.amazon.com/amplify/home#/deploy?repo=https://github.com/UBC-CIC/commit2act"> -->
+<a href="https://console.aws.amazon.com/amplify/home#/deploy?repo=https://github.com/UBC-CIC/multichannel-communications-manager.git">
     <img src="https://oneclick.amplifyapp.com/button.svg" alt="Deploy to Amplify Console">
-<!-- </a> -->
+</a>
 
 <!-- 1. On the AWS console. select your region on the top right, then connect to GitHub. The region you deploy to has to be one of the following, or the process will fail: [us-east-1, us-east-2, us-west-1, us-west-2, ap-south-1, ap-northeast-1, ap-northeast-2, ap-southeast-1, ap-southeast-2, eu-central-1, eu-west-1, eu-west-2]![Amplify console main screen](images/amplify-console-01.PNG)
 2. Select the **amplifyconsole-commit2act-backend-role** we made previously for the deployment role, and then press the orange button at the bottom of the page, and then press `Continue` when that pops up![alt text](images/amplify-console-02.png)

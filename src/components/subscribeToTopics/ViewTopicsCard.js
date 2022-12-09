@@ -45,6 +45,7 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   const [invalidInputError, setInvalidInputError] = useState(false);
   const [phoneDialogState, setPhoneDialogState] = useState("noPhone");
   const [userID, setUserID] = useState("");
+  const [user, setUser] = useState('')
   const [subtopics, setSubtopics] = useState([]);
   const [userAlreadySubscribed, setUserAlreadySubscribed] = useState(false);
   const [userSubscribedNotifications, setUserSubscribedNotifications] = useState({})
@@ -82,6 +83,7 @@ const ViewTopicsCard = ({ selectedTopic }) => {
     async function retrieveUser() {
       try {
         const returnedUser = await Auth.currentAuthenticatedUser();
+        setUser(returnedUser)
         setUserPhone(returnedUser.attributes.phoneNumber);
         let getUserId = await API.graphql(graphqlOperation(getUserByEmail, {
           user_email: returnedUser.attributes.email
@@ -107,25 +109,30 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   }
 
   const handleSavePhoneDialog = async () => {
-    if (phoneDialogState === "noPhone") {
-      if (phoneNumber === "" || !checkPhone(phoneNumber)) {
-        setInvalidInputError(true)
+    try {
+      if (phoneDialogState === "noPhone") {
+        if (phoneNumber === "" || !checkPhone(phoneNumber)) {
+          setInvalidInputError(true)
+        } else {
+          await Auth.updateUserAttributes(user, {
+            "phone_number": phoneNumber
+          }).then(setPhoneDialogState("verifyPhone"))
+        }
+      } else if (phoneDialogState === "verifyPhone") {
+        if (verificationCode === "") {
+          setInvalidInputError(true)
+        } else {
+          await Auth.verifyCurrentUserAttributeSubmit(
+            "phone_number",
+            verificationCode
+          ).then(setPhoneDialogState("phoneSaved"))
+        }
       } else {
-        setPhoneDialogState("verifyPhone")
+        setOpenPhoneDialog(false);
       }
-    } else if (phoneDialogState === "verifyPhone") {
-      await Auth.verifyCurrentUserAttributeSubmit(
-        "phone_number",
-        verificationCode
-      )
-      .then(() => {
-        setPhoneDialogState("phoneSaved");
-      })
-      .catch((e) => {
-        setInvalidInputError(true);
-      });
-    } else {
-      setOpenPhoneDialog(false);
+    } catch (e) {
+      console.log(e)
+      setInvalidInputError(true)
     }
   };
 

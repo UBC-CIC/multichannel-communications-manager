@@ -26,6 +26,7 @@ const EditNotificationPreferences = () => {
   const [updateWithRemovedTopics, setUpdateWithRemovedTopics] = useState([]);
   const [filterRemovedTopics, setFilterRemovedTopics] = useState({});
   const [userID, setUserID] = useState("");
+  const [user, setUser] = useState('')
   const [title, setTitle] = useState("");
   const [notificationType, setNotificationType] = useState("");
   const [openUnsubscribeDialog, setOpenUnsubscribeDialog] = useState(false);
@@ -39,6 +40,7 @@ const EditNotificationPreferences = () => {
   async function queriedData() {
     try {
       const returnedUser = await Auth.currentAuthenticatedUser();
+      setUser(returnedUser)
       setUserPhone(returnedUser.attributes.phoneNumber);
       let databaseUser = await API.graphql(
         graphqlOperation(getUserByEmail, {
@@ -121,7 +123,9 @@ const EditNotificationPreferences = () => {
         if (phoneNumber === "" || !checkPhone(phoneNumber)) {
           setInvalidInputError(true)
         } else {
-          setPhoneDialogState("verifyPhone")
+          await Auth.updateUserAttributes(user, {
+            "phone_number": phoneNumber
+          }).then(setPhoneDialogState("verifyPhone"))
         }
       } else if (phoneDialogState === "verifyPhone") {
         if (verificationCode === "") {
