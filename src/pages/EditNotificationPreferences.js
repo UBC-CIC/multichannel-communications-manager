@@ -42,9 +42,15 @@ const EditNotificationPreferences = () => {
           user_id: user.data.getUserByEmail.user_id,
         })
       );
+      let noDuplicates = categories.data.getCategoriesByUserId.filter((value, index, self) =>
+        index === self.findIndex((t) => (
+          t.acronym === value.acronym
+        ))
+      )
+      console.log(noDuplicates)
       setUserID(user.data.getUserByEmail.user_id)
-      setInitialTopics(categories.data.getCategoriesByUserId);
-      setTopics(categories.data.getCategoriesByUserId);
+      setInitialTopics(noDuplicates);
+      setTopics(noDuplicates);
     } catch (e) {
       console.log(e);
     }
@@ -109,17 +115,18 @@ const EditNotificationPreferences = () => {
       setOpenUnsubscribeDialog(true);
       setFilterRemovedTopics(topic);
     } else {
-      let topics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
-        category_acronym: filterRemovedTopics.category_acronym
+      let getTopics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
+        category_acronym: topic.acronym
       }))
+      let topics = getTopics.data.getTopicsOfCategoryByAcronym
       for (let i = 0; i < topics.length; i++) {
         await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
           user_id: userID,
-          category_acronym: topic.category_acronym,
+          category_acronym: topic.acronym,
           topic_acronym: topics[i].acronym,
           email_notice: topic.email_notice,
           sms_notice: topic.sms_notice
-        }))
+        })).then(res => console.log(res))
       }
       setTopics(updatedTopics);
     }
@@ -132,22 +139,22 @@ const EditNotificationPreferences = () => {
   }
 
   async function handleUnsubscribe() {
-    console.log(filterRemovedTopics);
     if (!filterRemovedTopics.email_notice && !filterRemovedTopics.sms_notice) {
       await API.graphql(graphqlOperation(userUnfollowCategory, {
         user_id: userID,
-        category_acronym: filterRemovedTopics.category_acronym
+        category_acronym: filterRemovedTopics.acronym
       }))
       setInitialTopics(updateWithRemovedTopics)
       setTopics(updateWithRemovedTopics);
     } else {
-        let topics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
-          category_acronym: filterRemovedTopics.category_acronym
+        let getTopics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
+          category_acronym: filterRemovedTopics.acronym
         }))
+        let topics = getTopics.data.getTopicsOfCategoryByAcronym
         for (let i = 0; i < topics.length; i++) {
           await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
             user_id: userID,
-            category_acronym: filterRemovedTopics.category_acronym,
+            category_acronym: filterRemovedTopics.acronym,
             topic_acronym: topics[i].acronym,
             email_notice: filterRemovedTopics.email_notice,
             sms_notice: filterRemovedTopics.sms_notice

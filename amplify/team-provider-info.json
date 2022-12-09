@@ -59,6 +59,9 @@
       },
       "storage": {
         "categoryImages": {}
+      },
+      "custom": {
+        "parameterstoreGraphQLApi": {}
       }
     }
   },

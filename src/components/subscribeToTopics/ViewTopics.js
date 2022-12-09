@@ -47,15 +47,26 @@ const ViewTopics = () => {
   const [pageCount, setPageCount] = useState();
   const topicsPerPage = 10;
 
+  async function getCategoryImages(categories) {
+    for (let i = 0; i < categories.length; i++) {
+      let imageURL = await Storage.get(categories[i].picture_location)
+      setImage((prev) => [...prev, imageURL])
+    }  
+  }
+
   async function queriedData() {
     let categories = await API.graphql(graphqlOperation(getAllCategories));
     let allCategories = categories.data.getAllCategories;
     setTopics(allCategories)
     setSampleTopics(allCategories);
-    for (let i = 0; i < allCategories.length; i++) {
-      let imageURL = await Storage.get(allCategories[i].picture_location)
-      setImage((prev) => [...prev, imageURL])
-    }    
+    getCategoryImages(allCategories) 
+    
+    const topicsPageCount =
+    allCategories &&
+      (allCategories.length % 10 === 0
+        ? Math.round(allCategories.length / 10)
+        : Math.floor(allCategories.length / 10 + 1));
+    setPageCount(topicsPageCount);
   }
 
   async function userSubscribedData() {
@@ -66,26 +77,24 @@ const ViewTopics = () => {
     let categories = await API.graphql(graphqlOperation(getCategoriesByUserId, {
       user_id: getUserId.data.getUserByEmail.user_id
     }));
-    let allUserCategories = categories.data.getCategoriesByUserId;
-    setUserData(allUserCategories);
+    let noDuplicates = categories.data.getCategoriesByUserId.filter((value, index, self) =>
+        index === self.findIndex((t) => (
+          t.acronym === value.acronym
+        ))
+      )
+    setUserData(noDuplicates);
   }
 
   //updates pagination
   useEffect(() => {
     queriedData();
     userSubscribedData()
-    //change this to use queried data later
-    const topicsPageCount =
-    topics &&
-      (topics.length % 10 === 0
-        ? Math.round(topics.length / 10)
-        : Math.floor(topics.length / 10 + 1));
-    setPageCount(topicsPageCount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentlySelectedTopic]);
 
-  const handleCheck = (e) => {
+  const handleCheck = async (e) => {
     if (e.target.checked) {
+      // getCategoryImages(userData)
       setSampleTopics(userData)
     } else {
       setSampleTopics(topics)
@@ -97,7 +106,6 @@ const ViewTopics = () => {
       sampleTopics &&
       sampleTopics.length > 0 &&
       sampleTopics
-        .slice((page - 1) * topicsPerPage, page * topicsPerPage)
         .map((topic, index) => (
           <StyledImageListItem
             key={index}
@@ -124,6 +132,7 @@ const ViewTopics = () => {
             <StyledImageListItemBar title={topic.title} position="below" />
           </StyledImageListItem>
         ))
+        .slice((page - 1) * topicsPerPage, page * topicsPerPage)
     );
   };
 

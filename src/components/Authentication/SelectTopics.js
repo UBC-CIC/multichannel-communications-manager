@@ -15,7 +15,7 @@ import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
 import { styled } from "@mui/material/styles";
-import { API, graphqlOperation } from "aws-amplify";
+import { API, graphqlOperation, Storage } from "aws-amplify";
 import { userFollowCategoryTopic } from "../../graphql/mutations";
 import { getAllCategories } from "../../graphql/queries";
 import "./Login.css";
@@ -55,6 +55,7 @@ const SelectTopics = ({ handleNextStep }) => {
   const [selectedSubtopics, setSelectedSubtopics] = useState([]);
   const [saveEnabled, setSaveEnabled] = useState(false);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
+  const [image, setImage] = useState([])
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
@@ -62,20 +63,23 @@ const SelectTopics = ({ handleNextStep }) => {
 
   async function queriedData() {
     let categories = await API.graphql(graphqlOperation(getAllCategories));
-    let filteredData = categories.data.getAllCategories;
-    setSampleTopics(filteredData);
+    let allCategories = categories.data.getAllCategories;
+    setSampleTopics(allCategories);
+    for (let i = 0; i < allCategories.length; i++) {
+      let imageURL = await Storage.get(allCategories[i].picture_location)
+      setImage((prev) => [...prev, imageURL])
+    }    
+
+    const topicsPageCount =
+      allCategories &&
+      (allCategories.length % 3 === 0
+        ? Math.round(allCategories.length / 3)
+        : Math.floor(allCategories.length / 3 + 1));
+    setPageCount(topicsPageCount);
   }
 
-  //updates pagination
   useEffect(() => {
     queriedData();
-    const topicsPageCount =
-      sampleTopics &&
-      (sampleTopics.length % 3 === 0
-        ? Math.round(sampleTopics.length / 3)
-        : Math.floor(sampleTopics.length / 3 + 1));
-    setPageCount(topicsPageCount);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const displayTopicOptions = () => {
@@ -83,7 +87,6 @@ const SelectTopics = ({ handleNextStep }) => {
       sampleTopics &&
       sampleTopics.length > 0 &&
       sampleTopics
-        .slice((page - 1) * topicsPerPage, page * topicsPerPage)
         .map((topic, index) => (
           <StyledImageListItem
             key={index}
@@ -97,17 +100,20 @@ const SelectTopics = ({ handleNextStep }) => {
             }}
             onClick={() => setCurrentlySelectedTopic(topic)}
           >
-            <Box
+            {topic.picture_location !== null ? 
+              <img src={image[index]} alt={topic.title} /> :
+              <Box
               sx={{
                 backgroundColor: "#738DED",
                 width: "100px",
                 height: "100px",
                 borderRadius: "7px",
               }}
-            ></Box>
+            ></Box>}
             <StyledImageListItemBar title={topic.title} position="below" />
           </StyledImageListItem>
         ))
+        .slice((page - 1) * topicsPerPage, page * topicsPerPage)
     );
   };
 

@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import React, { useState, useEffect } from "react";
-import { Auth, API, graphqlOperation } from "aws-amplify"
+import { Auth, API, graphqlOperation, Storage } from "aws-amplify"
 import NotificationPreferencesDialog from "./NotificationPreferencesDialog";
 import "./TopicCard.css";
 import PhoneNumberDialog from "./PhoneNumberDialog";
@@ -29,7 +29,7 @@ const TopicCard = ({
   allSelectedTopics,
   setAllSelectedTopics
 }) => {
-  const { title, description, image } = selectedTopic;
+  const { title, description, picture_location } = selectedTopic;
   const initialNotificationSelection = { text: false, email: false };
   const [openNotificationDialog, setOpenNotificationDialog] = useState(false);
   const [openPhoneDialog, setOpenPhoneDialog] = useState(false);
@@ -49,6 +49,7 @@ const TopicCard = ({
   const [noTopicSelected, setNoTopicSelected] = useState(false)
   const [noPreferenceSelected, setNoPreferenceSelected] = useState(false)
   const [userID, setUserID] = useState("")
+  const [image, setImage] = useState('')
   //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
   // const subtopics = ["COVID-19", "Subtopic 2", "Subtopic 3", "Subtopic 4"];
 
@@ -72,6 +73,11 @@ const TopicCard = ({
         console.log(e);
       }
     }
+    async function getCategoryImage() {
+      let imageURL = await Storage.get(picture_location)
+      setImage(imageURL)
+    }
+    getCategoryImage()
     retrieveUser();
     setSaveEnabled(false)
   }, []);
@@ -177,7 +183,7 @@ const TopicCard = ({
         for (let i = 0; i < allSelectedTopicsTemp.length; i++) {
           if (allSelectedTopicsTemp[i].category_acronym === selectedTopic.acronym) {
             let userSubscribeData = {
-              user_id: 'userID',
+              user_id: userID,
               category_acronym: selectedTopic.acronym,
               topic_acronym: alteredSubtopic[x],
               email_notice: allSelectedTopicsTemp[i].email_notice,
@@ -248,8 +254,8 @@ const TopicCard = ({
               fontWeight: "400",
             }}
           />
-          {image ? (
-            <CardMedia component={"img"} height="120" />
+          {picture_location !== null ? (
+            <CardMedia component={"img"} image={image} sx={{objectFit: 'fill'}} height="150" />
           ) : (
             <Box
               sx={{

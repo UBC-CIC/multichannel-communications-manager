@@ -49,7 +49,7 @@ const ViewTopicsCard = ({ selectedTopic }) => {
   const [subtopics, setSubtopics] = useState([]);
   const [userAlreadySubscribed, setUserAlreadySubscribed] = useState(false);
   const [userSubscribedNotifications, setUserSubscribedNotifications] = useState({})
-  const [image, setImage] = useState([]);
+  const [image, setImage] = useState('');
 
   //example subtopics: these are hard coded for now but to be replaced with the queried subtopics for each topic of interest
   // const sampleSubtopics = [

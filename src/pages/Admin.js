@@ -61,18 +61,18 @@ const Admin = () => {
       let imageURL = await Storage.get(allCategories[i].picture_location)
       setImage((prev) => [...prev, imageURL])
     }    
+
+    const topicsPageCount =
+    allCategories &&
+      (allCategories.length % 10 === 0
+        ? Math.round(allCategories.length / 10)
+        : Math.floor(allCategories.length / 10 + 1));
+    setPageCount(topicsPageCount);
   }
 
   //updates pagination
   useEffect(() => {
     queriedData()
-    //change this to use queried data later
-    const topicsPageCount =
-    topicsTemp &&
-      (topicsTemp.length % 10 === 0
-        ? Math.round(topicsTemp.length / 10)
-        : Math.floor(topicsTemp.length / 10 + 1));
-    setPageCount(topicsPageCount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -120,7 +120,6 @@ const Admin = () => {
       topicsTemp &&
       topicsTemp.length > 0 &&
       topicsTemp
-        .slice((page - 1) * topicsPerPage, page * topicsPerPage)
         .map((topic, index) => (
           <StyledImageListItem
             key={index}
@@ -147,6 +146,7 @@ const Admin = () => {
             <StyledImageListItemBar title={topic.title} position="below" />
           </StyledImageListItem>
         ))
+        .slice((page - 1) * topicsPerPage, page * topicsPerPage)
     );
   };
 
