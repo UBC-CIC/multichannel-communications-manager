@@ -16,7 +16,7 @@ description
 
 The following architecture diagram illustrates the various AWS components utliized to deliver the solution. For an in-depth explanation of the frontend and backend stacks, refer to the [Architecture Deep Dive](docs/ArchitectureDeepDive.md).
 
-![alt text](docs/images/architecture-diagram.png)
+![alt text](docs/images/architecture-diagram.jpg)
 
 # Deployment Guide
 
