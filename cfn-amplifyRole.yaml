@@ -3,8 +3,8 @@ Resources:
   AmplifyRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: amplifyconsole-commit2act-backend-role
-      Description: IAM Role to deploy amplify Commit2Act Project
+      RoleName: amplifyconsole-ised-backend-role
+      Description: IAM Role to deploy amplify ISED Project
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
