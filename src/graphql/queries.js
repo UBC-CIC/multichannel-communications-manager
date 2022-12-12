@@ -9,6 +9,8 @@ export const getUserById = /* GraphQL */ `
       phone_address
       postal_code
       province
+      email_notice
+      sms_notice
     }
   }
 `;
@@ -20,6 +22,8 @@ export const getUserByEmail = /* GraphQL */ `
       phone_address
       postal_code
       province
+      email_notice
+      sms_notice
     }
   }
 `;
