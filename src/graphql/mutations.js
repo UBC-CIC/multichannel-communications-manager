@@ -7,24 +7,18 @@ export const createUser = /* GraphQL */ `
     $phone_address: String
     $postal_code: String
     $province: Province!
-    $email_notice: Boolean!
-    $sms_notice: Boolean!
   ) {
     createUser(
       email_address: $email_address
       phone_address: $phone_address
       postal_code: $postal_code
       province: $province
-      email_notice: $email_notice
-      sms_notice: $sms_notice
     ) {
       user_id
       email_address
       phone_address
       postal_code
       province
-      email_notice
-      sms_notice
     }
   }
 `;
@@ -48,8 +42,6 @@ export const updateUser = /* GraphQL */ `
       phone_address
       postal_code
       province
-      email_notice
-      sms_notice
     }
   }
 `;
@@ -206,8 +198,6 @@ export const userUnfollowCategoryTopic = /* GraphQL */ `
       phone_address
       postal_code
       province
-      email_notice
-      sms_notice
     }
   }
 `;
