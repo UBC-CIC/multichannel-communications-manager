@@ -656,12 +656,12 @@ Resources:
 
   # Lambda functions ####################################
   
-  graphQLMySQLResolverLayers:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: graphQLMySQLResolverLayers
-      Description: Dependency for Lambda
-      ContentUri: ./lambda_functions/graphQLMySQLResolver/node_modules/
+  # graphQLMySQLResolverLayers:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     LayerName: graphQLMySQLResolverLayers
+  #     Description: Dependency for Lambda
+  #     ContentUri: ./lambda_functions/graphQLMySQLResolver/node_modules/
 
   graphQLMySQLResolver:
     Type: AWS::Serverless::Function
@@ -672,8 +672,8 @@ Resources:
     - LambdaServiceRole
     Properties:
       FunctionName: graphQL-MySQL-Resolver
-      Layers:
-        - !Ref graphQLMySQLResolverLayers
+      # Layers:
+      #   - !Ref graphQLMySQLResolverLayers
       Handler: index.handler
       CodeUri: ./lambda_functions/graphQLMySQLResolver/
       Runtime: nodejs16.x
@@ -1276,17 +1276,29 @@ Resources:
         ## #else 
         ##   #set( $phone_id = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.phone_id, null)))
         ## #end
+        #if($context.arguments.email_notice)
+          #set( $email_notice = true )
+        #else	
+          #set( $email_notice = false )
+        #end
+        #if($context.arguments.sms_notice)
+          #set( $sms_notice = true )
+        #else	
+          #set( $sms_notice = false )
+        #end
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `User` (email_address, phone_address, postal_code, province) values (:email_address, :phone_address, :postal_code, :province);",
+        "sql": "insert into `User` (email_address, phone_address, postal_code, province, email_notice, sms_notice) values (:email_address, :phone_address, :postal_code, :province, :email_notice, :sms_notice);",
         "SQLVariableMapping": {
         ":email_address": "$context.arguments.email_address",
         ":phone_address": $phone_address,
         ## ":phone_id": $phone_id,
         ":postal_code": $postal_code,
-        ":province": "$context.arguments.province"
+        ":province": "$context.arguments.province",
+        ":email_notice": $email_notice,
+        ":sms_notice": $sms_notice,
         },
         "pinpoint":{"type": "userprofile", "action": "insert"},
         "responseSQL": "select * from `User` where email_address=:email_address"
@@ -1939,7 +1951,7 @@ Resources:
     - PinpointApp
     Properties:
       ApplicationId: !Ref PinpointApp
-      FromAddress: !Ref CognitoAdminEmail
+      FromAddress: !Ref PinpointAdminEmail
       Identity: 
         # TODO: replace with parameter
         # !GetAtt SESIdentity.Arn
