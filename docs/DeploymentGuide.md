@@ -158,6 +158,7 @@ We need to add a few more things to our Amplify project before we are all done w
 2. Select `Manage User Pools`, then select the user pool corresponding to the project name
 3. On the left side menu, click on `Attributes` and scroll to the bottom of the page. Enter the following custom attributes and save the changes:
    ![alt text](images/deployment/deployment-06.PNG)
+4. On the left side menu, click on `MFA and verifications` and scroll down to `Which attributes do you want to verify?`. Select **Email or phone number**.![alt text](images/deployment/deployment-07.PNG)
 
 ## SES
 
