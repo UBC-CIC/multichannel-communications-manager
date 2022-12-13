@@ -56,19 +56,21 @@ const Admin = () => {
     setImage([])
     let categories = await API.graphql(graphqlOperation(getAllCategories))
     let allCategories = categories.data.getAllCategories
-    setTopics(allCategories)
-    setTopicsTemp(allCategories)
-    for (let i = 0; i < allCategories.length; i++) {
-      let imageURL = await Storage.get(allCategories[i].picture_location)
-      setImage((prev) => [...prev, imageURL])
-    }    
-
-    const topicsPageCount =
-    allCategories &&
-      (allCategories.length % 10 === 0
-        ? Math.round(allCategories.length / 10)
-        : Math.floor(allCategories.length / 10 + 1));
-    setPageCount(topicsPageCount);
+    if (allCategories !== null) {
+      setTopics(allCategories)
+      setTopicsTemp(allCategories)
+      for (let i = 0; i < allCategories.length; i++) {
+        let imageURL = await Storage.get(allCategories[i].picture_location)
+        setImage((prev) => [...prev, imageURL])
+      }   
+      
+      const topicsPageCount =
+      allCategories &&
+        (allCategories.length % 10 === 0
+          ? Math.round(allCategories.length / 10)
+          : Math.floor(allCategories.length / 10 + 1));
+      setPageCount(topicsPageCount);
+    }
   }
 
   //updates pagination
