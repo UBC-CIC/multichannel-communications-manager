@@ -333,6 +333,8 @@ function Login(props) {
               email_address: formState.email,
               postal_code: formState.postal_code,
               province: prov,
+              email_notice: true,
+              sms_notice: false
             };
             await API.graphql(graphqlOperation(createUser, userData));
             handleNextStep();

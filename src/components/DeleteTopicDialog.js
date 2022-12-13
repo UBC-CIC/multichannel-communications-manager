@@ -86,15 +86,14 @@ const DeleteTopicDialog = ({
           .then(() => {setOpenConfirmDeleteTopicDialog(false); handleClose()})
           .catch(e => console.log(e))
       }
-      reload()
     } else {
       for (let i = 0; i < checkedSubtopic.length; i++) {
         await API.graphql(graphqlOperation(deleteTopic, {topic_id: checkedSubtopic[i].topic_id}))
           .then(() => {setOpenConfirmDeleteTopicDialog(false); handleClose()})
           .catch(e => console.log(e))
       }
-      reload()
     }
+    reload()
   }
 
   const handleUpdate = (e, newValue) => {

@@ -1,70 +1,4 @@
 {
-  "dev": {
-    "awscloudformation": {
-      "AuthRoleName": "amplify-ised-dev-115239-authRole",
-      "UnauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-dev-115239-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-dev-115239-authRole",
-      "Region": "ca-central-1",
-      "DeploymentBucketName": "amplify-ised-dev-115239-deployment",
-      "UnauthRoleName": "amplify-ised-dev-115239-unauthRole",
-      "StackName": "amplify-ised-dev-115239",
-      "StackId": "arn:aws:cloudformation:ca-central-1:834289487514:stack/amplify-ised-dev-115239/dec4a530-5303-11ed-b15e-06c05dbfc37e",
-      "AmplifyAppId": "d3r4k2lt45dkzj"
-    },
-    "categories": {
-      "function": {
-        "isedDynamoTrigger": {}
-      },
-      "auth": {
-        "ised1a75b9f9": {}
-      }
-    }
-  },
-  "rds": {
-    "awscloudformation": {
-      "AuthRoleName": "amplify-ised-rds-210447-authRole",
-      "UnauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-rds-210447-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-rds-210447-authRole",
-      "Region": "ca-central-1",
-      "DeploymentBucketName": "amplify-ised-rds-210447-deployment",
-      "UnauthRoleName": "amplify-ised-rds-210447-unauthRole",
-      "StackName": "amplify-ised-rds-210447",
-      "StackId": "arn:aws:cloudformation:ca-central-1:834289487514:stack/amplify-ised-rds-210447/296f69d0-58d1-11ed-87da-02b919c3d7e0",
-      "AmplifyAppId": "d3r4k2lt45dkzj",
-      "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-ised-rds-210447-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json"
-    },
-    "categories": {
-      "api": {
-        "ised": {}
-      },
-      "auth": {
-        "iseda1fecbaca1fecbac": {},
-        "ised1a75b9f9": {},
-        "isedf0082716f0082716": {},
-        "userPoolGroups": {}
-      },
-      "function": {
-        "isedf0082716f0082716CreateAuthChallenge": {
-          "deploymentBucketName": "amplify-ised-rds-210447-deployment",
-          "s3Key": "amplify-builds/isedf0082716f0082716CreateAuthChallenge-36774c50415673714b46-build.zip"
-        },
-        "isedf0082716f0082716DefineAuthChallenge": {
-          "deploymentBucketName": "amplify-ised-rds-210447-deployment",
-          "s3Key": "amplify-builds/isedf0082716f0082716DefineAuthChallenge-57487071463548364765-build.zip"
-        },
-        "isedf0082716f0082716VerifyAuthChallengeResponse": {
-          "deploymentBucketName": "amplify-ised-rds-210447-deployment",
-          "s3Key": "amplify-builds/isedf0082716f0082716VerifyAuthChallengeResponse-33374f73717776723767-build.zip"
-        }
-      },
-      "storage": {
-        "categoryImages": {}
-      },
-      "custom": {
-        "parameterstoreGraphQLApi": {}
-      }
-    }
-  },
   "newdev": {
     "awscloudformation": {
       "AuthRoleName": "amplify-ised-newdev-142348-authRole",
@@ -81,6 +15,49 @@
       "auth": {
         "ised1a75b9f9": {},
         "ised234403d3234403d3": {}
+      }
+    }
+  },
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-ised-dev-170643-authRole",
+      "UnauthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-dev-170643-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::834289487514:role/amplify-ised-dev-170643-authRole",
+      "Region": "ca-central-1",
+      "DeploymentBucketName": "amplify-ised-dev-170643-deployment",
+      "UnauthRoleName": "amplify-ised-dev-170643-unauthRole",
+      "StackName": "amplify-ised-dev-170643",
+      "StackId": "arn:aws:cloudformation:ca-central-1:834289487514:stack/amplify-ised-dev-170643/651a8f50-7a82-11ed-a391-0a5992c46e64",
+      "AmplifyAppId": "d3r4k2lt45dkzj",
+      "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-ised-dev-170643-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json"
+    },
+    "categories": {
+      "auth": {
+        "isedf0082716f0082716": {},
+        "userPoolGroups": {}
+      },
+      "function": {
+        "isedf0082716f0082716CreateAuthChallenge": {
+          "deploymentBucketName": "amplify-ised-dev-170643-deployment",
+          "s3Key": "amplify-builds/isedf0082716f0082716CreateAuthChallenge-36774c50415673714b46-build.zip"
+        },
+        "isedf0082716f0082716DefineAuthChallenge": {
+          "deploymentBucketName": "amplify-ised-dev-170643-deployment",
+          "s3Key": "amplify-builds/isedf0082716f0082716DefineAuthChallenge-57487071463548364765-build.zip"
+        },
+        "isedf0082716f0082716VerifyAuthChallengeResponse": {
+          "deploymentBucketName": "amplify-ised-dev-170643-deployment",
+          "s3Key": "amplify-builds/isedf0082716f0082716VerifyAuthChallengeResponse-33374f73717776723767-build.zip"
+        }
+      },
+      "api": {
+        "ised": {}
+      },
+      "storage": {
+        "categoryImages": {}
+      },
+      "custom": {
+        "parameterstoreGraphQLApi": {}
       }
     }
   }
