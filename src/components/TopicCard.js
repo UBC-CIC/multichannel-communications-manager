@@ -20,6 +20,7 @@ import "./TopicCard.css";
 import PhoneNumberDialog from "./PhoneNumberDialog";
 import NotificationSuccessDialog from "./NotificationSuccessDialog";
 import { getTopicsOfCategoryByAcronym, getUserByEmail } from "../graphql/queries";
+import { updateUser } from "../graphql/mutations";
 
 const TopicCard = ({
   selectedTopic,
@@ -105,32 +106,12 @@ const TopicCard = ({
           await Auth.verifyCurrentUserAttributeSubmit(
             "phone_number",
             verificationCode
-          ).then(setPhoneDialogState("phoneSaved"))
+          ).then(async () => {
+            await API.graphql(graphqlOperation(updateUser, {user_id: userID, phone_address: phoneNumber}));
+            setPhoneDialogState("phoneSaved")
+          })
         }
       } else {
-        setOpenPhoneDialog(false);
-      }
-    } catch (e) {
-      console.log(e)
-      setInvalidInputError(true)
-    }
-  };
-
-  const handleCloseNotificationDialog = () => {
-    setNoTopicSelected(false)
-    setNoPreferenceSelected(false)
-    setOpenNotificationDialog(false);
-  };
-
-  const handleSaveNotificationDialog = () => {
-    if (selectedNotifications.text && userPhone === undefined) {
-      setOpenPhoneDialog(true)
-    } else if (!selectedNotifications.text && !selectedNotifications.email) {
-      setNoPreferenceSelected(true)
-    } else if (selectedSubTopics.filter((s) => s.includes(selectedTopic.title)).length === 0) {
-      setNoTopicSelected(true)
-    } else {
-        setNoTopicSelected(false)
         const allSelectedTopicsTemp = allSelectedTopics
         if (allSelectedTopicsTemp.filter((s) => s.category_acronym === selectedTopic.acronym).length === 0) {
           let splitSubtopics = []
@@ -157,6 +138,56 @@ const TopicCard = ({
             }
           }
         }
+        setOpenPhoneDialog(false);
+        setOpenNotificationDialog(false)
+      }
+    } catch (e) {
+      console.log(e)
+      setInvalidInputError(true)
+    }
+  };
+
+  const handleCloseNotificationDialog = () => {
+    setNoTopicSelected(false)
+    setNoPreferenceSelected(false)
+    setOpenNotificationDialog(false);
+  };
+
+  const handleSaveNotificationDialog = () => {
+    if (selectedNotifications.text && userPhone === undefined) {
+      setOpenPhoneDialog(true)
+    } else if (!selectedNotifications.text && !selectedNotifications.email) {
+      setNoPreferenceSelected(true)
+    } else if (selectedSubTopics.filter((s) => s.includes(selectedTopic.title)).length === 0) {
+      setNoTopicSelected(true)
+    } else {
+      setNoTopicSelected(false)
+      const allSelectedTopicsTemp = allSelectedTopics
+      if (allSelectedTopicsTemp.filter((s) => s.category_acronym === selectedTopic.acronym).length === 0) {
+        let splitSubtopics = []
+        for (let x = 0; x < selectedSubTopics.length; x++) {
+          let topicTitle = selectedSubTopics[x].split("/")
+          splitSubtopics.push(topicTitle)
+        }
+        let subtopicsForThisTopic = splitSubtopics.filter((s) => s[0] === selectedTopic.title)
+        for (let i = 0; i < subtopicsForThisTopic.length; i++) {
+          let userSubscribeData = {
+            user_id: userID,
+            category_acronym: selectedTopic.acronym,
+            topic_acronym: subtopicsForThisTopic[i][1],
+            email_notice: selectedNotifications.email,
+            sms_notice: selectedNotifications.text
+          }
+          setAllSelectedTopics(prev => [...prev, userSubscribeData])
+        }
+      } else {
+        for (let i = 0; i < allSelectedTopicsTemp.length; i++) {
+          if (allSelectedTopicsTemp[i].category_acronym === selectedTopic.acronym) {
+            allSelectedTopicsTemp[i].email_notice = selectedNotifications.email
+            allSelectedTopicsTemp[i].sms_notice = selectedNotifications.text
+          }
+        }
+      }
       setOpenSuccessDialog(true)
     }  
   }

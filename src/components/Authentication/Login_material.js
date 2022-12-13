@@ -7,6 +7,8 @@ import {
   Grid,
   TextField,
   Typography,
+  ToggleButton,
+  ToggleButtonGroup
 } from "@mui/material";
 import { Alert } from "@mui/lab";
 import { ArrowBack, AlternateEmail, Dialpad } from "@mui/icons-material";
@@ -82,6 +84,7 @@ function Login(props) {
   const [emptyAuthCode, setEmptyAuthCode] = useState(false);
   const [timeLimitError, setTimeLimitError] = useState("");
   const [cognitoUser, setCognitoUser] = useState();
+  const [formats, setFormats] = useState([]);
 
   const provinceOptions = [
     "Alberta",
@@ -149,17 +152,33 @@ function Login(props) {
   }
 
   //updates province dropdown value or text box input fields for the General Information form step
-  function onChange(e, value) {
+  function onChange(e, value, newFormats) {
     e.persist();
     clearErrors();
     if (value) {
       //for updating dropdown fields
       updateFormState({ ...formState, province: value });
+    } else if (e.target.type === 'button') {
+      // if (formats.includes('email') && formats.includes('text')) {
+      //   console.log('em');
+      // }
+      console.log(e.target.getAttribute('aria-label'))
+      console.log(e.target.getAttribute('aria-pressed'))
+      setFormats(newFormats);
     } else {
       //for updating text box input fields
       updateFormState({ ...formState, [e.target.name]: e.target.value });
     }
   }
+
+  const handleFormat = (event, newFormats) => {
+    // if (formats.includes('email') && formats.includes('text')) {
+    //   console.log('em');
+    // }
+    console.log(event.target.getAttribute('aria-label'))
+    console.log(event.target.getAttribute('aria-pressed'))
+    setFormats(newFormats);
+  };
 
   function onKeyDownSignIn(e) {
     if (e.keyCode === 13) {
@@ -648,6 +667,21 @@ function Login(props) {
                     type="text"
                     onChange={onChange}
                   />
+                  {/* <span>Select your default notification preferences:</span>
+                  <ToggleButtonGroup
+                    color="primary"
+                    size="small"
+                    value={formats}
+                    onChange={onChange}
+                    aria-label="text formatting"
+                  >
+                    <ToggleButton value="email" aria-label="email_notice">
+                      Email Notifications
+                    </ToggleButton>
+                    <ToggleButton value="text" aria-label="sms_notice">
+                      Text Notifications
+                    </ToggleButton>
+                  </ToggleButtonGroup> */}
                 </Box>
                 <BackAndSubmitButtons
                   backAction={() => resetStates("signIn")}

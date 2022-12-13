@@ -16,7 +16,7 @@ import { Auth, API, graphqlOperation } from "aws-amplify";
 import { getUserByEmail, getCategoriesByUserId, getUserCategoryTopicByUserId } from "../graphql/queries";
 import UnsubscribeDialog from "../components/UnsubscribeDialog";
 import PhoneNumberDialog from "../components/PhoneNumberDialog";
-import { userUnfollowCategory, userUpdateChannelPrefrence } from "../graphql/mutations";
+import { userUnfollowCategory, userUpdateChannelPrefrence, updateUser } from "../graphql/mutations";
 
 const EditNotificationPreferences = () => {
   const [searchVal, setSearchVal] = useState("");
@@ -41,7 +41,7 @@ const EditNotificationPreferences = () => {
     try {
       const returnedUser = await Auth.currentAuthenticatedUser();
       setUser(returnedUser)
-      setUserPhone(returnedUser.attributes.phoneNumber);
+      setUserPhone(returnedUser.attributes.phone_number);
       let databaseUser = await API.graphql(
         graphqlOperation(getUserByEmail, {
           user_email: returnedUser.attributes.email,
@@ -134,7 +134,10 @@ const EditNotificationPreferences = () => {
           await Auth.verifyCurrentUserAttributeSubmit(
             "phone_number",
             verificationCode
-          ).then(setPhoneDialogState("phoneSaved"))
+          ).then(async () => {
+            await API.graphql(graphqlOperation(updateUser, {user_id: userID, phone_address: phoneNumber}));
+            setPhoneDialogState("phoneSaved")
+          })
         }
       } else {
         setOpenPhoneDialog(false);

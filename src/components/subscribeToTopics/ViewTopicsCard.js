@@ -21,7 +21,7 @@ import "../TopicCard.css";
 import PhoneNumberDialog from "../PhoneNumberDialog";
 import { API, graphqlOperation } from "aws-amplify";
 import { getTopicsOfCategoryByAcronym, getUserByEmail, getUserCategoryTopicByUserId } from "../../graphql/queries";
-import { userFollowCategoryTopic, userUnfollowCategoryTopic } from "../../graphql/mutations";
+import { userFollowCategoryTopic, userUnfollowCategoryTopic, updateUser } from "../../graphql/mutations";
 
 const ViewTopicsCard = ({ selectedTopic }) => {
   const { title, description, picture_location } = selectedTopic;
@@ -83,8 +83,9 @@ const ViewTopicsCard = ({ selectedTopic }) => {
     async function retrieveUser() {
       try {
         const returnedUser = await Auth.currentAuthenticatedUser();
+        console.log(returnedUser)
         setUser(returnedUser)
-        setUserPhone(returnedUser.attributes.phoneNumber);
+        setUserPhone(returnedUser.attributes.phone_number);
         let getUserId = await API.graphql(graphqlOperation(getUserByEmail, {
           user_email: returnedUser.attributes.email
         }))
@@ -125,9 +126,22 @@ const ViewTopicsCard = ({ selectedTopic }) => {
           await Auth.verifyCurrentUserAttributeSubmit(
             "phone_number",
             verificationCode
-          ).then(setPhoneDialogState("phoneSaved"))
+          ).then(async () => {
+            await API.graphql(graphqlOperation(updateUser, {user_id: userID, phone_address: phoneNumber}));
+            setPhoneDialogState("phoneSaved")
+          })
         }
       } else {
+        for (let i = 0; i < selectedSubTopics.length; i++) {
+          let userFollowData = {
+            user_id: userID,
+            category_acronym: selectedTopic.acronym,
+            topic_acronym: selectedSubTopics[i],
+            email_notice: selectedNotifications.email,
+            sms_notice: selectedNotifications.text
+          }
+          await API.graphql(graphqlOperation(userFollowCategoryTopic, userFollowData))
+        }
         setOpenPhoneDialog(false);
       }
     } catch (e) {
