@@ -143,6 +143,7 @@ const ViewTopicsCard = ({ selectedTopic }) => {
           await API.graphql(graphqlOperation(userFollowCategoryTopic, userFollowData))
         }
         setOpenPhoneDialog(false);
+        setOpenNotificationDialog(false);
       }
     } catch (e) {
       console.log(e)
