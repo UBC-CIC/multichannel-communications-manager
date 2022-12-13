@@ -17,10 +17,19 @@ import ImageListItem, {
 import { styled } from "@mui/material/styles";
 import { API, graphqlOperation, Storage } from "aws-amplify";
 import { userFollowCategoryTopic } from "../../graphql/mutations";
-import { getAllCategories } from "../../graphql/queries";
+import {
+  getAllCategories,
+  getCategoryByAcronym,
+  getTopicByAcronym,
+} from "../../graphql/queries";
 import "./Login.css";
 import theme from "../../themes";
 import TopicCard from "../TopicCard";
+
+const { SES } = require("aws-sdk");
+const ses = new SES();
+const SES_FROM_ADDRESS = "mminting@mail.ubc.ca";
+SES.config.update({ region: "ca-central-1" });
 
 const SubmitButton = styled(Button)`
   border-radius: 50px;
@@ -55,7 +64,7 @@ const SelectTopics = ({ handleNextStep }) => {
   const [selectedSubtopics, setSelectedSubtopics] = useState([]);
   const [saveEnabled, setSaveEnabled] = useState(false);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
-  const [image, setImage] = useState([])
+  const [image, setImage] = useState([]);
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
@@ -66,9 +75,9 @@ const SelectTopics = ({ handleNextStep }) => {
     let allCategories = categories.data.getAllCategories;
     setSampleTopics(allCategories);
     for (let i = 0; i < allCategories.length; i++) {
-      let imageURL = await Storage.get(allCategories[i].picture_location)
-      setImage((prev) => [...prev, imageURL])
-    }    
+      let imageURL = await Storage.get(allCategories[i].picture_location);
+      setImage((prev) => [...prev, imageURL]);
+    }
 
     const topicsPageCount =
       allCategories &&
@@ -76,6 +85,64 @@ const SelectTopics = ({ handleNextStep }) => {
         ? Math.round(allCategories.length / 3)
         : Math.floor(allCategories.length / 3 + 1));
     setPageCount(topicsPageCount);
+  }
+
+  async function sendEmail(emailAddress, categoryTopics) {
+    // https://stackoverflow.com/questions/69035085/aggregate-array-of-objects-by-specific-key-and-sum
+    const categoryTopicsTree = categoryTopics.reduce((dic, value) => {
+      if (!dic[value.category_title]) {
+        dic[value.category_title] = value;
+      } else {
+        let old = dic[value.category_title];
+        Object.keys(old).forEach((key) => {
+          if (key != "category_title") {
+            // if (typeof old[key].push === "function") {
+            old[key] = old[key].concat(value[key]);
+            // } else {
+            //   old[key] = [old[key]].concat([value[key]]);
+            //   console.log(old[key]);
+            // }
+          }
+        });
+      }
+      return dic;
+    }, {});
+
+    console.log("categoryTopicsTree:", categoryTopicsTree);
+    let categoryTopicsHTML = ``;
+    for (let c in categoryTopicsTree) {
+      console.log("c:", c);
+      categoryTopicsHTML += `${c}`;
+      categoryTopicsHTML += `<ul>`;
+      for (const t of categoryTopicsTree[c].topic_title) {
+        // console.log("t:", t);
+        categoryTopicsHTML += `<li>${t}</li>`;
+      }
+      categoryTopicsHTML += `<ul>`;
+    }
+    // console.log("html:", categoryTopicsHTML);
+    const params = {
+      Destination: { ToAddresses: [emailAddress] },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `<html><body><p>You are now subscribed to the following categories and topics:</p>
+              ${categoryTopicsHTML}</body></html>`,
+          },
+          // Text: {
+          //   Charset: "UTF-8",
+          //   Data: `Your secret login code: ${secretLoginCode}`,
+          // },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "Your secret login code",
+        },
+      },
+      Source: SES_FROM_ADDRESS,
+    };
+    // await ses.sendEmail(params).promise();
   }
 
   useEffect(() => {
@@ -100,16 +167,18 @@ const SelectTopics = ({ handleNextStep }) => {
             }}
             onClick={() => setCurrentlySelectedTopic(topic)}
           >
-            {topic.picture_location !== null ? 
-              <img src={image[index]} alt={topic.title} /> :
+            {topic.picture_location !== null ? (
+              <img src={image[index]} alt={topic.title} />
+            ) : (
               <Box
-              sx={{
-                backgroundColor: "#738DED",
-                width: "100px",
-                height: "100px",
-                borderRadius: "7px",
-              }}
-            ></Box>}
+                sx={{
+                  backgroundColor: "#738DED",
+                  width: "100px",
+                  height: "100px",
+                  borderRadius: "7px",
+                }}
+              ></Box>
+            )}
             <StyledImageListItemBar title={topic.title} position="below" />
           </StyledImageListItem>
         ))
@@ -119,12 +188,34 @@ const SelectTopics = ({ handleNextStep }) => {
 
   async function nextClicked() {
     const allSelectedTopicsTemp = allSelectedTopics;
+    const succeededTopics = [];
     console.log("allSelectedTopics: ", allSelectedTopics);
     for (var i = 0; i < allSelectedTopicsTemp.length; i++) {
+      console.log(allSelectedTopicsTemp[i]);
       await API.graphql(
         graphqlOperation(userFollowCategoryTopic, allSelectedTopicsTemp[i])
       );
+      let category_info = await API.graphql(
+        graphqlOperation(getCategoryByAcronym, {
+          acronym: allSelectedTopicsTemp[i].category_acronym,
+        })
+      );
+      let category_title = category_info.data.getCategoryByAcronym.title;
+      console.log("category_info:", category_info);
+      let topic_info = await API.graphql(
+        graphqlOperation(getTopicByAcronym, {
+          topic_acronym: allSelectedTopicsTemp[i].topic_acronym,
+        })
+      );
+      let topic_acronym = topic_info.data.getTopicByAcronym.acronym;
+      console.log("topic_info:", topic_info);
+      succeededTopics.push({
+        category_title: category_title,
+        topic_title: [topic_acronym],
+      });
+      console.log("succeeded topics: ", succeededTopics);
     }
+    await sendEmail(allSelectedTopicsTemp.user_id, succeededTopics);
     handleNextStep();
   }
 
@@ -167,8 +258,9 @@ const SelectTopics = ({ handleNextStep }) => {
         Select Categories of Interest
       </Typography>
       <Typography variant="body2">
-        Select categories of interest that you would like to receive notifications
-        from. Your notification preferences can be changed at any time.
+        Select categories of interest that you would like to receive
+        notifications from. Your notification preferences can be changed at any
+        time.
       </Typography>
 
       {currentlySelectedTopic ? (
