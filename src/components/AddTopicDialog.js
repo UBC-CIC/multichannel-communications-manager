@@ -40,8 +40,10 @@ const AddTopicDialog = ({
     async function getTopics() {
       const topicsQuery = await API.graphql(graphqlOperation(getAllTopics))
       const topics = topicsQuery.data.getAllTopics
-      const topicsAcronym = topics.map(a => a.acronym)
-      setAllTopics(topicsAcronym)
+      if (topics !== null) {
+        const topicsAcronym = topics.map(a => a.acronym)
+        setAllTopics(topicsAcronym)
+      }
     }
     getTopics()
   }, [])
@@ -91,6 +93,7 @@ const AddTopicDialog = ({
       } else {
         await Storage.put(uploadFile.name, uploadFile)
           .then(resp => s3Key = resp.key)
+          .catch(e => console.log(e))
       }
       let createdTopic = {
         acronym: acronym,
@@ -100,7 +103,8 @@ const AddTopicDialog = ({
       }
       try {
         await API.graphql(graphqlOperation(createCategory, createdTopic))
-          .then(async () => {
+          .then(async (res) => {
+            console.log(res)
             for (let i = 0; i < inputFields.length; i++) {
               await API.graphql(graphqlOperation(createTopic, inputFields[i]))
             }
@@ -217,7 +221,7 @@ const AddTopicDialog = ({
                 </Box>
               )}
             >
-              {allTopics.map((topic) => (
+              {allTopics === null ? <></> : allTopics.map((topic) => (
                 <MenuItem
                   key={topic}
                   value={topic}

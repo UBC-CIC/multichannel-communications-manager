@@ -83,16 +83,16 @@ const DeleteTopicDialog = ({
     if (value === 0) {
       for (let i = 0; i < checked.length; i++) {
         await API.graphql(graphqlOperation(deleteCategory, {category_id: checked[i].category_id}))
-          .then(() => {setOpenConfirmDeleteTopicDialog(false); handleClose()})
           .catch(e => console.log(e))
       }
     } else {
       for (let i = 0; i < checkedSubtopic.length; i++) {
         await API.graphql(graphqlOperation(deleteTopic, {topic_id: checkedSubtopic[i].topic_id}))
-          .then(() => {setOpenConfirmDeleteTopicDialog(false); handleClose()})
           .catch(e => console.log(e))
       }
     }
+    setOpenConfirmDeleteTopicDialog(false)
+    closeDialog()
     reload()
   }
 
@@ -135,7 +135,7 @@ const DeleteTopicDialog = ({
         </Box>
         <TabPanel value={value} index={0}>
           <List>
-            {topics.map((value, index) => {
+            {topics === null ? <span>Currently no categories</span> : topics.map((value, index) => {
               return (
                 <ListItem
                   key={index}
@@ -155,7 +155,7 @@ const DeleteTopicDialog = ({
         </TabPanel>
         <TabPanel value={value} index={1}>
         <List>
-          {allTopics.map((value, index) => {
+          {allTopics === null ? <span>Currently no topics</span> : allTopics.map((value, index) => {
             return (
               <ListItem
                 key={index}
