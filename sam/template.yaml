@@ -99,13 +99,12 @@ Parameters:
     Description: The email of the admin user for Pinpoint. Pinpoint email notifications will be sent out from this email
 
 Resources:
-  # TODO: figure out how to connect this to amplify
-  GraphQLApiIdParameter:
+  GraphQLAPIIdParameter:
       Type: AWS::SSM::Parameter
       Properties: 
-        Name: "/communicationsManager/GraphqlApiId"
+        Name: "GraphQLAPIIdParam"
         Type: String 
-        Value: "{{resolve:ssm:GraphQLAPIId:1}}"
+        Value: "{{resolve:ssm:GraphqlApiId:1}}"
         Description: Communication Manager GraphQL Api Id
 
   IGW:
@@ -749,24 +748,24 @@ Resources:
   #         Value: !Ref 'EnvironmentName'
 
 
-  # AdminCognitoUser:
-  #   Type: AWS::Cognito::UserPoolUser
-  #   Properties: 
-  #     UserPoolId: '{{resolve:ssm:UserPoolId}}'
-  #     Username: !Ref CognitoAdminEmail
-  #     UserAttributes: 
-  #       - Name: 'name'
-  #         Value: !Ref CognitoAdminName
-  #       - Name: 'email'
-  #         Value: !Ref CognitoAdminEmail
-  #       - Name: 'preferred_username'
-  #         Value: !Ref CognitoAdminEmail
-  #       - Name: 'email_verified'
-  #         Value: True
-  #       - Name: 'custom:type'
-  #         Value: 'Admin'
-  #       - Name: 'custom:firstLogin'
-  #         Value: 'true'
+  AdminCognitoUser:
+    Type: AWS::Cognito::UserPoolUser
+    Properties: 
+      UserPoolId: '{{resolve:ssm:UserPoolId}}'
+      Username: !Ref CognitoAdminEmail
+      UserAttributes: 
+        - Name: 'name'
+          Value: !Ref CognitoAdminName
+        - Name: 'email'
+          Value: !Ref CognitoAdminEmail
+        # - Name: 'preferred_username'
+        #   Value: !Ref CognitoAdminEmail
+        - Name: 'email_verified'
+          Value: True
+        # - Name: 'custom:type'
+        #   Value: 'Admins'
+        # - Name: 'custom:firstLogin'
+        #   Value: 'true'
 
   # APPSYNC #####################################################
 
@@ -805,14 +804,14 @@ Resources:
   #       - Key: "EnvironmentName"
   #         Value: !Ref 'EnvironmentName'
 
-  LambdaAppSyncDataSource:
+  LambdaResolverAppSyncDataSource:
     Type: AWS::AppSync::DataSource
     DependsOn:
     - graphQLMySQLResolver
     # - GraphQLApiSchema
-    - GraphQLApiIdParameter
+    # - GraphQLAPIIdParameter
     Properties:
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
       Name: LambdaHandler
       Type: AWS_LAMBDA
       ServiceRoleArn: !GetAtt LambdaServiceRole.Arn
@@ -822,7 +821,7 @@ Resources:
   # GraphQLApiSchema:
   #   Type: AWS::AppSync::GraphQLSchema
   #   Properties:
-  #     ApiId: !GetAtt GraphQLApiIdParameter.Value
+  #     ApiId: !GetAtt GraphQLAPIIdParameter.Value
   #     # TODO: replace this w reference
   #     Definition: |
   #       type Category {
@@ -945,10 +944,10 @@ Resources:
   #       }
 
 
-  getUserByIdResolver:
+  getUserByIdResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getUserById
@@ -969,15 +968,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  getUserByEmailResolver:
+  getUserByEmailResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getUserByEmail
@@ -998,15 +997,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
   
-  getUserCategoryTopicByUserIdResolver:
+  getUserCategoryTopicByUserIdResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getUserCategoryTopicByUserId
@@ -1027,15 +1026,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
 
-  getCategoriesByUserIdResolver:
+  getCategoriesByUserIdResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getCategoriesByUserId
@@ -1056,15 +1055,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
 
-  getCategoryTopicByIdResolver:
+  getCategoryTopicByIdResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getCategoryTopicById
@@ -1085,15 +1084,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
 
-  getCategoryByAcronymResolver:
+  getCategoryByAcronymResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getCategoryByAcronym
@@ -1114,15 +1113,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
 
-  getTopicsOfCategoryByAcronymResolver:
+  getTopicsOfCategoryByAcronymResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getTopicsOfCategoryByAcronym
@@ -1142,15 +1141,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  getTopicByAcronymResolver:
+  getTopicByAcronymResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getTopicByAcronym
@@ -1171,15 +1170,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  getAllTopicsResolver:
+  getAllTopicsResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getAllTopics
@@ -1199,15 +1198,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  getAllCategoriesResolver:
+  getAllCategoriesResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getAllCategories
@@ -1227,15 +1226,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  getAllCategoryTopicsResolver:
+  getAllCategoryTopicsResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: getAllCategoryTopics
@@ -1255,15 +1254,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  createUserResolver:
+  createUserResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: createUser
@@ -1309,10 +1308,10 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      # DataSourceName: !GetAtt LambdaAppSyncDataSource.Name      
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      # DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name      
       MaxBatchSize: 0
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       # PipelineConfig: 
       #   Functions:
@@ -1321,7 +1320,7 @@ Resources:
   # CreatePinpointUserFunction:
   #   Type: AWS::AppSync::FunctionConfiguration
   #   Properties: 
-  #     ApiId: !GetAtt GraphQLApiIdParameter.Value
+  #     ApiId: !GetAtt GraphQLAPIIdParameter.Value
   #     Code: String
   #     DataSourceName: NONE
   #     Name: createPinpointUserFunction
@@ -1330,7 +1329,7 @@ Resources:
   # updateUserResolver:
   #   Type: AWS::AppSync::Resolver
   #   DependsOn:
-  #   - LambdaAppSyncDataSource
+  #   - LambdaResolverAppSyncDataSource
   #   Properties:
   #     TypeName: Mutation
   #     FieldName: updateUser
@@ -1390,16 +1389,16 @@ Resources:
   #         $util.error($ctx.error.message, $ctx.error.type)
   #       #end
   #       $util.toJson($context.result.sqlResult[0])
-  #     ApiId: !GetAtt GraphQLApiIdParameter.Value
-  #     DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+  #     ApiId: !GetAtt GraphQLAPIIdParameter.Value
+  #     DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
   #     Kind: UNIT
   #     MaxBatchSize: 0
 
 
-  updateUserResolver:
+  updateUserResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: updateUser
@@ -1462,15 +1461,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  deleteUserResolver:
+  deleteUserResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: deleteUser
@@ -1491,15 +1490,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "Succeeded"
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  createCategoryResolver:
+  createCategoryResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: createCategory
@@ -1524,15 +1523,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  updateCategoryResolver:
+  updateCategoryResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: updateCategory
@@ -1590,16 +1589,16 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
 
-  deleteCategoryResolver:
+  deleteCategoryResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: deleteCategory
@@ -1619,16 +1618,16 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "'delete succeeded'"
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
 
-  createTopicResolver:
+  createTopicResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: createTopic
@@ -1649,15 +1648,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  deleteTopicResolver:
+  deleteTopicResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: deleteTopic
@@ -1677,15 +1676,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "Delete succeeded"
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  addTopicToCategoryResolver:
+  addTopicToCategoryResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: addTopicToCategory
@@ -1707,15 +1706,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  deleteCategoryTopicResolver:
+  deleteCategoryTopicResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: deleteCategoryTopic
@@ -1736,16 +1735,16 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
 
-  testSQLResolver:
+  testSQLResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
       FieldName: testSQL
@@ -1765,15 +1764,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "success"
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  userFollowCategoryTopicResolver:
+  userFollowCategoryTopicResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: userFollowCategoryTopic
@@ -1811,15 +1810,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  userUpdateChannelPrefrenceResolver:
+  userUpdateChannelPrefrenceResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: userUpdateChannelPrefrence
@@ -1859,15 +1858,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  userUnfollowCategoryTopicResolver:
+  userUnfollowCategoryTopicResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: userUnfollowCategoryTopic
@@ -1891,15 +1890,15 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  userUnfollowCategoryResolver:
+  userUnfollowCategoryResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
-    - LambdaAppSyncDataSource
+    - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Mutation
       FieldName: userUnfollowCategory
@@ -1922,8 +1921,8 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "success"
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaAppSyncDataSource.Name
+      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
@@ -2003,6 +2002,10 @@ Resources:
             - "ec2:DeleteNetworkInterface"
             - "ec2:DescribeNetworkInterfaces"
             Resource: '*'
+          # - Effect: Allow
+          #   Action:
+          #   - "ses:SendEmail"
+          #   Resource: 'arn:aws:ses:ca-central-1:${AWS::AccountId}:identity:*'
       Description: Role for graphql resolver lambda
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
@@ -2010,6 +2013,7 @@ Resources:
       - arn:aws:iam::aws:policy/SecretsManagerReadWrite
       - arn:aws:iam::aws:policy/AmazonRDSFullAccess
       - arn:aws:iam::aws:policy/AWSAppSyncInvokeFullAccess
+      - arn:aws:iam::aws:policy/AmazonSESFullAccess
               # arn:aws:mobiletargeting:region:accountId:*
         # - policyName: PinpointAdminPolicy
 

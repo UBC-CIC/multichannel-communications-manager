@@ -21,13 +21,13 @@ export class cdkStack extends cdk.Stack {
       [
         {category: 'api', resourceName: "ised"},
         // {category: 'storage', resourceName: "s3commit2actstorage4f79922d"},
-        // {category: 'auth', resourceName: "commit2act" },
+        {category: 'auth', resourceName: "isedf0082716f0082716" },
       ]
     );
     const GraphQLAPIIdOutput = cdk.Fn.ref(dependencies.api.ised.GraphQLAPIIdOutput)
     const GraphQLAPIEndpointOutput = cdk.Fn.ref(dependencies.api.ised.GraphQLAPIEndpointOutput)
     // const BucketNameOutput = cdk.Fn.ref(dependencies.storage.s3commit2actstorage4f79922d.BucketName);
-    // const UserPoolIdOutput = cdk.Fn.ref(dependencies.auth.commit2act.UserPoolId);
+    const UserPoolIdOutput = cdk.Fn.ref(dependencies.auth.isedf0082716f0082716.UserPoolId);
     /* AWS CDK code goes here - learn more: https://docs.aws.amazon.com/cdk/latest/guide/home.html */
     new ssm.StringParameter(this, 'ParameterStoreGraphQLAPIId', {
       parameterName: 'GraphqlApiId',
@@ -42,10 +42,10 @@ export class cdkStack extends cdk.Stack {
     //   parameterName: 'BucketName',
     //   stringValue: BucketNameOutput,
     // });
-    // new ssm.StringParameter(this, 'ParameterStoreUserPoolId', {
-    //   parameterName: 'UserPoolId',
-    //   stringValue: UserPoolIdOutput,
-    // });
+    new ssm.StringParameter(this, 'ParameterStoreUserPoolId', {
+      parameterName: 'UserPoolId',
+      stringValue: UserPoolIdOutput,
+    });
     
   }  
 
