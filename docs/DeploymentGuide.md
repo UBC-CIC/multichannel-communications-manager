@@ -91,44 +91,39 @@ If at any point you make a typo, you can press CTRL+C to cancel the process, and
 
 The following block of text is what will appear when running the command. It is a series of inputs to enter into the template, which will go line by line. Any text in `[square brackets]` is part of what will appear on screen, and these are the default values. If you are satisfied with that value for the input, you can just press enter. If there is no text in the brackets, that means it is required you enter something yourself as the input. Text in `<angled brackets>` has been added by me to help explain what to input. If there are no angled brackets, that means it is recommended just to use the default value provided, however they can be modified if wanted. Any text in `(rounded brackets)` will appear below a certain input. This will tell any important information to know about the input that is above. Spacing has been added for clarity.
 
-<!-- ```
-Configuring SAM deploy
-======================
+```
    Looking for config file [samconfig.toml] :  Not found
       (this will appear on first invokation, this file can be added to later to save the inputs we used so we do not have to re-enter them on subsequent deployments)
 
    Setting default arguments for 'sam deploy'
    =========================================
-   Stack Name [commit2act]:
-      (This will be the name of the stack you entered when running sam deploy, just press enter)
-   AWS Region []: <REGION YOU WANT TO DEPLOY TO>
+   Stack Name [isedDev]:
+   AWS Region [ca-central-1]: <REGION YOU WANT TO DEPLOY TO>
       (Ensure that you enter the same exact region you used to deploy Amplify in)
-   Parameter ProjectName []:
+   Parameter ProjectName []: 
       (This can be anything you want)
-   Parameter EnvironmentName [dev]:
+   Parameter EnvironmentName [dev]: 
       (This is just to differentiate between different builds, e.x. you can have dev, prod, and test environemnts)
-   Parameter DBName [sys]:
+   Parameter DBName [sys]: 
       (Name of the database, sys is the standard name, must begin with a letter and contain only alphanumeric characters, and be 16 characters or less)
-   Parameter DBUser [admin]:
+   Parameter DBUser [admin]: 
       (Name of the username to log into the database with, must begin with a letter and contain only alphanumeric characters, and be 16 characters or less)
    Parameter DBPassword []: <YOUR DB PASSWORD>
       (Password to use for the database, must contain only alphanumeric characters, and be between 8-40 characters)
-   Parameter DBInstanceClass [db.t4g.large]:
+   Parameter DBInstanceClass [db.t2.small]: 
       (What size of database to use. This value can be changed later in RDS settings, however there will be some downtime associated with it. For more information visit https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html. The allowed values are db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge)
-   Parameter DBEngineVersion [5.7.mysql_aurora.2.09.2]:
-      (What version of MySQL Aurora to use, the default value is recommended, but any of the following allowed values should work: 5.7.mysql_aurora.2.07.0, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.2, 5.7.mysql_aurora.2.07.3, 5.7.mysql_aurora.2.07.4, 5.7.mysql_aurora.2.07.5, 5.7.mysql_aurora.2.07.6, 5.7.mysql_aurora.2.07.7, 5.7.mysql_aurora.2.08.0, 5.7.mysql_aurora.2.08.1, 5.7.mysql_aurora.2.08.2, 5.7.mysql_aurora.2.08.3, 5.7.mysql_aurora.2.08.4, 5.7.mysql_aurora.2.09.0, 5.7.mysql_aurora.2.09.1, 5.7.mysql_aurora.2.09.2, 5.7.mysql_aurora.2.09.3, 5.7.mysql_aurora.2.10.0, 5.7.mysql_aurora.2.10.1, 5.7.mysql_aurora.2.10.2,  8.0.mysql_aurora.3.01.0, 8.0.mysql_aurora.3.01.1, 8.0.mysql_aurora.3.02.0)
-   Parameter DeletionProtection [True]:
+   Parameter DBEngineVersion [5.7.mysql_aurora.2.09.2]: 
+      (What version of MySQL Aurora to use, the default value is recommended, but any of the following allowed values should work: 5.7.mysql_aurora.2.07.0, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.2, 5.7.mysql_aurora.2.07.3, 5.7.mysql_aurora.2.07.4, 5.7.mysql_aurora.2.07.5, 5.7.mysql_aurora.2.07.6, 5.7.mysql_aurora.2.07.7, 5.7.mysql_aurora.2.08.0, 5.7.mysql_aurora.2.08.1, 5.7.mysql_aurora.2.08.2, 5.7.mysql_aurora.2.08.3, 5.7.mysql_aurora.2.08.4, 5.7.mysql_aurora.2.09.0, 5.7.mysql_aurora.2.09.1, 5.7.mysql_aurora.2.09.2, 5.7.mysql_aurora.2.09.3, 5.7.mysql_aurora.2.10.0, 5.7.mysql_aurora.2.10.1, 5.7.mysql_aurora.2.10.2)
+   Parameter DeletionProtection [True]: 
       (When deletion proteciton is enabled, when you request the deletion of a database instance in the AWS Console you are blocked and may not continue without first modifying the instance and disabling deletion protection (recommended for production))
-   Parameter EncryptDatabase [True]:
+   Parameter EncryptDatabase [True]: 
       (Encrypts the database for added security)
-   Parameter CloudFrontPriceClass [PriceClass_100]:
-      (The price class for the CloudFront Distriution, more info on which may be best for you can be found at https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PriceClass.html, however the default value will work perfectly fine for North American deployments. Allowed values: PriceClass_100, PriceClass_200, PriceClass_All)
-   Parameter MinConfidenceThreshold [70]:
-      (The minimum percent confidence required to accept a label during image validation with Rekognition, from our testing 70 is the best to use, but it can be modified)
    Parameter CognitoAdminName []: <NAME TO USE FOR ADMIN ACCOUNT>
       (For the first administrator user, whatever name you want associated to the account, can be your full name, or any other name you want)
    Parameter CognitoAdminEmail []: <EMAIL TO USE FOR ADMIN ACCOUNT>
       (For the first administrator user, what ever email you want associated to the account. This will be used for login, and you will receive a temporary passowrd to this email for your first login)
+   Parameter PinpointAdminEmail []: <EMAIL TO USE FOR ADMIN ACCOUNT>
+      (This will be the sender email address of the emails sent from Pinpoint)
 
    #Shows you resources changes to be deployed and require a 'Y' to initiate deploy
    Confirm changes before deploy [y/N]: y
@@ -145,11 +140,11 @@ Configuring SAM deploy
       (This file will be made for you, just press enter)
    SAM configuration environment [default]:
       (You can have multiple different environments, each having different saved inputs, but for now just press enter since we do not need to worry about that for this deployment)
-``` -->
+```
 
 Be sure to not close the window after this process has completed, as the Outputs section produced will be important for the next step.
 
-# Step 5: Wrap up Frontend Deployment
+# Step 4: Wrap up Frontend Deployment
 
 We need to add a few more things to our Amplify project before we are all done with deploying.
 

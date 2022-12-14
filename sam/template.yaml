@@ -91,9 +91,9 @@ Parameters:
   CognitoAdminEmail:
     Type: String
     Description: The email of the admin user for Cognito
-  PinpointAdminName:
-    Type: String
-    Description: The name of the admin user for Pinpoint. 
+  # PinpointAdminName:
+  #   Type: String
+  #   Description: The name of the admin user for Pinpoint. 
   PinpointAdminEmail:
     Type: String
     Description: The email of the admin user for Pinpoint. Pinpoint email notifications will be sent out from this email
@@ -766,6 +766,14 @@ Resources:
         #   Value: 'Admins'
         # - Name: 'custom:firstLogin'
         #   Value: 'true'
+
+  AdminCognitoUserAttachment:
+    Type: AWS::Cognito::UserPoolUserToGroupAttachment
+    Properties: 
+      GroupName: 'Admins'
+      Username: !Ref AdminCognitoUser
+      UserPoolId: '{{resolve:ssm:UserPoolId}}'
+
 
   # APPSYNC #####################################################
 

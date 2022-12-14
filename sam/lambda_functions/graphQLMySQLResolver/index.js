@@ -3,7 +3,6 @@ const handler = require("./helpers.js");
 const { SES } = require("aws-sdk");
 const ses = new SES();
 const SES_FROM_ADDRESS = "christy.lam@ubc.ca";
-// "mminting@mail.ubc.ca";
 
 const mysql = require("mysql");
 let dbInit = false;
@@ -21,7 +20,9 @@ async function conditionallyCreateDB(connection) {
   \`phone_address\` varchar(50) UNIQUE,
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
   \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL
-);
+  \`email_notice\` boolean,
+  \`sms_notice\` boolean,
+  );
 
 CREATE TABLE \`Category\` (
   \`category_id\` int PRIMARY KEY AUTO_INCREMENT,
