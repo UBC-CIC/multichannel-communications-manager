@@ -1,7 +1,8 @@
 const gqlRequest = require("graphql-request");
 const handler = require("./helpers.js");
-const { SES } = require("aws-sdk");
+const { SES, SNS } = require("aws-sdk");
 const ses = new SES();
+const sns = new SNS();
 const SES_FROM_ADDRESS = "christy.lam@ubc.ca";
 
 const mysql = require("mysql");
@@ -207,6 +208,16 @@ exports.handler = async (event) => {
                   "EMAIL"
                 );
                 console.log("upsert email response: ", upsertEmailResponse);
+
+                if (
+                  pinpointAction.action === "insert" &&
+                  event.SQLVariableMapping[":email_notice"] === true
+                ) {
+                  await sendNotification(
+                    event.SQLVariableMapping[":email_address"],
+                    "email"
+                  );
+                }
               }
 
               if (event.SQLVariableMapping[":phone_address"]) {
@@ -218,13 +229,18 @@ exports.handler = async (event) => {
                 );
                 console.log("upsert phone no. response: ", upsertPhoneResponse);
                 result.pinpointResult = "success";
+
+                if (
+                  pinpointAction.action === "insert" &&
+                  event.SQLVariableMapping[":sms_notice"] === true
+                ) {
+                  await sendNotification(
+                    event.SQLVariableMapping[":phone_address"],
+                    "sms"
+                  );
+                }
               }
               result.pinpointResult = "success";
-
-              if (pinpointAction.action === "insert") {
-                console.log("223");
-                await sendEmail(event.SQLVariableMapping[":email_address"]);
-              }
 
               break;
             case "delete":
@@ -272,63 +288,43 @@ exports.handler = async (event) => {
   return result;
 };
 
-async function sendEmail(emailAddress) {
-  // https://stackoverflow.com/questions/69035085/aggregate-array-of-objects-by-specific-key-and-sum
-  // const categoryTopicsTree = categoryTopics.reduce((dic, value) => {
-  //   if (!dic[value.category_title]) {
-  //     dic[value.category_title] = value;
-  //   } else {
-  //     let old = dic[value.category_title];
-  //     Object.keys(old).forEach((key) => {
-  //       if (key != "category_title") {
-  //         // if (typeof old[key].push === "function") {
-  //         old[key] = old[key].concat(value[key]);
-  //         // } else {
-  //         //   old[key] = [old[key]].concat([value[key]]);
-  //         //   console.log(old[key]);
-  //         // }
-  //       }
-  //     });
-  //   }
-  //   return dic;
-  // }, {});
+async function sendNotification(address, type) {
+  let result = {};
+  if (type === "email") {
+    let categoryTopicsHTML = `You are now subscribed to ISED! Click here to manage your notification preferences:`;
+    let params = {
+      Destination: { ToAddresses: [address] },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `<html><body><p>${categoryTopicsHTML}</p></body></html>`,
+          },
+          Text: {
+            Charset: "UTF-8",
+            Data: `${categoryTopicsHTML}`,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "ISED Subscription",
+        },
+      },
+      Source: SES_FROM_ADDRESS,
+    };
+    console.log("email sending info:", params);
+    result.email = await ses.sendEmail(params).promise();
+  } else if (type === "sms") {
+    let params = {
+      Message:
+        "You are now subscribed to ISED! Click here to manage your notification preferences:" /* required */,
+      /* '<String>': ... */
+      PhoneNumber: address,
+    };
+    result.sms = await sns.publish(params).promise();
+  }
 
-  // console.log("categoryTopicsTree:", categoryTopicsTree);
-  let categoryTopicsHTML = `You are now subscribed to ISED! Click here to manage your notification preferences:`;
-  // for (let c in categoryTopicsTree) {
-  //   console.log("c:", c);
-  //   categoryTopicsHTML += `${c}`;
-  //   categoryTopicsHTML += `<ul>`;
-  //   for (const t of categoryTopicsTree[c].topic_title) {
-  //     // console.log("t:", t);
-  //     categoryTopicsHTML += `<li>${t}</li>`;
-  //   }
-  //   categoryTopicsHTML += `<ul>`;
-  // }
-  // console.log("html:", categoryTopicsHTML);
-  const params = {
-    Destination: { ToAddresses: [emailAddress] },
-    Message: {
-      Body: {
-        Html: {
-          Charset: "UTF-8",
-          Data: `<html><body><p>${categoryTopicsHTML}</p></body></html>`,
-        },
-        Text: {
-          Charset: "UTF-8",
-          Data: `${categoryTopicsHTML}`,
-        },
-      },
-      Subject: {
-        Charset: "UTF-8",
-        Data: "ISED Subscription",
-      },
-    },
-    Source: SES_FROM_ADDRESS,
-  };
-  console.log("email sending info:", params);
-  let result = await ses.sendEmail(params).promise();
-  console.log("email sent? ", result);
+  console.log("notification sent? ", result);
 }
 
 async function executeGraphQL(query) {
