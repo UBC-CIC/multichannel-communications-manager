@@ -88,6 +88,8 @@ type Mutation {
     phone_address: String
     postal_code: String
     province: Province
+    email_notice: Boolean!
+    sms_notice: Boolean!
   ): User
   deleteUser(user_id: Int!): String
 

@@ -1416,6 +1416,17 @@ Resources:
         #set($province = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.province, null)))
         #set($postal_code = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
 
+        #if($context.arguments.email_notice)
+          #set( $sql_email_notice = "email_notice=true, " )
+        #else	
+          #set( $sql_email_notice = "email_notice=false, " )
+        #end
+        #if($context.arguments.sms_notice)
+          #set( $sql_sms_notice = "sms_notice=true" )
+        #else	
+          #set( $sql_sms_notice = "sms_notice=false" )
+        #end
+
         #if( $context.arguments.email_address )
           #if( $context.arguments.phone_address || $context.arguments.province || $context.arguments.postal_code)
             #set( $sql_email_address = "email_address=:email_address," )
@@ -1452,7 +1463,7 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `User` SET $sql_email_address $sql_phone_address $sql_province $sql_postal_code WHERE `User`.user_id = :user_id;",
+        "sql": "UPDATE `User` SET $sql_email_address $sql_phone_address $sql_province $sql_postal_code $sql_email_notice $sql_sms_notice WHERE `User`.user_id = :user_id;",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_address": $email_address,
@@ -1761,7 +1772,7 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "alter table `Topic` alter column topic_acronym varchar(30)",
+        "sql": "SELECT table_schema, ROUND(SUM(data_length+index_length)/1024/1024/1024,2) "size in GB" FROM information_schema.tables GROUP BY 1 ORDER BY 2 DESC;",
         "SQLVariableMapping": {
         }
         }
