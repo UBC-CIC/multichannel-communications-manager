@@ -1,12 +1,15 @@
 import { useEffect } from "react";
-import { Grid, Typography, TextField, Autocomplete, Button, Alert, Collapse } from "@mui/material";
+import { Grid, Typography, TextField, Autocomplete, Button, Alert, Collapse, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { useState } from "react";
 import { Auth, API, graphqlOperation } from "aws-amplify"
 import useLeavingDialogPrompt from "../hooks/useLeavingDialogPrompt"
 import { LeaveWithoutSavingDialog } from "../components/LeaveWithoutSavingDialog";
-import { getUserByEmail } from "../graphql/queries";
-import { updateUser } from "../graphql/mutations";
+import { getUserByEmail, getUserCategoryTopicByUserId } from "../graphql/queries";
+import { updateUser, userUpdateChannelPrefrence } from "../graphql/mutations";
 import EmailChangeDialog from "../components/EmailChangeDialog";
+import PhoneNumberDialog from "../components/PhoneNumberDialog";
+import PhoneInput from 'react-phone-input-2'
+import 'react-phone-input-2/lib/material.css'
 
 const EditAccountInfo = () => {
   const provinceOptions = [
@@ -24,14 +27,13 @@ const EditAccountInfo = () => {
     "Saskatchewan",
     "Yukon",
   ];
-
+  const [currentUser, setCurrentUser] = useState()
   const [userData, setUserData] = useState({});
   const [originalEmail, setOriginalEmail] = useState('');
   const [province, setProvince] = useState("")
   const [alert, setAlert] = useState(false);
   const [alertContent, setAlertContent] = useState('');
   const [emptyEmailError, setEmptyEmailError] = useState(false);
-  const [emptyPostalCodeError, setEmptyPostalCodeError] = useState(false);
   const [invalidEmailError, setInvalidEmailError] = useState(false);
   const [emailExistError, setEmailExistError] = useState(false);
   const [invalidPostalCodeError, setInvalidPostalCodeError] = useState(false);
@@ -42,6 +44,11 @@ const EditAccountInfo = () => {
   const [verificationCode, setVerificationCode] = useState("");
   const [invalidInputError, setInvalidInputError] = useState(false);
   const [emailConfirmDialogState, setEmailConfirmDialogState] = useState("verifyEmail");
+  const [defaultNotificationPreference, setDefaultNotificationPreference] = useState([]);
+  const [defaultNotificationError, setDefaultNotificationError] = useState(false);
+  const [openPhoneDialog, setOpenPhoneDialog] = useState(false)
+  const [phoneDialogState, setPhoneDialogState] = useState("noPhone");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   function convertAcronymToProvince(acronym) {
     let province;
@@ -107,19 +114,28 @@ const EditAccountInfo = () => {
     return acronym
   }
 
-  useEffect(() => {
-    async function retrieveUser() {
-      try {
-        const returnedUser = await Auth.currentAuthenticatedUser();
-        setOriginalEmail(returnedUser.attributes.email)
-        let user = await API.graphql(graphqlOperation(getUserByEmail, { user_email: returnedUser.attributes.email }));
-        setUserData(user.data.getUserByEmail)
-        setProvince(convertAcronymToProvince(user.data.getUserByEmail.province))
-      } catch (e) {
-        console.log(e);
+  async function getUserData() {
+    try {
+      const returnedUser = await Auth.currentAuthenticatedUser();
+      setCurrentUser(returnedUser)
+      setOriginalEmail(returnedUser.attributes.email)
+      let user = await API.graphql(graphqlOperation(getUserByEmail, { user_email: returnedUser.attributes.email }));
+      if (user.data.getUserByEmail.email_notice && user.data.getUserByEmail.sms_notice) {
+        setDefaultNotificationPreference(['email', 'text'])
+      } else if (user.data.getUserByEmail.email_notice) {
+        setDefaultNotificationPreference(['email'])
+      } else {
+        setDefaultNotificationPreference(['text'])
       }
+      setUserData(user.data.getUserByEmail)
+      setProvince(convertAcronymToProvince(user.data.getUserByEmail.province))
+    } catch (e) {
+      console.log(e);
     }
-    retrieveUser();
+  }
+
+  useEffect(() => {
+    getUserData();
   }, []);
 
   function checkPostal(postal) {
@@ -137,10 +153,10 @@ const EditAccountInfo = () => {
   }
 
   function clearErrors() {
+    setDefaultNotificationError(false)
     setInvalidEmailError(false)
     setInvalidPostalCodeError(false)
     setEmptyEmailError(false)
-    setEmptyPostalCodeError(false)
     setEmailExistError(false)
   }
 
@@ -164,45 +180,99 @@ const EditAccountInfo = () => {
     }
   }
 
+  const handlePhoneChange = (value) => {
+    setUserData({ ...userData, phone_address: value });
+    setCanShowPrompt(true)
+  }
+
   function buttonClicked() {
-    if (userData.email_address === "" || userData.postal_code === "") {
-      if (userData.email_address === "") {
-        setEmptyEmailError(true)
-      } else {
-        setEmptyPostalCodeError(true)
-      }
-    } else {
+    if (userData.postal_code !== null) {
       if (!checkPostal(userData.postal_code)) {
         setInvalidPostalCodeError(true)
-      } else if (!checkEmail(userData.email_address)) {
-        setInvalidEmailError(true)
-      } else {
-        update()
       }
+    }
+    if (userData.email_address === "") {
+      setEmptyEmailError(true)
+    } else if (defaultNotificationPreference.length === 0) {
+      setDefaultNotificationError(true)
+      setAlertContent('Please select your notification preferences.')
+    } else if (!checkEmail(userData.email_address)) {
+      setInvalidEmailError(true)
+    } else {
+      update()
     }
     setCanShowPrompt(false)
   }
 
   async function update() {
-    const user = await Auth.currentAuthenticatedUser();
-    await Auth.updateUserAttributes(user, {
+    let updateData = {
       email: userData.email_address,
+      phone_number: "+" + userData.phone_address,
       'custom:province': userData.province,
       'custom:postal_code': userData.postal_code
-    })
-      .then(successAlert)
-      .catch((e) => {
-        const errorMsg = e.errors[0].message
-        if (errorMsg.includes("ER_DUP_ENTRY")) {
-          setEmailExistError(true)
-        }
-      });
+    }
+    if (userData.postal_code === null) {
+      updateData = {
+        email: userData.email_address,
+        phone_number: "+" + userData.phone_address,
+        'custom:province': userData.province,
+      }
+    }
+    await Auth.updateUserAttributes(currentUser, updateData)
+    .then(successAlert)
+    .catch((e) => {
+      console.log(e)
+      const errorMsg = e.errors[0].message
+      if (errorMsg.includes("ER_DUP_ENTRY")) {
+        setEmailExistError(true)
+      }
+    });
   }
 
+  const handleToggle = (event, newToggle) => {
+    clearErrors()
+    if (newToggle.includes('text') && currentUser.attributes.phone_number === null) {
+      setOpenPhoneDialog(true)
+    } else {
+      setDefaultNotificationPreference(newToggle);
+    }
+    setCanShowPrompt(true)
+  };
+  
   async function successAlert() {
     if (originalEmail !== userData.email_address) {
       setOpenEmailConfirmDialog(true)
     } else {
+      let email_selected, sms_selected = false
+      if (defaultNotificationPreference.includes('email') && 
+        defaultNotificationPreference.includes('text')) {
+        email_selected = true
+        sms_selected = true
+      } else if (defaultNotificationPreference.includes('email')) {
+        email_selected = true
+        sms_selected = false
+      } else {
+        email_selected = false
+        sms_selected = true
+      }
+    
+      if ((userData.email_notice !== email_selected) || (userData.sms_notice !== sms_selected)) {
+        let getUserTopics = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {
+          user_id: userData.user_id
+        }))
+        let userTopics = getUserTopics.data.getUserCategoryTopicByUserId
+        for (let i = 0; i < userTopics.length; i++) {
+          await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
+            user_id: userData.user_id,
+            category_acronym: userTopics[i].category_acronym,
+            topic_acronym: userTopics[i].topic_acronym,
+            email_notice: email_selected,
+            sms_notice: sms_selected
+          }))
+        }
+      }
+      userData.email_notice = email_selected
+      userData.sms_notice = sms_selected
       await API.graphql(graphqlOperation(updateUser, userData))
       setAlert(true);
       setAlertContent('Your changes have been successfully saved.');
@@ -226,6 +296,20 @@ const EditAccountInfo = () => {
         });
       }
     } else {
+      let email_selected, sms_selected = false
+      if (defaultNotificationPreference.includes('email') && 
+        defaultNotificationPreference.includes('text')) {
+        email_selected = true
+        sms_selected = true
+      } else if (defaultNotificationPreference.includes('email')) {
+        email_selected = true
+        sms_selected = false
+      } else {
+        email_selected = false
+        sms_selected = true
+      }
+      userData.email_notice = email_selected
+      userData.sms_notice = sms_selected
       setOpenEmailConfirmDialog(false);
       await API.graphql(graphqlOperation(updateUser, userData))
       setAlert(true);
@@ -234,8 +318,46 @@ const EditAccountInfo = () => {
     }
   };
 
+  const handleSavePhoneDialog = async () => {
+    try {
+      if (phoneDialogState === "noPhone") {
+        if (phoneNumber !== "") {
+          await Auth.updateUserAttributes(currentUser, {
+            "phone_number": "+" + phoneNumber
+          }).then(setPhoneDialogState("verifyPhone"))
+        }
+      } else if (phoneDialogState === "verifyPhone") {
+        if (verificationCode === "") {
+          setInvalidInputError(true)
+        } else {
+          await Auth.verifyCurrentUserAttributeSubmit(
+            "phone_number",
+            verificationCode
+          ).then(async () => {
+            await API.graphql(graphqlOperation(updateUser, {user_id: userData.user_id, phone_address: phoneNumber}));
+            setPhoneDialogState("phoneSaved")
+          })
+        }
+      } else {
+        getUserData()
+        setOpenPhoneDialog(false);
+      }
+    } catch (e) {
+      console.log(e)
+      setInvalidInputError(true)
+    }
+  };
+
+  const handleClosePhoneDialog = () => {
+    setOpenPhoneDialog(false);
+    setPhoneNumber('')
+    setInvalidInputError(false)
+    setPhoneDialogState("noPhone")
+  };
+
   return (
     <>
+      {defaultNotificationError ? <Collapse in={defaultNotificationError}><Alert severity={"error"} onClose={() => setDefaultNotificationError(false)}>{alertContent}</Alert></Collapse> : <></> }
       {alert ? <Collapse in={alert}><Alert severity={"success"} onClose={() => setAlert(false)}>{alertContent}</Alert></Collapse> : <></> }
       <Grid
         container
@@ -279,20 +401,17 @@ const EditAccountInfo = () => {
                 }
                 onChange={onChange}
               />
-              <TextField
-                fullWidth
-                size="small"
-                label={"Phone Number"}
-                InputLabelProps={{ shrink: true }}
-                name={"phone"}
-                value={userData.phone_address}
-                type="text"
-                error={invalidPhoneError}
-                helperText={
-                  (!!invalidPhoneError && "Please enter a valid phone number.")
-                }
-                onChange={onChange}
-              />
+              {userData.phone_address !== null ?
+                <PhoneInput
+                  inputStyle={{width:'100%'}}
+                  country={'ca'}
+                  onlyCountries={["ca"]}
+                  disableDropdown
+                  countryCodeEditable={false}
+                  value={userData.phone_address}
+                  onChange={value => handlePhoneChange(value)}
+                /> : <></>
+              }
               <Autocomplete
                 fullWidth
                 size="small"
@@ -313,14 +432,28 @@ const EditAccountInfo = () => {
                 value={userData.postal_code}
                 InputLabelProps={{ shrink: true }}
                 name={"postal_code"}
-                error={invalidPostalCodeError || emptyPostalCodeError}
+                error={invalidPostalCodeError}
                 helperText={
-                  (!!invalidPostalCodeError && "Please enter a valid postal code.") ||
-                  (!!emptyPostalCodeError && "This field cannot be empty.")
+                  (!!invalidPostalCodeError && "Please enter a valid postal code.")
                 }
                 type="text"
                 onChange={onChange}
               />
+              <ToggleButtonGroup
+                fullWidth
+                color="primary"
+                size="small"
+                value={defaultNotificationPreference}
+                onChange={handleToggle}
+                aria-label="text formatting"
+              >
+                <ToggleButton value="email" aria-label="email_notice">
+                  Email Notifications
+                </ToggleButton>
+                <ToggleButton value="text" aria-label="sms_notice">
+                  Text Notifications
+                </ToggleButton>
+              </ToggleButtonGroup>
               <Button variant="contained" fullWidth onClick={buttonClicked}>
               Save
             </Button>
@@ -332,6 +465,18 @@ const EditAccountInfo = () => {
         handleSave={handleEmailConfirmDialog}
         state={emailConfirmDialogState}
         email={userData.email_address}
+        code={verificationCode}
+        setCode={setVerificationCode}
+        inputError={invalidInputError}
+        setInputError={setInvalidInputError}
+      />
+      <PhoneNumberDialog
+        open={openPhoneDialog}
+        handleClose={handleClosePhoneDialog}
+        handleSave={handleSavePhoneDialog}
+        state={phoneDialogState}
+        phone={phoneNumber}
+        setPhone={setPhoneNumber}
         code={verificationCode}
         setCode={setVerificationCode}
         inputError={invalidInputError}

@@ -7,17 +7,17 @@ import {
   Stack,
   Pagination,
   IconButton,
-  Checkbox,
-  FormControlLabel
+  Tooltip
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { ArrowBack, FavoriteBorder } from "@mui/icons-material";
 import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
 import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
-import { getAllCategories, getCategoriesByUserId, getUserByEmail } from "../../graphql/queries";
+import { getAllCategories, getUserCategoryTopicByUserId, getUserByEmail } from "../../graphql/queries";
 import { styled } from "@mui/material/styles";
 import ViewTopicsCard from "./ViewTopicsCard";
+import UserSubscriptionDialog from "../UserSubscriptionsDialog";
 
 const StyledImageListItemBar = styled(ImageListItemBar)`
   .MuiImageListItemBar-title {
@@ -41,6 +41,7 @@ const ViewTopics = () => {
   const [topics, setTopics] = useState([])
   const [userData, setUserData] = useState([]);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
+  const [showUserSubscriptions, setShowUserSubscriptions] = useState(false);
   const [image, setImage] = useState([])
   //for pagination
   const [page, setPage] = useState(1);
@@ -74,15 +75,10 @@ const ViewTopics = () => {
     let getUserId = await API.graphql(graphqlOperation(getUserByEmail, {
       user_email: returnedUser.attributes.email
     }))
-    let categories = await API.graphql(graphqlOperation(getCategoriesByUserId, {
+    let categories = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {
       user_id: getUserId.data.getUserByEmail.user_id
     }));
-    let noDuplicates = categories.data.getCategoriesByUserId.filter((value, index, self) =>
-        index === self.findIndex((t) => (
-          t.acronym === value.acronym
-        ))
-      )
-    setUserData(noDuplicates);
+    setUserData(categories.data.getUserCategoryTopicByUserId);
   }
 
   //updates pagination
@@ -91,17 +87,6 @@ const ViewTopics = () => {
     userSubscribedData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentlySelectedTopic]);
-
-  const handleCheck = async (e) => {
-    setImage([])
-    if (e.target.checked) {
-      getCategoryImages(userData)
-      setSampleTopics(userData)
-    } else {
-      getCategoryImages(topics)
-      setSampleTopics(topics)
-    }
-  }
 
   const displayTopicOptions = () => {
     return (
@@ -160,16 +145,22 @@ const ViewTopics = () => {
             onClick={() => setCurrentlySelectedTopic()}
             sx={{ mb: "0.5em" }}
           >
-            <ArrowBackIcon />
+            <ArrowBack />
           </IconButton>
           <ViewTopicsCard selectedTopic={currentlySelectedTopic} />
         </Box>
       ) : (
         <>
-          <FormControlLabel 
-            control={<Checkbox onChange={handleCheck} />}
-            label="Show user subscribed categories" 
-            />
+          <Tooltip title="Show user subscriptions">
+            <IconButton color="primary" sx={{width: 'fit-content'}} onClick={() => setShowUserSubscriptions(true)}>
+              <FavoriteBorder />
+            </IconButton>
+          </Tooltip>
+            <UserSubscriptionDialog
+              open={showUserSubscriptions}
+              handleClose={() => setShowUserSubscriptions(false)}
+              selectedSubtopics={userData}
+              />
             <Box sx={{border: 1, borderColor: "grey.400", borderRadius: '6px' }}>
           <Box
             sx={{

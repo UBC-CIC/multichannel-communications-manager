@@ -157,16 +157,16 @@ We need to add a few more things to our Amplify project before we are all done w
 
 ## SES
 
-Amazon SES is what is used to send the verification emails. Your account will be in a sandbox environment by default. While in this mode there will be sending limits and you are only able to send to verified emails. You can request to be moved out of the sandbox to remove these restrictions. In this step we will be configuring the email that will send the verification code to users that sign in. If you do not move out of the sandbox environment then you will also need to verify the emails of all the users that will use the application.
+Amazon SES is what is used to send the verification emails for when users sign in to the application. Your account will be in a sandbox environment by default. While in this mode there will be sending limits and you are only able to send to verified emails. You can request to be moved out of the sandbox to remove these restrictions. In this step we will be configuring the email that will send the verification code to users that sign in. If you do not move out of the sandbox environment then you will also need to verify the emails of all the users that will use the application.
 
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `SES` in the search bar.![alt text](images/deployment/ses-01.PNG)
 2. On the left side menu, click on `Verified identities` and select `Create identity`. Enter the email address and click `Create Identity`![alt text](images/deployment/ses-02.PNG)
 3. A link will be sent to the email. Click on it to confirm and verify that you are authorized to use the email address. This will be used in a later step.
 ## SNS
 
-Amazon SNS is what is used to send the verification texts when a user first adds their phone number. Your account will be in a sandbox environment by default. While in this mode you can only deliver SMS messages to verified phone numbers. You can request to be moved out of the sandbox to remove the restrictions. If you do not move out of the sandbox environment then you will need to verify the phone numbers of all the users that add it.
+Amazon SNS is what is used to send the verification texts when a user first adds their phone number. Your account will be in a sandbox environment by default. While in this mode you can only deliver SMS messages to verified phone numbers. You can request to be moved out of the sandbox to remove the restrictions. If you do not move out of the sandbox environment then you will need to verify the phone numbers of all the users that add it. **This guide assumes your AWS account is in the sandbox environment.**
 
-1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `SNS` in the search bar. On the left side menu, click on `Text messaging (SMS)` and scroll down to **Sandbox destination phone numbers**![alt text](images/deployment/sns-01.PNG)
+1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `SNS` in the search bar. On the left side menu, click on `Text messaging (SMS)` and scroll down to `Sandbox destination phone numbers`![alt text](images/deployment/sns-01.PNG)
 2. Click `Add phone number` and enter your phone number. A verification code will be sent to you which you must enter to verify the number.
 ## Lambda
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `Lambda` in the search bar. On the left side menu click on `Functions`![alt text](images/deployment/lambda-01.PNG)
@@ -178,32 +178,16 @@ Congratulations, your web app is now deployed! You can find the website URL on t
 
 <!-- # Step 6: Log into Admin Account
 
-To use the account created with CloudFormation, first navigate to the link of the app. This can be found on the Amplify page, under `Hosting environments`. Clicking on the image below `main` will take you to the website. Then, just log in to the account using the email you provided in the template. For the password, a temporary one will have been sent to your inbox. After logging in, you will be instructed to choose a brand new password.
+To use the account created with CloudFormation, first navigate to the link of the app. This can be found on the Amplify page, under `Hosting environments`. Clicking on the image below `main` will take you to the website. Then, just log in to the account using the email you provided in the template. For the password, a temporary one will have been sent to your inbox. After logging in, you will be instructed to choose a brand new password. -->
 
 # Step 7 (Optional): Set up other Admin Accounts
 
 To set up other accounts as an admin, you will need to do the following steps. (Note: this assumes the user has already been registered on the app)
 
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `Cognito` in the search bar \
-   ![alt text](images/webapp3.png)
-2. Select `Manage User Pools` (or click `User pools` on the left of the screen), then select the user pool corresponding to the project name (ex. `commit2act-env`) \
-   ![alt text](images/webapp4.png)
-3. Click the `Users and Groups` tab on the menu on the left of the screen (if you are on the newer version of the Cognito Console you can scroll down to see the users), then select the user which you want to set to Admin \
-   ![alt text](images/webapp5.png)
-4. Scroll down to User Attributes, and click `Edit` \
-   ![alt text](images/webapp6.png)
-5. Scroll down to Option Attributes, and change the value in the `custom:type` field from _User_ to _Admin_. Click `Save Changes`\
-   ![alt text](images/webapp7.png)
-6. You have set up login credentials. Return to Commit2Act web app, and login. Your user is now an admin! (If the user does not see the Admin Dashboard tab, try relogging on the Commit2Act web app)
-
-# Troubleshooting
-
-### Error #1
-
-If you encounter the following error:
-
-```bash
-The config profile could not be found
-```
-
-Then chances are that the AWS CLI has not been correctly configured. Ensure you have correctly done so by following the [AWS CLI setup guide](https://aws.amazon.com/cli/), as indicated in the requirements section. -->
+   ![alt text](images/deployment/deployment-05.PNG)
+2. Select `Manage User Pools` and select the user pool corresponding to the project name
+3. Click the `Users and Groups` tab on the menu on the left of the screen, then select the user which you want to set to Admin \
+   ![alt text](images/deployment/admin-01.PNG)
+4. At the top of the page click `Add to group` and select `Admins` from the dropdown menu \
+   ![alt text](images/deployment/admin-02.PNG)

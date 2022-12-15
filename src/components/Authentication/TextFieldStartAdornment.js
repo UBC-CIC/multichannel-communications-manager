@@ -12,7 +12,6 @@ export default function TextFieldStartAdornment(props) {
     >
       <TextField
         {...other}
-        required
         placeholder={placeholder}
         fullWidth={true}
         variant="outlined"

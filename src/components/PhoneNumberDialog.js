@@ -7,6 +7,8 @@ import {
   TextField,
   Button,
   } from "@mui/material";
+import PhoneInput from 'react-phone-input-2'
+import 'react-phone-input-2/lib/high-res.css'
 import { Dialpad } from "@mui/icons-material";
 import TextFieldStartAdornment from "./Authentication/TextFieldStartAdornment"
   
@@ -34,25 +36,19 @@ const PhoneNumberDialog = ({
         <DialogTitle>No Phone Number Found</DialogTitle>
         <DialogContent sx={{ mt: "1em" }}>
           <Typography variant="body2" sx={{ fontColor: "#484848" }}>
-            You have not currently provided a phone number for notifications.
+            You have not yet provided a phone number for notifications.
             Enter your phone number below to continue.
           </Typography>
           <Box sx={{display: "flex", flexDirection: "column", justifyContent: "space-between", mt: "3em"}} >
             <Box sx={{display: "flex", alignItems: "center", justifyContent: "space-between", pb: "1.5em"}} >
-              <TextField
-                fullWidth
-                size="small"
-                label={"Phone Number"}
-                InputLabelProps={{ shrink: true }}
-                name={"phone"}
+              <PhoneInput
+                inputStyle={{width:'100%'}}
+                country={'ca'}
+                onlyCountries={["ca"]}
+                disableDropdown
+                countryCodeEditable={false}
                 value={phone}
-                type="text"
-                error={inputError}
-                helperText={
-                  (!!inputError &&
-                    "Please enter a valid phone number.")
-                }
-                onChange={(e) => {setInputError(false); setPhone(e.target.value)}}
+                onChange={value => setPhone(value)}
               />
             </Box>
             <Box sx={{ display: "flex", justifyContent: "space-evenly", mt: "2em" }} >

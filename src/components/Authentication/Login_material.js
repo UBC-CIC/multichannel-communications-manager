@@ -8,13 +8,17 @@ import {
   TextField,
   Typography,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  Tooltip
 } from "@mui/material";
 import { Alert } from "@mui/lab";
-import { ArrowBack, AlternateEmail, Dialpad } from "@mui/icons-material";
+import PhoneInput from 'react-phone-input-2'
+import 'react-phone-input-2/lib/high-res.css'
+import { ArrowBack, AlternateEmail, Dialpad, HelpOutline } from "@mui/icons-material";
 import theme from "../../themes";
 import { Auth, API, graphqlOperation } from "aws-amplify";
-import { createUser } from "../../graphql/mutations";
+import { createUser, updateUser } from "../../graphql/mutations";
+import { getUserByEmail } from "../../graphql/queries";
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { updateLoginState } from "../../actions/loginAction";
@@ -76,15 +80,20 @@ function Login(props) {
   const [forgotPasswordError, setForgotPasswordError] = useState(false);
   const [newVerification, setNewVerification] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [userID, setUserID] = useState('');
   const [inputsNotFilled, setInputsNotFilled] = useState(false);
   const [userExistError, setUserExistError] = useState(false);
   const [invalidPostalCodeError, setInvalidPostalCodeError] = useState(false);
   const [invalidEmailError, setInvalidEmailError] = useState(false);
   const [emptyAuthCode, setEmptyAuthCode] = useState(false);
   const [timeLimitError, setTimeLimitError] = useState("");
+  const [defaultNotificationError, setDefaultNotificationError] = useState(false)
   const [cognitoUser, setCognitoUser] = useState();
-  const [formats, setFormats] = useState([]);
+  const [defaultNotificationPreference, setDefaultNotificationPreference] = useState([]);
+  const [userPhone, setUserPhone] = useState('')
+  const [invalidInputError, setInvalidInputError] = useState(false)
+  const [verificationCode, setVerificationCode] = useState("")
+  const [invalidPhoneCodeError, setInvalidPhoneCodeError] = useState(false)
 
   const provinceOptions = [
     "Alberta",
@@ -124,16 +133,31 @@ function Login(props) {
     else return false;
   }
 
+  function checkPhone(num) {
+    var regex = new RegExp(/\+1\d{10}/);
+    if (regex.test(num)) return true;
+    else return false;
+  }
+
   const handleDisplayStep2 = () => {
+    if (formState.postal_code !== "") {
+      if (!checkPostal(formState.postal_code)) {
+        setInvalidPostalCodeError(true);
+      }
+    }
     if (
       formState.email === "" ||
-      formState.postal_code === "" ||
       formState.province === ""
     ) {
       setInputsNotFilled(true);
-    } else if (!checkPostal(formState.postal_code)) {
-      setInvalidPostalCodeError(true);
+    } else if (defaultNotificationPreference.length === 0) {
+      setDefaultNotificationError(true)
     } else {
+      if (defaultNotificationPreference.includes('text')) {
+        if (userPhone === "" || !checkPhone(userPhone)) {
+          setInvalidInputError(true)
+        }
+      }
       //sign user up
       signUp();
     }
@@ -149,35 +173,26 @@ function Login(props) {
     setInputsNotFilled(false);
     setEmptyAuthCode(false);
     setUserExistError(false);
+    setDefaultNotificationError(false)
+    setInvalidInputError(false)
   }
 
   //updates province dropdown value or text box input fields for the General Information form step
-  function onChange(e, value, newFormats) {
+  function onChange(e, value) {
     e.persist();
     clearErrors();
     if (value) {
       //for updating dropdown fields
       updateFormState({ ...formState, province: value });
-    } else if (e.target.type === 'button') {
-      // if (formats.includes('email') && formats.includes('text')) {
-      //   console.log('em');
-      // }
-      console.log(e.target.getAttribute('aria-label'))
-      console.log(e.target.getAttribute('aria-pressed'))
-      setFormats(newFormats);
     } else {
       //for updating text box input fields
       updateFormState({ ...formState, [e.target.name]: e.target.value });
     }
   }
 
-  const handleFormat = (event, newFormats) => {
-    // if (formats.includes('email') && formats.includes('text')) {
-    //   console.log('em');
-    // }
-    console.log(event.target.getAttribute('aria-label'))
-    console.log(event.target.getAttribute('aria-pressed'))
-    setFormats(newFormats);
+  const handleToggle = (event, newToggle) => {
+    clearErrors()
+    setDefaultNotificationPreference(newToggle);
   };
 
   function onKeyDownSignIn(e) {
@@ -334,7 +349,7 @@ function Login(props) {
     return acronym;
   }
 
-  const verifyEmail = () => {
+  const verifyEmail = async () => {
     if (formState.authCode === "") {
       setEmptyAuthCode(true);
     } else {
@@ -348,15 +363,31 @@ function Login(props) {
         })
           .then(async (data) => {
             let prov = convertProvinceToAcronym(formState.province);
+            let email_selected, sms_selected = false
+            if (defaultNotificationPreference.includes('email') && 
+              defaultNotificationPreference.includes('text')) {
+              email_selected = true
+              sms_selected = true
+            } else if (defaultNotificationPreference.includes('email')) {
+              email_selected = true
+              sms_selected = false
+            } else {
+              email_selected = false
+              sms_selected = true
+            }
             const userData = {
               email_address: formState.email,
               postal_code: formState.postal_code,
               province: prov,
-              email_notice: true,
-              sms_notice: false
+              email_notice: email_selected,
+              sms_notice: sms_selected
             };
             await API.graphql(graphqlOperation(createUser, userData));
-            handleNextStep();
+            if (defaultNotificationPreference.includes('text')) {
+              updateLoginState('verifyPhone')
+            } else {
+              handleNextStep();
+            }
           })
           .catch((e) => {
             const errorMsg = e.message;
@@ -420,6 +451,31 @@ function Login(props) {
     setTimeLimitError("");
 
     updateLoginState(state);
+  }
+
+  const sendText = async () => {
+    const returnedUser = await Auth.currentAuthenticatedUser();
+    await Auth.updateUserAttributes(returnedUser, {
+      phone_number: userPhone
+    })
+    let user = await API.graphql(graphqlOperation(getUserByEmail, {user_email: returnedUser.attributes.email}))
+    setUserID(user.data.getUserByEmail.user_id)
+  }
+
+  const verifyPhone = async () => {
+    if (verificationCode === "") {
+      setInvalidPhoneCodeError(true)
+    } else {
+      await Auth.verifyCurrentUserAttributeSubmit(
+        "phone_number",
+        verificationCode
+      ).then(async () => {
+        await API.graphql(graphqlOperation(updateUser, {user_id: userID, phone_address: userPhone}))
+        updateLoginState('phoneVerified')
+        handleNextStep()
+      })
+        .catch(setInvalidPhoneCodeError(true)) 
+    }
   }
 
   return (
@@ -520,14 +576,22 @@ function Login(props) {
           >
             {activeStep !== 2 && (
               <Grid className={"login-wrapper-top"}>
-                <Typography
-                  sx={{ mb: "1em" }}
-                  className={"login-wrapper-top-header"}
-                >
+                {loginState === "verifyPhone" ?
+                  <Typography
+                    sx={{ mb: "1em" }}
+                    className={"login-wrapper-top-header"}
+                  >
+                  Phone Verification
+                  </Typography> :
+                  <Typography
+                    sx={{ mb: "1em" }}
+                    className={"login-wrapper-top-header"}
+                  >
                   {activeStep === 0
                     ? "Welcome!"
                     : activeStep === 1 && "Email Verification"}
-                </Typography>
+                  </Typography>
+                }
                 <span className={"login-wrapper-action-header"}>
                   {loginState === "signIn" ? (
                     <span>Sign In</span>
@@ -622,7 +686,13 @@ function Login(props) {
             {loginState === "signUp" && activeStep === 0 && (
               <Grid>
                 <BannerMessage type={"error"} typeCheck={inputsNotFilled}>
-                  Please fill in all fields.
+                  Please fill in the required fields.
+                </BannerMessage>
+                <BannerMessage type={"error"} typeCheck={defaultNotificationError}>
+                  Please select your notification preferences.
+                </BannerMessage>
+                <BannerMessage type={"error"} typeCheck={invalidInputError}>
+                  Please enter a valid phone number.
                 </BannerMessage>
                 <Box
                   sx={{
@@ -634,7 +704,7 @@ function Login(props) {
                 >
                   <TextFieldStartAdornment
                     startIcon={false}
-                    label={"Email"}
+                    label={"Email *"}
                     name={"email"}
                     type="email"
                     error={accountCreationEmailExistError || invalidEmailError}
@@ -650,7 +720,7 @@ function Login(props) {
                     id={"province"}
                     options={provinceOptions}
                     renderInput={(params) => (
-                      <TextField {...params} label="Province" />
+                      <TextField {...params} label="Province *" />
                     )}
                     ListboxProps={{ style: { maxHeight: "7rem" } }}
                     onChange={onChange}
@@ -667,12 +737,16 @@ function Login(props) {
                     type="text"
                     onChange={onChange}
                   />
-                  {/* <span>Select your default notification preferences:</span>
+                  <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1}}>
+                    <Tooltip title="This is how you will receive notifications for the topics you subscribe to.
+                    It can be changed at any time."><HelpOutline /></Tooltip>
+                    <span>Select your notification preferences:</span>
+                  </Box>
                   <ToggleButtonGroup
                     color="primary"
                     size="small"
-                    value={formats}
-                    onChange={onChange}
+                    value={defaultNotificationPreference}
+                    onChange={handleToggle}
                     aria-label="text formatting"
                   >
                     <ToggleButton value="email" aria-label="email_notice">
@@ -681,7 +755,16 @@ function Login(props) {
                     <ToggleButton value="text" aria-label="sms_notice">
                       Text Notifications
                     </ToggleButton>
-                  </ToggleButtonGroup> */}
+                  </ToggleButtonGroup>
+                  {defaultNotificationPreference.includes('text') ?
+                    <PhoneInput
+                      country={'ca'}
+                      onlyCountries={["ca"]}
+                      disableDropdown
+                      countryCodeEditable={false}
+                      value={userPhone}
+                      onChange={value => setUserPhone(value)}
+                    /> : <></>}
                 </Box>
                 <BackAndSubmitButtons
                   backAction={() => resetStates("signIn")}
@@ -742,6 +825,47 @@ function Login(props) {
                 <BackAndSubmitButtons
                   backAction={() => resetStates("signUp")}
                   submitAction={verifyEmail}
+                  submitMessage={"Verify"}
+                  loadingState={loading}
+                />
+              </Grid>
+            )}
+            {(loginState === "verifyPhone") && (
+              <Grid>
+                <Grid container item xs={12}>
+                  <span>
+                    You've chosen to receive notifications via text.
+                    Please click the button below to send a verification text to your
+                    number. Enter the code to verify your number.
+                  </span>
+                  <Button onClick={sendText}>Send Verification Text</Button>
+                </Grid>
+                <BannerMessage type={"error"} typeCheck={invalidPhoneCodeError}>
+                  Invalid verification code provided, please try again.
+                </BannerMessage>
+                <Grid
+                  container
+                  item
+                  direction={"column"}
+                  xs={12}
+                  className={"input-box"}
+                >
+                <TextFieldStartAdornment
+                  startIcon={<Dialpad />}
+                  placeholder="Enter your phone verification code."
+                  name={"phoneCode"}
+                  // error={invalidPhoneCodeError}
+                  // helperText={
+                  //   !!invalidPhoneCodeError && "Invalid verification code provided, please try again."
+                  // }
+                  type="text"
+                  autoComplete={"new-password"}
+                  onChange={(e) => {setInvalidPhoneCodeError(false); setVerificationCode(e.target.value)}}
+                />
+                </Grid>
+                <BackAndSubmitButtons
+                  backAction={() => resetStates("signUp")}
+                  submitAction={verifyPhone}
                   submitMessage={"Verify"}
                   loadingState={loading}
                 />

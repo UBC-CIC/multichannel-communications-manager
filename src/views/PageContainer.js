@@ -64,7 +64,7 @@ function PageContainer(props) {
           </ListItemIcon>
           <ListItemText primary={"Subscribe to Topics"} />
         </ListItem> */}
-        <ListItem
+        {/* <ListItem
           button
           key={"edit-notif-preferences"}
           onClick={() => navigate("/edit-notif-preferences")}
@@ -73,7 +73,7 @@ function PageContainer(props) {
             <EditNotifications />
           </ListItemIcon>
           <ListItemText primary={"Edit Notification Preferences"} />
-        </ListItem>
+        </ListItem> */}
         <ListItem
           button
           key={"edit-account-info"}
@@ -116,11 +116,11 @@ function PageContainer(props) {
               path={"/subscribe-to-topics"}
               element={<SubscribeToTopics />}
             /> */}
-            <Route
+            {/* <Route
               exact
               path={"/edit-notif-preferences"}
               element={<EditNotificationPreferences />}
-            />
+            /> */}
             <Route
               exact
               path={"/edit-account-information"}
