@@ -1,5 +1,9 @@
 const gqlRequest = require("graphql-request");
 const handler = require("./helpers.js");
+const { SES, SNS } = require("aws-sdk");
+const ses = new SES();
+const sns = new SNS();
+const SES_FROM_ADDRESS = "mminting@student.ubc.ca";
 
 const mysql = require("mysql");
 let dbInit = false;
@@ -17,7 +21,9 @@ async function conditionallyCreateDB(connection) {
   \`phone_address\` varchar(50) UNIQUE,
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
   \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL
-);
+  \`email_notice\` boolean NOT NULL,
+  \`sms_notice\` boolean NOT NULL
+  );
 
 CREATE TABLE \`Category\` (
   \`category_id\` int PRIMARY KEY AUTO_INCREMENT,
@@ -202,6 +208,16 @@ exports.handler = async (event) => {
                   "EMAIL"
                 );
                 console.log("upsert email response: ", upsertEmailResponse);
+
+                if (
+                  pinpointAction.action === "insert" &&
+                  event.SQLVariableMapping[":email_notice"] === true
+                ) {
+                  await sendNotification(
+                    event.SQLVariableMapping[":email_address"],
+                    "email"
+                  );
+                }
               }
 
               if (event.SQLVariableMapping[":phone_address"]) {
@@ -213,6 +229,16 @@ exports.handler = async (event) => {
                 );
                 console.log("upsert phone no. response: ", upsertPhoneResponse);
                 result.pinpointResult = "success";
+
+                if (
+                  pinpointAction.action === "insert" &&
+                  event.SQLVariableMapping[":sms_notice"] === true
+                ) {
+                  await sendNotification(
+                    event.SQLVariableMapping[":phone_address"],
+                    "sms"
+                  );
+                }
               }
               result.pinpointResult = "success";
 
@@ -262,36 +288,74 @@ exports.handler = async (event) => {
   return result;
 };
 
-async function executeGraphQL(query) {
-  console.log("executing query: ", query);
-  return new Promise((resolve, reject) => {
-    // let options = {
-    //   method: "POST",
-    //   headers: {
-    //     "x-api-key": GRAPHQL_API_KEY,
-    //   },
-    //   body: JSON.stringify({ query, variables }),
-    // };
-    let gqlQuery = gqlRequest.gql([query]);
-
-    const gqlClient = new gqlRequest.GraphQLClient(GRAPHQL_ENDPOINT, {
-      headers: {
-        "x-api-key": GRAPHQL_API_KEY,
+async function sendNotification(address, type) {
+  let result = {};
+  if (type === "email") {
+    let categoryTopicsHTML = `You are now subscribed to ISED! Click here to manage your notification preferences:`;
+    let params = {
+      Destination: { ToAddresses: [address] },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `<html><body><p>${categoryTopicsHTML}</p></body></html>`,
+          },
+          Text: {
+            Charset: "UTF-8",
+            Data: `${categoryTopicsHTML}`,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "ISED Subscription",
+        },
       },
-    });
+      Source: SES_FROM_ADDRESS,
+    };
+    console.log("email sending info:", params);
+    result.email = await ses.sendEmail(params).promise();
+  } else if (type === "sms") {
+    let params = {
+      Message:
+        "You are now subscribed to ISED! Click here to manage your notification preferences:",
+      PhoneNumber: address,
+    };
+    result.sms = await sns.publish(params).promise();
+  }
 
-    gqlClient
-      .request(gqlQuery)
-      .then((response) => {
-        console.log("executeGraphQL response:", response);
-        return response;
-      })
-      .then((json) => {
-        console.log("executeGraphQL return:", JSON.stringify(json));
-        resolve(json);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
+  console.log("notification sent? ", result);
 }
+
+// async function executeGraphQL(query) {
+//   console.log("executing query: ", query);
+//   return new Promise((resolve, reject) => {
+//     // let options = {
+//     //   method: "POST",
+//     //   headers: {
+//     //     "x-api-key": GRAPHQL_API_KEY,
+//     //   },
+//     //   body: JSON.stringify({ query, variables }),
+//     // };
+//     let gqlQuery = gqlRequest.gql([query]);
+
+//     const gqlClient = new gqlRequest.GraphQLClient(GRAPHQL_ENDPOINT, {
+//       headers: {
+//         "x-api-key": GRAPHQL_API_KEY,
+//       },
+//     });
+
+//     gqlClient
+//       .request(gqlQuery)
+//       .then((response) => {
+//         console.log("executeGraphQL response:", response);
+//         return response;
+//       })
+//       .then((json) => {
+//         console.log("executeGraphQL return:", JSON.stringify(json));
+//         resolve(json);
+//       })
+//       .catch((err) => {
+//         reject(err);
+//       });
+//   });
+// }

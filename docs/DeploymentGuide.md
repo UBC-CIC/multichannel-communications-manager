@@ -91,44 +91,39 @@ If at any point you make a typo, you can press CTRL+C to cancel the process, and
 
 The following block of text is what will appear when running the command. It is a series of inputs to enter into the template, which will go line by line. Any text in `[square brackets]` is part of what will appear on screen, and these are the default values. If you are satisfied with that value for the input, you can just press enter. If there is no text in the brackets, that means it is required you enter something yourself as the input. Text in `<angled brackets>` has been added by me to help explain what to input. If there are no angled brackets, that means it is recommended just to use the default value provided, however they can be modified if wanted. Any text in `(rounded brackets)` will appear below a certain input. This will tell any important information to know about the input that is above. Spacing has been added for clarity.
 
-<!-- ```
-Configuring SAM deploy
-======================
+```
    Looking for config file [samconfig.toml] :  Not found
       (this will appear on first invokation, this file can be added to later to save the inputs we used so we do not have to re-enter them on subsequent deployments)
 
    Setting default arguments for 'sam deploy'
    =========================================
-   Stack Name [commit2act]:
-      (This will be the name of the stack you entered when running sam deploy, just press enter)
-   AWS Region []: <REGION YOU WANT TO DEPLOY TO>
+   Stack Name [isedDev]:
+   AWS Region [ca-central-1]: <REGION YOU WANT TO DEPLOY TO>
       (Ensure that you enter the same exact region you used to deploy Amplify in)
-   Parameter ProjectName []:
+   Parameter ProjectName []: 
       (This can be anything you want)
-   Parameter EnvironmentName [dev]:
+   Parameter EnvironmentName [dev]: 
       (This is just to differentiate between different builds, e.x. you can have dev, prod, and test environemnts)
-   Parameter DBName [sys]:
+   Parameter DBName [sys]: 
       (Name of the database, sys is the standard name, must begin with a letter and contain only alphanumeric characters, and be 16 characters or less)
-   Parameter DBUser [admin]:
+   Parameter DBUser [admin]: 
       (Name of the username to log into the database with, must begin with a letter and contain only alphanumeric characters, and be 16 characters or less)
    Parameter DBPassword []: <YOUR DB PASSWORD>
       (Password to use for the database, must contain only alphanumeric characters, and be between 8-40 characters)
-   Parameter DBInstanceClass [db.t4g.large]:
+   Parameter DBInstanceClass [db.t2.small]: 
       (What size of database to use. This value can be changed later in RDS settings, however there will be some downtime associated with it. For more information visit https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html. The allowed values are db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge)
-   Parameter DBEngineVersion [5.7.mysql_aurora.2.09.2]:
-      (What version of MySQL Aurora to use, the default value is recommended, but any of the following allowed values should work: 5.7.mysql_aurora.2.07.0, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.2, 5.7.mysql_aurora.2.07.3, 5.7.mysql_aurora.2.07.4, 5.7.mysql_aurora.2.07.5, 5.7.mysql_aurora.2.07.6, 5.7.mysql_aurora.2.07.7, 5.7.mysql_aurora.2.08.0, 5.7.mysql_aurora.2.08.1, 5.7.mysql_aurora.2.08.2, 5.7.mysql_aurora.2.08.3, 5.7.mysql_aurora.2.08.4, 5.7.mysql_aurora.2.09.0, 5.7.mysql_aurora.2.09.1, 5.7.mysql_aurora.2.09.2, 5.7.mysql_aurora.2.09.3, 5.7.mysql_aurora.2.10.0, 5.7.mysql_aurora.2.10.1, 5.7.mysql_aurora.2.10.2,  8.0.mysql_aurora.3.01.0, 8.0.mysql_aurora.3.01.1, 8.0.mysql_aurora.3.02.0)
-   Parameter DeletionProtection [True]:
+   Parameter DBEngineVersion [5.7.mysql_aurora.2.09.2]: 
+      (What version of MySQL Aurora to use, the default value is recommended, but any of the following allowed values should work: 5.7.mysql_aurora.2.07.0, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.2, 5.7.mysql_aurora.2.07.3, 5.7.mysql_aurora.2.07.4, 5.7.mysql_aurora.2.07.5, 5.7.mysql_aurora.2.07.6, 5.7.mysql_aurora.2.07.7, 5.7.mysql_aurora.2.08.0, 5.7.mysql_aurora.2.08.1, 5.7.mysql_aurora.2.08.2, 5.7.mysql_aurora.2.08.3, 5.7.mysql_aurora.2.08.4, 5.7.mysql_aurora.2.09.0, 5.7.mysql_aurora.2.09.1, 5.7.mysql_aurora.2.09.2, 5.7.mysql_aurora.2.09.3, 5.7.mysql_aurora.2.10.0, 5.7.mysql_aurora.2.10.1, 5.7.mysql_aurora.2.10.2)
+   Parameter DeletionProtection [True]: 
       (When deletion proteciton is enabled, when you request the deletion of a database instance in the AWS Console you are blocked and may not continue without first modifying the instance and disabling deletion protection (recommended for production))
-   Parameter EncryptDatabase [True]:
+   Parameter EncryptDatabase [True]: 
       (Encrypts the database for added security)
-   Parameter CloudFrontPriceClass [PriceClass_100]:
-      (The price class for the CloudFront Distriution, more info on which may be best for you can be found at https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PriceClass.html, however the default value will work perfectly fine for North American deployments. Allowed values: PriceClass_100, PriceClass_200, PriceClass_All)
-   Parameter MinConfidenceThreshold [70]:
-      (The minimum percent confidence required to accept a label during image validation with Rekognition, from our testing 70 is the best to use, but it can be modified)
    Parameter CognitoAdminName []: <NAME TO USE FOR ADMIN ACCOUNT>
       (For the first administrator user, whatever name you want associated to the account, can be your full name, or any other name you want)
    Parameter CognitoAdminEmail []: <EMAIL TO USE FOR ADMIN ACCOUNT>
       (For the first administrator user, what ever email you want associated to the account. This will be used for login, and you will receive a temporary passowrd to this email for your first login)
+   Parameter PinpointAdminEmail []: <EMAIL TO USE FOR ADMIN ACCOUNT>
+      (This will be the sender email address of the emails sent from Pinpoint)
 
    #Shows you resources changes to be deployed and require a 'Y' to initiate deploy
    Confirm changes before deploy [y/N]: y
@@ -145,11 +140,11 @@ Configuring SAM deploy
       (This file will be made for you, just press enter)
    SAM configuration environment [default]:
       (You can have multiple different environments, each having different saved inputs, but for now just press enter since we do not need to worry about that for this deployment)
-``` -->
+```
 
 Be sure to not close the window after this process has completed, as the Outputs section produced will be important for the next step.
 
-# Step 5: Wrap up Frontend Deployment
+# Step 4: Wrap up Frontend Deployment
 
 We need to add a few more things to our Amplify project before we are all done with deploying.
 
@@ -162,16 +157,16 @@ We need to add a few more things to our Amplify project before we are all done w
 
 ## SES
 
-Amazon SES is what is used to send the verification emails. Your account will be in a sandbox environment by default. While in this mode there will be sending limits and you are only able to send to verified emails. You can request to be moved out of the sandbox to remove these restrictions. In this step we will be configuring the email that will send the verification code to users that sign in. If you do not move out of the sandbox environment then you will also need to verify the emails of all the users that will use the application.
+Amazon SES is what is used to send the verification emails for when users sign in to the application. Your account will be in a sandbox environment by default. While in this mode there will be sending limits and you are only able to send to verified emails. You can request to be moved out of the sandbox to remove these restrictions. In this step we will be configuring the email that will send the verification code to users that sign in. If you do not move out of the sandbox environment then you will also need to verify the emails of all the users that will use the application.
 
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `SES` in the search bar.![alt text](images/deployment/ses-01.PNG)
 2. On the left side menu, click on `Verified identities` and select `Create identity`. Enter the email address and click `Create Identity`![alt text](images/deployment/ses-02.PNG)
 3. A link will be sent to the email. Click on it to confirm and verify that you are authorized to use the email address. This will be used in a later step.
 ## SNS
 
-Amazon SNS is what is used to send the verification texts when a user first adds their phone number. Your account will be in a sandbox environment by default. While in this mode you can only deliver SMS messages to verified phone numbers. You can request to be moved out of the sandbox to remove the restrictions. If you do not move out of the sandbox environment then you will need to verify the phone numbers of all the users that add it.
+Amazon SNS is what is used to send the verification texts when a user first adds their phone number. Your account will be in a sandbox environment by default. While in this mode you can only deliver SMS messages to verified phone numbers. You can request to be moved out of the sandbox to remove the restrictions. If you do not move out of the sandbox environment then you will need to verify the phone numbers of all the users that add it. **This guide assumes your AWS account is in the sandbox environment.**
 
-1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `SNS` in the search bar. On the left side menu, click on `Text messaging (SMS)` and scroll down to **Sandbox destination phone numbers**![alt text](images/deployment/sns-01.PNG)
+1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `SNS` in the search bar. On the left side menu, click on `Text messaging (SMS)` and scroll down to `Sandbox destination phone numbers`![alt text](images/deployment/sns-01.PNG)
 2. Click `Add phone number` and enter your phone number. A verification code will be sent to you which you must enter to verify the number.
 ## Lambda
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `Lambda` in the search bar. On the left side menu click on `Functions`![alt text](images/deployment/lambda-01.PNG)
@@ -183,32 +178,16 @@ Congratulations, your web app is now deployed! You can find the website URL on t
 
 <!-- # Step 6: Log into Admin Account
 
-To use the account created with CloudFormation, first navigate to the link of the app. This can be found on the Amplify page, under `Hosting environments`. Clicking on the image below `main` will take you to the website. Then, just log in to the account using the email you provided in the template. For the password, a temporary one will have been sent to your inbox. After logging in, you will be instructed to choose a brand new password.
+To use the account created with CloudFormation, first navigate to the link of the app. This can be found on the Amplify page, under `Hosting environments`. Clicking on the image below `main` will take you to the website. Then, just log in to the account using the email you provided in the template. For the password, a temporary one will have been sent to your inbox. After logging in, you will be instructed to choose a brand new password. -->
 
 # Step 7 (Optional): Set up other Admin Accounts
 
 To set up other accounts as an admin, you will need to do the following steps. (Note: this assumes the user has already been registered on the app)
 
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `Cognito` in the search bar \
-   ![alt text](images/webapp3.png)
-2. Select `Manage User Pools` (or click `User pools` on the left of the screen), then select the user pool corresponding to the project name (ex. `commit2act-env`) \
-   ![alt text](images/webapp4.png)
-3. Click the `Users and Groups` tab on the menu on the left of the screen (if you are on the newer version of the Cognito Console you can scroll down to see the users), then select the user which you want to set to Admin \
-   ![alt text](images/webapp5.png)
-4. Scroll down to User Attributes, and click `Edit` \
-   ![alt text](images/webapp6.png)
-5. Scroll down to Option Attributes, and change the value in the `custom:type` field from _User_ to _Admin_. Click `Save Changes`\
-   ![alt text](images/webapp7.png)
-6. You have set up login credentials. Return to Commit2Act web app, and login. Your user is now an admin! (If the user does not see the Admin Dashboard tab, try relogging on the Commit2Act web app)
-
-# Troubleshooting
-
-### Error #1
-
-If you encounter the following error:
-
-```bash
-The config profile could not be found
-```
-
-Then chances are that the AWS CLI has not been correctly configured. Ensure you have correctly done so by following the [AWS CLI setup guide](https://aws.amazon.com/cli/), as indicated in the requirements section. -->
+   ![alt text](images/deployment/deployment-05.PNG)
+2. Select `Manage User Pools` and select the user pool corresponding to the project name
+3. Click the `Users and Groups` tab on the menu on the left of the screen, then select the user which you want to set to Admin \
+   ![alt text](images/deployment/admin-01.PNG)
+4. At the top of the page click `Add to group` and select `Admins` from the dropdown menu \
+   ![alt text](images/deployment/admin-02.PNG)

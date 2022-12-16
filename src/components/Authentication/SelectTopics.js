@@ -119,7 +119,6 @@ const SelectTopics = ({ handleNextStep }) => {
 
   async function nextClicked() {
     const allSelectedTopicsTemp = allSelectedTopics;
-    console.log("allSelectedTopics: ", allSelectedTopics);
     for (var i = 0; i < allSelectedTopicsTemp.length; i++) {
       await API.graphql(
         graphqlOperation(userFollowCategoryTopic, allSelectedTopicsTemp[i])

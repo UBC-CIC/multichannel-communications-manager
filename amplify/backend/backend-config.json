@@ -143,6 +143,20 @@
             "GraphQLAPIIdOutput",
             "GraphQLAPIEndpointOutput"
           ]
+        },
+        {
+          "category": "auth",
+          "resourceName": "isedf0082716f0082716",
+          "attributes": [
+            "IdentityPoolId",
+            "IdentityPoolName",
+            "UserPoolId",
+            "UserPoolArn",
+            "UserPoolName",
+            "AppClientIDWeb",
+            "AppClientID",
+            "CreatedSNSRole"
+          ]
         }
       ]
     }

@@ -35,6 +35,8 @@ export const updateUser = /* GraphQL */ `
     $phone_address: String
     $postal_code: String
     $province: Province
+    $email_notice: Boolean!
+    $sms_notice: Boolean!
   ) {
     updateUser(
       user_id: $user_id
@@ -42,6 +44,8 @@ export const updateUser = /* GraphQL */ `
       phone_address: $phone_address
       postal_code: $postal_code
       province: $province
+      email_notice: $email_notice
+      sms_notice: $sms_notice
     ) {
       user_id
       email_address
