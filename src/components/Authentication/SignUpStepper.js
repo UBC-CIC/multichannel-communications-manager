@@ -10,7 +10,7 @@ import { Grid } from "@mui/material";
 const SignUpStepper = ({ activeStep }) => {
   const steps = [
     "General Information",
-    "Email Verification",
+    "Verification",
     "Categories of Interest",
   ];
 

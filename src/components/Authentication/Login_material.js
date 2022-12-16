@@ -19,7 +19,7 @@ import theme from "../../themes";
 import { Auth, API, graphqlOperation } from "aws-amplify";
 import { createUser, updateUser } from "../../graphql/mutations";
 import { getUserByEmail } from "../../graphql/queries";
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { connect } from "react-redux";
 import { updateLoginState } from "../../actions/loginAction";
 import TextFieldStartAdornment from "./TextFieldStartAdornment";
@@ -77,7 +77,6 @@ function Login(props) {
     useState(false);
   const [accountLoginError, setAccountLoginError] = useState(false);
   const [verificationError, setVerificationError] = useState(false);
-  const [forgotPasswordError, setForgotPasswordError] = useState(false);
   const [newVerification, setNewVerification] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userID, setUserID] = useState('');
@@ -133,12 +132,6 @@ function Login(props) {
     else return false;
   }
 
-  function checkPhone(num) {
-    var regex = new RegExp(/\+1\d{10}/);
-    if (regex.test(num)) return true;
-    else return false;
-  }
-
   const handleDisplayStep2 = () => {
     if (formState.postal_code !== "") {
       if (!checkPostal(formState.postal_code)) {
@@ -154,12 +147,14 @@ function Login(props) {
       setDefaultNotificationError(true)
     } else {
       if (defaultNotificationPreference.includes('text')) {
-        if (userPhone === "" || !checkPhone(userPhone)) {
+        if (userPhone === "") {
           setInvalidInputError(true)
+        } else {
+          signUp()
         }
+      } else {
+        signUp();
       }
-      //sign user up
-      signUp();
     }
   };
 
@@ -205,12 +200,6 @@ function Login(props) {
     }
   }
 
-  // function onKeyDownSignUp(e) {
-  //   if (e.keyCode === 13) {
-  //     signUp()
-  //   }
-  // }
-
   /*functions for user sign up process*/
 
   /*functions for creating randomly generated password*/
@@ -228,23 +217,36 @@ function Login(props) {
   async function signUp() {
     try {
       const { email, province, postal_code } = formState;
-
+      let data;
       setLoading(true);
-      let data = await Auth.signUp({
-        username: email,
-        password: getRandomString(30),
-        attributes: {
-          "custom:province": province,
-          "custom:postal_code": postal_code,
-        },
-        autoSignIn: {
-          enabled: true,
-        },
-      });
+      if (userPhone === "") {
+        data = await Auth.signUp({
+          username: email,
+          password: getRandomString(30),
+          attributes: {
+            "custom:province": province,
+            "custom:postal_code": postal_code,
+          },
+          autoSignIn: {
+            enabled: true,
+          },
+        });
+      } else {
+        data = await Auth.signUp({
+          username: email,
+          password: getRandomString(30),
+          attributes: {
+            phone_number: "+" + userPhone,
+            "custom:province": province,
+            "custom:postal_code": postal_code,
+          },
+          autoSignIn: {
+            enabled: true,
+          },
+        });
+      }
       setCognitoUser(data.user);
-      // updateFormState(() => ({ ...initialFormState, email }));
       setLoading(false);
-
       updateLoginState("confirmSignUp");
       handleNextStep();
     } catch (e) {
@@ -377,17 +379,19 @@ function Login(props) {
             }
             const userData = {
               email_address: formState.email,
+              phone_address: userPhone,
               postal_code: formState.postal_code,
               province: prov,
               email_notice: email_selected,
               sms_notice: sms_selected
             };
             await API.graphql(graphqlOperation(createUser, userData));
-            if (defaultNotificationPreference.includes('text')) {
-              updateLoginState('verifyPhone')
-            } else {
-              handleNextStep();
-            }
+            handleNextStep()
+            // if (defaultNotificationPreference.includes('text')) {
+            //   updateLoginState('verifyPhone')
+            // } else {
+            //   handleNextStep();
+            // }
           })
           .catch((e) => {
             const errorMsg = e.message;
@@ -431,14 +435,6 @@ function Login(props) {
     }
   }
 
-  //to add in later for user input sanitization
-  // function checkEmptyString(str) {
-  //   // check if string is empty after space trimmed
-  //   if (str.replace(/\s+/g, "") === "") {
-  //     throw new Error("empty");
-  //   }
-  // }
-
   //resets progress bar and form states
   function resetStates(state) {
     // resets the progress bar
@@ -453,30 +449,30 @@ function Login(props) {
     updateLoginState(state);
   }
 
-  const sendText = async () => {
-    const returnedUser = await Auth.currentAuthenticatedUser();
-    await Auth.updateUserAttributes(returnedUser, {
-      phone_number: userPhone
-    })
-    let user = await API.graphql(graphqlOperation(getUserByEmail, {user_email: returnedUser.attributes.email}))
-    setUserID(user.data.getUserByEmail.user_id)
-  }
+  // const sendText = async () => {
+  //   const returnedUser = await Auth.currentAuthenticatedUser();
+  //   await Auth.updateUserAttributes(returnedUser, {
+  //     phone_number: "+" + userPhone
+  //   })
+  //   let user = await API.graphql(graphqlOperation(getUserByEmail, {user_email: returnedUser.attributes.email}))
+  //   setUserID(user.data.getUserByEmail.user_id)
+  // }
 
-  const verifyPhone = async () => {
-    if (verificationCode === "") {
-      setInvalidPhoneCodeError(true)
-    } else {
-      await Auth.verifyCurrentUserAttributeSubmit(
-        "phone_number",
-        verificationCode
-      ).then(async () => {
-        await API.graphql(graphqlOperation(updateUser, {user_id: userID, phone_address: userPhone}))
-        updateLoginState('phoneVerified')
-        handleNextStep()
-      })
-        .catch(setInvalidPhoneCodeError(true)) 
-    }
-  }
+  // const verifyPhone = async () => {
+  //   if (verificationCode === "") {
+  //     setInvalidPhoneCodeError(true)
+  //   } else {
+  //     await Auth.verifyCurrentUserAttributeSubmit(
+  //       "phone_number",
+  //       verificationCode
+  //     ).then(async () => {
+  //       await API.graphql(graphqlOperation(updateUser, {user_id: userID, phone_address: userPhone}))
+  //       updateLoginState('phoneVerified')
+  //       handleNextStep()
+  //     })
+  //       .catch(setInvalidPhoneCodeError(true)) 
+  //   }
+  // }
 
   return (
     <>
@@ -576,7 +572,7 @@ function Login(props) {
           >
             {activeStep !== 2 && (
               <Grid className={"login-wrapper-top"}>
-                {loginState === "verifyPhone" ?
+                {/* {loginState === "verifyPhone" ?
                   <Typography
                     sx={{ mb: "1em" }}
                     className={"login-wrapper-top-header"}
@@ -591,7 +587,15 @@ function Login(props) {
                     ? "Welcome!"
                     : activeStep === 1 && "Email Verification"}
                   </Typography>
-                }
+                } */}
+                <Typography
+                  sx={{ mb: "1em" }}
+                  className={"login-wrapper-top-header"}
+                >
+                {activeStep === 0
+                  ? "Welcome!"
+                  : activeStep === 1 && "Verification"}
+                </Typography>
                 <span className={"login-wrapper-action-header"}>
                   {loginState === "signIn" ? (
                     <span>Sign In</span>
@@ -641,7 +645,6 @@ function Login(props) {
                   />
                 </Grid>
                 <div>
-                  {/* divider */}
                   <Grid container item alignItems="center" xs={12}>
                     <Grid item xs>
                       <Divider />
@@ -665,23 +668,6 @@ function Login(props) {
                 </div>
               </Grid>
             )}
-
-            {/* {!!forgotPasswordError && (
-              <Grid container item xs={12} sx={{ color: "red" }}>
-                <span>
-                  Please enter a valid email or create an account&nbsp;
-                  <Box
-                    component="span"
-                    sx={{ cursor: "pointer", textDecoration: "underline" }}
-                    onClick={() => updateLoginState("signUp")}
-                  >
-                    <strong>here</strong>
-                  </Box>
-                  <span>.</span>
-                </span>
-              </Grid>
-            )} */}
-
             {/* General Information Sign Up Step */}
             {loginState === "signUp" && activeStep === 0 && (
               <Grid>
@@ -780,7 +766,8 @@ function Login(props) {
               <Grid>
                 <Grid container item xs={12}>
                   <span>
-                    Please check your email for a confirmation code. This may
+                    Please check your email for a confirmation code. If you selected to
+                    receive notifications via text then the code will be sent to your phone. This may
                     take several minutes.
                   </span>
                 </Grid>
@@ -818,9 +805,6 @@ function Login(props) {
                   <Button onClick={resendConfirmationCode}>
                     <span>Resend Code</span>
                   </Button>
-                  {/* <Button>
-                    <span>Resend Code</span>
-                  </Button> */}
                 </Grid>
                 <BackAndSubmitButtons
                   backAction={() => resetStates("signUp")}
@@ -830,7 +814,7 @@ function Login(props) {
                 />
               </Grid>
             )}
-            {(loginState === "verifyPhone") && (
+            {/* {(loginState === "verifyPhone") && (
               <Grid>
                 <Grid container item xs={12}>
                   <span>
@@ -840,9 +824,6 @@ function Login(props) {
                   </span>
                   <Button onClick={sendText}>Send Verification Text</Button>
                 </Grid>
-                <BannerMessage type={"error"} typeCheck={invalidPhoneCodeError}>
-                  Invalid verification code provided, please try again.
-                </BannerMessage>
                 <Grid
                   container
                   item
@@ -854,10 +835,10 @@ function Login(props) {
                   startIcon={<Dialpad />}
                   placeholder="Enter your phone verification code."
                   name={"phoneCode"}
-                  // error={invalidPhoneCodeError}
-                  // helperText={
-                  //   !!invalidPhoneCodeError && "Invalid verification code provided, please try again."
-                  // }
+                  error={invalidPhoneCodeError}
+                  helperText={
+                    !!invalidPhoneCodeError && "Invalid verification code provided, please try again."
+                  }
                   type="text"
                   autoComplete={"new-password"}
                   onChange={(e) => {setInvalidPhoneCodeError(false); setVerificationCode(e.target.value)}}
@@ -870,7 +851,7 @@ function Login(props) {
                   loadingState={loading}
                 />
               </Grid>
-            )}
+            )} */}
             {/* Select Topics of Interest Step*/}
             {activeStep === 2 && (
               <SelectTopics handleNextStep={handleNextStep} />
