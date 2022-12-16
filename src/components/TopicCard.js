@@ -23,7 +23,6 @@ const TopicCard = ({
   setSaveEnabled,
   selectedSubTopics,
   setSelectedSubtopics,
-  allSelectedTopics,
   setAllSelectedTopics
 }) => {
   const { title, description, picture_location } = selectedTopic;
@@ -48,14 +47,8 @@ const TopicCard = ({
       try {
         const returnedUser = await Auth.currentAuthenticatedUser();
         let databaseUser = await API.graphql(graphqlOperation(getUserByEmail, { user_email: returnedUser.attributes.email }));
-        let topicAlreadySaved =  allSelectedTopics.find((s) => s.category_acronym === selectedTopic.acronym)
-        if (topicAlreadySaved === undefined) {
-          setSelectedNotifications({email: databaseUser.data.getUserByEmail.email_notice,
-            text: databaseUser.data.getUserByEmail.sms_notice})
-        } else {
-          setSelectedNotifications({email: topicAlreadySaved.email_notice,
-            text: topicAlreadySaved.sms_notice})
-        }
+        setSelectedNotifications({email: databaseUser.data.getUserByEmail.email_notice,
+          text: databaseUser.data.getUserByEmail.sms_notice})
         setUserID(databaseUser.data.getUserByEmail.user_id)
       } catch (e) {
         console.log(e);
@@ -102,16 +95,6 @@ const TopicCard = ({
       );
     }
   };
-
-  const notificationsSelected = () => {
-    if (selectedNotifications.email && selectedNotifications.text) {
-      return "Notifications Selected: Email, Text"
-    } else if (selectedNotifications.email && !selectedNotifications.text) {
-      return "Notifications Selected: Email"
-    } else {
-      return "Notifications Selected: Text"
-    }
-  }
 
   return (
     <>
