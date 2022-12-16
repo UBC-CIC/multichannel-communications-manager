@@ -366,7 +366,12 @@ const EditAccountInfo = () => {
             "phone_number",
             verificationCode
           ).then(async () => {
-            await API.graphql(graphqlOperation(updateUser, {user_id: userData.user_id, phone_address: phoneNumber}));
+            await API.graphql(graphqlOperation(updateUser, {
+              user_id: userData.user_id,
+              phone_address: phoneNumber,
+              email_notice: userData.email_notice,
+              sms_notice: userData.sms_notice
+            }));
             setPhoneDialogState("phoneSaved")
           })
         }
