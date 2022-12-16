@@ -122,7 +122,7 @@ const SelectTopics = ({ handleNextStep }) => {
     for (var i = 0; i < allSelectedTopicsTemp.length; i++) {
       await API.graphql(
         graphqlOperation(userFollowCategoryTopic, allSelectedTopicsTemp[i])
-      );
+      ).catch(e=>console.log(e))
     }
     handleNextStep();
   }

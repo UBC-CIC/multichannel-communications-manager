@@ -216,17 +216,13 @@ function Login(props) {
   //function for user sign up
   async function signUp() {
     try {
-      const { email, province, postal_code } = formState;
+      const { email } = formState;
       let data;
       setLoading(true);
       if (userPhone === "") {
         data = await Auth.signUp({
           username: email,
           password: getRandomString(30),
-          attributes: {
-            "custom:province": province,
-            "custom:postal_code": postal_code,
-          },
           autoSignIn: {
             enabled: true,
           },
@@ -237,8 +233,6 @@ function Login(props) {
           password: getRandomString(30),
           attributes: {
             phone_number: "+" + userPhone,
-            "custom:province": province,
-            "custom:postal_code": postal_code,
           },
           autoSignIn: {
             enabled: true,
