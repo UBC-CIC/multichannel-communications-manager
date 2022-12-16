@@ -211,13 +211,26 @@ const EditAccountInfo = () => {
       'custom:province': userData.province,
       'custom:postal_code': userData.postal_code
     }
-    if (userData.postal_code === null) {
-      updateData = {
-        email: userData.email_address,
-        phone_number: "+" + userData.phone_address,
-        'custom:province': userData.province,
-      }
-    }
+    if (userData.postal_code === null || userData.phone_address === null) {
+      if (userData.postal_code === null && userData.phone_address === null) {
+        updateData = {
+          email: userData.email_address,
+          'custom:province': userData.province,
+        }
+      } else if (userData.postal_code === null && userData.phone_address !== null) {
+        updateData = {
+          email: userData.email_address,
+          phone_number: "+" + userData.phone_address,
+          'custom:province': userData.province,
+        }
+      } else if (userData.phone_address === null && userData.postal_code !== null) {
+        updateData = {
+          email: userData.email_address,
+          'custom:province': userData.province,
+          'custom:postal_code': userData.postal_code
+        }
+      } 
+    } 
     await Auth.updateUserAttributes(currentUser, updateData)
     .then(successAlert)
     .catch((e) => {
@@ -231,7 +244,7 @@ const EditAccountInfo = () => {
 
   const handleToggle = (event, newToggle) => {
     clearErrors()
-    if (newToggle.includes('text') && currentUser.attributes.phone_number === null) {
+    if (newToggle.includes('text') && userData.phone_address === null) {
       setOpenPhoneDialog(true)
     } else {
       setDefaultNotificationPreference(newToggle);
@@ -261,14 +274,16 @@ const EditAccountInfo = () => {
           user_id: userData.user_id
         }))
         let userTopics = getUserTopics.data.getUserCategoryTopicByUserId
-        for (let i = 0; i < userTopics.length; i++) {
-          await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
-            user_id: userData.user_id,
-            category_acronym: userTopics[i].category_acronym,
-            topic_acronym: userTopics[i].topic_acronym,
-            email_notice: email_selected,
-            sms_notice: sms_selected
-          }))
+        if (userTopics.length !== 0) {
+          for (let i = 0; i < userTopics.length; i++) {
+            await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
+              user_id: userData.user_id,
+              category_acronym: userTopics[i].category_acronym,
+              topic_acronym: userTopics[i].topic_acronym,
+              email_notice: email_selected,
+              sms_notice: sms_selected
+            }))
+          }
         }
       }
       userData.email_notice = email_selected
@@ -308,9 +323,26 @@ const EditAccountInfo = () => {
         email_selected = false
         sms_selected = true
       }
+    
+      if ((userData.email_notice !== email_selected) || (userData.sms_notice !== sms_selected)) {
+        let getUserTopics = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {
+          user_id: userData.user_id
+        }))
+        let userTopics = getUserTopics.data.getUserCategoryTopicByUserId
+        if (userTopics.length !== 0) {
+          for (let i = 0; i < userTopics.length; i++) {
+            await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
+              user_id: userData.user_id,
+              category_acronym: userTopics[i].category_acronym,
+              topic_acronym: userTopics[i].topic_acronym,
+              email_notice: email_selected,
+              sms_notice: sms_selected
+            }))
+          }
+        }
+      }
       userData.email_notice = email_selected
       userData.sms_notice = sms_selected
-      setOpenEmailConfirmDialog(false);
       await API.graphql(graphqlOperation(updateUser, userData))
       setAlert(true);
       setAlertContent('Your changes have been successfully saved.');
