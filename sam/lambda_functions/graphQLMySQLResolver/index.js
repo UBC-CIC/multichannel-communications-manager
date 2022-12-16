@@ -22,7 +22,7 @@ async function conditionallyCreateDB(connection) {
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
   \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL
   \`email_notice\` boolean NOT NULL,
-  \`sms_notice\` boolean NOT NULL,
+  \`sms_notice\` boolean NOT NULL
   );
 
 CREATE TABLE \`Category\` (
