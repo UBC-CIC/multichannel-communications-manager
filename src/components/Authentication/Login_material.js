@@ -764,13 +764,23 @@ function Login(props) {
             {((loginState === "confirmSignUp" && activeStep === 1) ||
               loginState === "verifyEmail") && (
               <Grid>
-                <Grid container item xs={12}>
+                {loginState === "verifyEmail" ? 
                   <span>
-                    Please check your email for a confirmation code. If you selected to
-                    receive notifications via text then the code will be sent to your phone. This may
+                    Please check your email for a confirmation code. This may
                     take several minutes.
-                  </span>
-                </Grid>
+                  </span> :
+                  <Grid container item xs={12}>
+                    <span>
+                      If you selected to receive notifications via text then a confirmation code
+                      will be sent to your phone. Otherwise it will be sent to your email. This may
+                      take several minutes.
+                    </span>
+                    <br />
+                    <span>
+                      <strong>Note: </strong>Future sign-ins will have the verification code sent to your email,
+                      regardless of if you selected text.
+                    </span>
+                  </Grid>}
                 <BannerMessage type={"error"} typeCheck={verificationError}>
                   Invalid verification code provided, please try again.
                 </BannerMessage>
