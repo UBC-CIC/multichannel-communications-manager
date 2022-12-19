@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as AmplifyHelpers from '@aws-amplify/cli-extensibility-helper';
 import * as ssm from '@aws-cdk/aws-ssm';
 import { AmplifyDependentResourcesAttributes } from '../../types/amplify-dependent-resources-ref';
+import { App } from '@aws-cdk/core';
 
 
 export class cdkStack extends cdk.Stack {
@@ -22,12 +23,14 @@ export class cdkStack extends cdk.Stack {
         {category: 'api', resourceName: "ised"},
         // {category: 'storage', resourceName: "s3commit2actstorage4f79922d"},
         {category: 'auth', resourceName: "isedf0082716f0082716" },
+        // {category: 'auth', resourceName: "isedf0082716f0082716" },
       ]
     );
     const GraphQLAPIIdOutput = cdk.Fn.ref(dependencies.api.ised.GraphQLAPIIdOutput)
     const GraphQLAPIEndpointOutput = cdk.Fn.ref(dependencies.api.ised.GraphQLAPIEndpointOutput)
     // const BucketNameOutput = cdk.Fn.ref(dependencies.storage.s3commit2actstorage4f79922d.BucketName);
     const UserPoolIdOutput = cdk.Fn.ref(dependencies.auth.isedf0082716f0082716.UserPoolId);
+    const AppName = AmplifyHelpers.getProjectInfo().projectName;
     /* AWS CDK code goes here - learn more: https://docs.aws.amazon.com/cdk/latest/guide/home.html */
     new ssm.StringParameter(this, 'ParameterStoreGraphQLAPIId', {
       parameterName: 'GraphqlApiId',
@@ -46,6 +49,11 @@ export class cdkStack extends cdk.Stack {
       parameterName: 'UserPoolId',
       stringValue: UserPoolIdOutput,
     });
+    new ssm.StringParameter(this, 'ParameterStoreAmplifyAppName', {
+      parameterName: 'AmplifyAppName',
+      stringValue: AppName,
+    });
+
     
   }  
 

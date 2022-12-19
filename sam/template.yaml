@@ -34,7 +34,10 @@ Parameters:
       #   Description: "The ID of the AppSync API for the Amplify project (ex. AbcdeF1234567)"
       # AmplifyCognitoUserPoolId:
       #   Type: String
-      #   Description: "The ID of the Cognito User Pool for the Amplify project (ex. us-east-1_aBcDeFgh)"
+      #   Description: "The ID of the Cognito User Pool for the Amplify project (ex. us-east-1_aBcDeFgh)"  
+  AmplifyLink:
+    Description: Link to the app hosted on amplify
+    Type: String
   DBName:
     Default: sys
     Description: The database name
@@ -106,6 +109,14 @@ Resources:
         Type: String 
         Value: "{{resolve:ssm:GraphqlApiId:1}}"
         Description: Communication Manager GraphQL Api Id
+
+  AmplifyApp:
+    Type: AWS::Amplify::App
+    Properties:
+      Name: "{{resolve:ssm:AmplifyAppName:1}}"
+      EnvironmentVariables:
+      - Name: SES_FROM_ADDRESS
+        Value: !Ref CognitoAdminEmail
 
   IGW:
     Type: AWS::EC2::InternetGateway
@@ -487,7 +498,10 @@ Resources:
     Properties: 
       Description: Stores the credentials for the RDS instance
       Name: RDSCredentials
+      # GenerateSecretString:
+      #   SecretStringTemplate: !Sub '{"username":"${DBUser}","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
       SecretString: !Sub '{"username":"${DBUser}","password":"${DBPassword}","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
+        # GenerateStringKey: "password"
       Tags:
         - Key: "Project"
           Value: !Ref 'ProjectName'
@@ -692,6 +706,7 @@ Resources:
           ADMIN_EMAIL: !Ref CognitoAdminEmail
           BUCKET_NAME: !Ref PicturesBucket
           PINPOINT_APPID: !Ref PinpointApp
+          
       VpcConfig:
         SecurityGroupIds:
           # - !Ref ClosedSecurityGroup

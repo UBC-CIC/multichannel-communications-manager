@@ -108,8 +108,8 @@ The following block of text is what will appear when running the command. It is 
       (Name of the database, sys is the standard name, must begin with a letter and contain only alphanumeric characters, and be 16 characters or less)
    Parameter DBUser [admin]: 
       (Name of the username to log into the database with, must begin with a letter and contain only alphanumeric characters, and be 16 characters or less)
-   Parameter DBPassword []: <YOUR DB PASSWORD>
-      (Password to use for the database, must contain only alphanumeric characters, and be between 8-40 characters)
+   <!-- Parameter DBPassword []: <YOUR DB PASSWORD>
+      (Password to use for the database, must contain only alphanumeric characters, and be between 8-40 characters) -->
    Parameter DBInstanceClass [db.t2.small]: 
       (What size of database to use. This value can be changed later in RDS settings, however there will be some downtime associated with it. For more information visit https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html. The allowed values are db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge)
    Parameter DBEngineVersion [5.7.mysql_aurora.2.09.2]: 
@@ -148,12 +148,12 @@ Be sure to not close the window after this process has completed, as the Outputs
 
 We need to add a few more things to our Amplify project before we are all done with deploying.
 
-## Cognito
+<!-- ## Cognito
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `Cognito` in the search bar![alt text](images/deployment/deployment-05.PNG)
 2. Select `Manage User Pools`, then select the user pool corresponding to the project name
 3. On the left side menu, click on `Attributes` and scroll to the bottom of the page. Enter the following custom attributes and save the changes:
    ![alt text](images/deployment/deployment-06.PNG)
-4. On the left side menu, click on `MFA and verifications` and scroll down to `Which attributes do you want to verify?`. Select **Email or phone number**.![alt text](images/deployment/deployment-07.PNG)
+4. On the left side menu, click on `MFA and verifications` and scroll down to `Which attributes do you want to verify?`. Select **Email or phone number**.![alt text](images/deployment/deployment-07.PNG) -->
 
 ## SES
 
@@ -168,11 +168,11 @@ Amazon SNS is what is used to send the verification texts when a user first adds
 
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `SNS` in the search bar. On the left side menu, click on `Text messaging (SMS)` and scroll down to `Sandbox destination phone numbers`![alt text](images/deployment/sns-01.PNG)
 2. Click `Add phone number` and enter your phone number. A verification code will be sent to you which you must enter to verify the number.
-## Lambda
+<!-- ## Lambda
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `Lambda` in the search bar. On the left side menu click on `Functions`![alt text](images/deployment/lambda-01.PNG)
 2. Search for `CreateAuthChallenge` and select the one that was created for the newly deployed project (e.g. isedf0082716f0082716CreateAuthChallenge-devp)![alt text](images/deployment/lambda-02.PNG)
 3. Scroll down the page and select `Configuration`. On the left side menu select `Environment Variables`![alt text](images/deployment//lambda-03.PNG)
-4. Click on `Edit`. Add the key **SES_FROM_ADDRESS** and give it the value of the email you verified in Amazon SES![alt text](images/deployment//lambda-04.PNG)
+4. Click on `Edit`. Add the key **SES_FROM_ADDRESS** and give it the value of the email you verified in Amazon SES![alt text](images/deployment//lambda-04.PNG) -->
 
 Congratulations, your web app is now deployed! You can find the website URL on the main screen of Amplify under `Hosting environments`, and then clicking on the web-browser-esque image under `main`.
 
