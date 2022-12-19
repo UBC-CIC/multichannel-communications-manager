@@ -216,17 +216,13 @@ function Login(props) {
   //function for user sign up
   async function signUp() {
     try {
-      const { email, province, postal_code } = formState;
+      const { email } = formState;
       let data;
       setLoading(true);
       if (userPhone === "") {
         data = await Auth.signUp({
           username: email,
           password: getRandomString(30),
-          attributes: {
-            "custom:province": province,
-            "custom:postal_code": postal_code,
-          },
           autoSignIn: {
             enabled: true,
           },
@@ -237,8 +233,6 @@ function Login(props) {
           password: getRandomString(30),
           attributes: {
             phone_number: "+" + userPhone,
-            "custom:province": province,
-            "custom:postal_code": postal_code,
           },
           autoSignIn: {
             enabled: true,
@@ -764,13 +758,23 @@ function Login(props) {
             {((loginState === "confirmSignUp" && activeStep === 1) ||
               loginState === "verifyEmail") && (
               <Grid>
-                <Grid container item xs={12}>
+                {loginState === "verifyEmail" ? 
                   <span>
-                    Please check your email for a confirmation code. If you selected to
-                    receive notifications via text then the code will be sent to your phone. This may
+                    Please check your email for a confirmation code. This may
                     take several minutes.
-                  </span>
-                </Grid>
+                  </span> :
+                  <Grid container item xs={12}>
+                    <span>
+                      If you selected to receive notifications via text then a confirmation code
+                      will be sent to your phone. Otherwise it will be sent to your email. This may
+                      take several minutes.
+                    </span>
+                    <br />
+                    <span>
+                      <strong>Note: </strong>Future sign-ins will have the verification code sent to your email,
+                      regardless of if you selected text.
+                    </span>
+                  </Grid>}
                 <BannerMessage type={"error"} typeCheck={verificationError}>
                   Invalid verification code provided, please try again.
                 </BannerMessage>
