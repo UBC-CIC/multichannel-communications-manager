@@ -25,7 +25,7 @@ const UserSubscriptionDialog = ({
       open={open}
     >
       <DialogTitle id="customized-dialog-title">
-        User Subscriptions
+        You are currently subscribed to:
         <IconButton
           aria-label="close"
           onClick={handleClose}

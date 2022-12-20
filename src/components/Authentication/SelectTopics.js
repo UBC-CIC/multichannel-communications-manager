@@ -50,7 +50,7 @@ const StyledImageListItem = styled(ImageListItem)`
 `;
 
 const SelectTopics = ({ handleNextStep }) => {
-  const [sampleTopics, setSampleTopics] = useState([]);
+  const [topics, setTopics] = useState([]);
   const [allSelectedTopics, setAllSelectedTopics] = useState([]);
   const [selectedSubtopics, setSelectedSubtopics] = useState([]);
   const [saveEnabled, setSaveEnabled] = useState(false);
@@ -64,7 +64,7 @@ const SelectTopics = ({ handleNextStep }) => {
   async function queriedData() {
     let categories = await API.graphql(graphqlOperation(getAllCategories));
     let allCategories = categories.data.getAllCategories;
-    setSampleTopics(allCategories);
+    setTopics(allCategories);
     for (let i = 0; i < allCategories.length; i++) {
       let imageURL = await Storage.get(allCategories[i].picture_location)
       setImage((prev) => [...prev, imageURL])
@@ -84,9 +84,9 @@ const SelectTopics = ({ handleNextStep }) => {
 
   const displayTopicOptions = () => {
     return (
-      sampleTopics &&
-      sampleTopics.length > 0 &&
-      sampleTopics
+      topics &&
+      topics.length > 0 &&
+      topics
         .map((topic, index) => (
           <StyledImageListItem
             key={index}
