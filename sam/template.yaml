@@ -707,7 +707,7 @@ Resources:
           ADMIN_EMAIL: !Ref CognitoAdminEmail
           BUCKET_NAME: !Ref PicturesBucket
           PINPOINT_APPID: !Ref PinpointApp
-          # LINK_TO_APP: !GetAtt AmplifyProject.DefaultDomain
+          LINK_TO_APP: !Ref AmplifyLink
           
       VpcConfig:
         SecurityGroupIds:

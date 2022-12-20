@@ -104,6 +104,8 @@ The following block of text is what will appear when running the command. It is 
       (This can be anything you want)
    Parameter EnvironmentName [dev]: 
       (This is just to differentiate between different builds, e.x. you can have dev, prod, and test environemnts)
+   Parameter AmplifyLink []: 
+      (Enter the hosting link that Amplify generated in the previous step)
    Parameter DBName [sys]: 
       (Name of the database, sys is the standard name, must begin with a letter and contain only alphanumeric characters, and be 16 characters or less)
    Parameter DBUser [admin]: 
@@ -168,11 +170,11 @@ Amazon SNS is what is used to send the verification texts when a user first adds
 
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `SNS` in the search bar. On the left side menu, click on `Text messaging (SMS)` and scroll down to `Sandbox destination phone numbers`![alt text](images/deployment/sns-01.PNG)
 2. Click `Add phone number` and enter your phone number. A verification code will be sent to you which you must enter to verify the number.
-<!-- ## Lambda
+## Lambda
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `Lambda` in the search bar. On the left side menu click on `Functions`![alt text](images/deployment/lambda-01.PNG)
 2. Search for `CreateAuthChallenge` and select the one that was created for the newly deployed project (e.g. isedf0082716f0082716CreateAuthChallenge-devp)![alt text](images/deployment/lambda-02.PNG)
 3. Scroll down the page and select `Configuration`. On the left side menu select `Environment Variables`![alt text](images/deployment//lambda-03.PNG)
-4. Click on `Edit`. Add the key **SES_FROM_ADDRESS** and give it the value of the email you verified in Amazon SES![alt text](images/deployment//lambda-04.PNG) -->
+4. Click on `Edit`. Add the key **SES_FROM_ADDRESS** and give it the value of the email you verified in Amazon SES![alt text](images/deployment//lambda-04.PNG)
 
 Congratulations, your web app is now deployed! You can find the website URL on the main screen of Amplify under `Hosting environments`, and then clicking on the web-browser-esque image under `main`.
 
