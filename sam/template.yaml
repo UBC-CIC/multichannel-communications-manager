@@ -110,13 +110,13 @@ Resources:
         Value: "{{resolve:ssm:GraphqlApiId:1}}"
         Description: Communication Manager GraphQL Api Id
 
-  AmplifyApp:
-    Type: AWS::Amplify::App
-    Properties:
-      Name: "{{resolve:ssm:AmplifyAppName:1}}"
-      EnvironmentVariables:
-      - Name: SES_FROM_ADDRESS
-        Value: !Ref CognitoAdminEmail
+  # AmplifyProject:
+    # Type: AWS::Amplify::App
+    # Properties:
+    #   Name: "{{resolve:ssm:AmplifyAppName:1}}"
+    #   EnvironmentVariables:
+    #   - Name: SES_FROM_ADDRESS
+    #     Value: !Ref CognitoAdminEmail
 
   IGW:
     Type: AWS::EC2::InternetGateway
@@ -683,6 +683,7 @@ Resources:
     - ClosedSecurityGroup
     - MainDBInstance
     - LambdaServiceRole
+    # - AmplifyProject
     Properties:
       FunctionName: graphQL-MySQL-Resolver
       # Layers:
@@ -706,6 +707,7 @@ Resources:
           ADMIN_EMAIL: !Ref CognitoAdminEmail
           BUCKET_NAME: !Ref PicturesBucket
           PINPOINT_APPID: !Ref PinpointApp
+          # LINK_TO_APP: !GetAtt AmplifyProject.DefaultDomain
           
       VpcConfig:
         SecurityGroupIds:
@@ -1999,6 +2001,14 @@ Resources:
         # !GetAtt SESIdentity.Arn
         !Sub 'arn:aws:ses:ca-central-1:${AWS::AccountId}:identity/${PinpointAdminEmail}'
       Enabled: true
+  EmailSenderParameter:
+      Type: AWS::SSM::Parameter
+      Properties: 
+        Name: "EmailSenderParameter"
+        Type: String 
+        Value: !Ref PinpointAdminEmail
+        Description: sender email for all SES communications
+
 
   #Lambda Resources
   GraphQLResolverRole:
