@@ -17,8 +17,7 @@ import 'react-phone-input-2/lib/high-res.css'
 import { ArrowBack, AlternateEmail, Dialpad, HelpOutline } from "@mui/icons-material";
 import theme from "../../themes";
 import { Auth, API, graphqlOperation } from "aws-amplify";
-import { createUser, updateUser } from "../../graphql/mutations";
-import { getUserByEmail } from "../../graphql/queries";
+import { createUser } from "../../graphql/mutations";
 import { useState } from "react";
 import { connect } from "react-redux";
 import { updateLoginState } from "../../actions/loginAction";
@@ -79,7 +78,6 @@ function Login(props) {
   const [verificationError, setVerificationError] = useState(false);
   const [newVerification, setNewVerification] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [userID, setUserID] = useState('');
   const [inputsNotFilled, setInputsNotFilled] = useState(false);
   const [userExistError, setUserExistError] = useState(false);
   const [invalidPostalCodeError, setInvalidPostalCodeError] = useState(false);
@@ -91,8 +89,6 @@ function Login(props) {
   const [defaultNotificationPreference, setDefaultNotificationPreference] = useState([]);
   const [userPhone, setUserPhone] = useState('')
   const [invalidInputError, setInvalidInputError] = useState(false)
-  const [verificationCode, setVerificationCode] = useState("")
-  const [invalidPhoneCodeError, setInvalidPhoneCodeError] = useState(false)
 
   const provinceOptions = [
     "Alberta",
@@ -114,10 +110,6 @@ function Login(props) {
 
   const handleNextStep = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
-  };
-
-  const handleBackStep = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
   const handleResetSteps = () => {
@@ -381,11 +373,6 @@ function Login(props) {
             };
             await API.graphql(graphqlOperation(createUser, userData));
             handleNextStep()
-            // if (defaultNotificationPreference.includes('text')) {
-            //   updateLoginState('verifyPhone')
-            // } else {
-            //   handleNextStep();
-            // }
           })
           .catch((e) => {
             const errorMsg = e.message;
@@ -442,31 +429,6 @@ function Login(props) {
 
     updateLoginState(state);
   }
-
-  // const sendText = async () => {
-  //   const returnedUser = await Auth.currentAuthenticatedUser();
-  //   await Auth.updateUserAttributes(returnedUser, {
-  //     phone_number: "+" + userPhone
-  //   })
-  //   let user = await API.graphql(graphqlOperation(getUserByEmail, {user_email: returnedUser.attributes.email}))
-  //   setUserID(user.data.getUserByEmail.user_id)
-  // }
-
-  // const verifyPhone = async () => {
-  //   if (verificationCode === "") {
-  //     setInvalidPhoneCodeError(true)
-  //   } else {
-  //     await Auth.verifyCurrentUserAttributeSubmit(
-  //       "phone_number",
-  //       verificationCode
-  //     ).then(async () => {
-  //       await API.graphql(graphqlOperation(updateUser, {user_id: userID, phone_address: userPhone}))
-  //       updateLoginState('phoneVerified')
-  //       handleNextStep()
-  //     })
-  //       .catch(setInvalidPhoneCodeError(true)) 
-  //   }
-  // }
 
   return (
     <>
@@ -566,22 +528,6 @@ function Login(props) {
           >
             {activeStep !== 2 && (
               <Grid className={"login-wrapper-top"}>
-                {/* {loginState === "verifyPhone" ?
-                  <Typography
-                    sx={{ mb: "1em" }}
-                    className={"login-wrapper-top-header"}
-                  >
-                  Phone Verification
-                  </Typography> :
-                  <Typography
-                    sx={{ mb: "1em" }}
-                    className={"login-wrapper-top-header"}
-                  >
-                  {activeStep === 0
-                    ? "Welcome!"
-                    : activeStep === 1 && "Email Verification"}
-                  </Typography>
-                } */}
                 <Typography
                   sx={{ mb: "1em" }}
                   className={"login-wrapper-top-header"}
@@ -818,44 +764,6 @@ function Login(props) {
                 />
               </Grid>
             )}
-            {/* {(loginState === "verifyPhone") && (
-              <Grid>
-                <Grid container item xs={12}>
-                  <span>
-                    You've chosen to receive notifications via text.
-                    Please click the button below to send a verification text to your
-                    number. Enter the code to verify your number.
-                  </span>
-                  <Button onClick={sendText}>Send Verification Text</Button>
-                </Grid>
-                <Grid
-                  container
-                  item
-                  direction={"column"}
-                  xs={12}
-                  className={"input-box"}
-                >
-                <TextFieldStartAdornment
-                  startIcon={<Dialpad />}
-                  placeholder="Enter your phone verification code."
-                  name={"phoneCode"}
-                  error={invalidPhoneCodeError}
-                  helperText={
-                    !!invalidPhoneCodeError && "Invalid verification code provided, please try again."
-                  }
-                  type="text"
-                  autoComplete={"new-password"}
-                  onChange={(e) => {setInvalidPhoneCodeError(false); setVerificationCode(e.target.value)}}
-                />
-                </Grid>
-                <BackAndSubmitButtons
-                  backAction={() => resetStates("signUp")}
-                  submitAction={verifyPhone}
-                  submitMessage={"Verify"}
-                  loadingState={loading}
-                />
-              </Grid>
-            )} */}
             {/* Select Topics of Interest Step*/}
             {activeStep === 2 && (
               <SelectTopics handleNextStep={handleNextStep} />

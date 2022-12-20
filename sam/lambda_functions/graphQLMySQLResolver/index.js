@@ -1,9 +1,10 @@
 const gqlRequest = require("graphql-request");
 const handler = require("./helpers.js");
-const { SES, SNS } = require("aws-sdk");
+const { SES, SNS, SecretsManager } = require("aws-sdk");
 const ses = new SES();
 const sns = new SNS();
 const SES_FROM_ADDRESS = "mminting@student.ubc.ca";
+const LINK_TO_APP = process.env.LINK_TO_APP;
 
 const mysql = require("mysql");
 let dbInit = false;
@@ -124,16 +125,56 @@ function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
   return sql;
 }
 
-let connection;
-connection = mysql.createPool({
-  host: process.env.RDSPROXY_ENDPOINT,
-  user: process.env.USERNAME,
-  password: process.env.PASSWORD,
-  database: process.env.DBNAME,
-});
-console.log("connection:", connection);
-
 exports.handler = async (event) => {
+  const secretName = "RDSCredentials";
+  const endpointUrl = "https://secretsmanager.us-east-1.amazonaws.com";
+  const region = "ca-central-1";
+
+  // var params = {
+  //   SecretId: secretName,
+  // };
+  // let dbpassword;
+  // let sm = new SecretsManager({ region: region });
+  // console.log("137");
+  // try {
+  //   dbpassword = await sm.getSecretValue(params);
+  //   console.log("password:", password);
+  // } catch (e) {
+  //   console.log("e:", e);
+  // }
+  // , function (err, data) {
+  // console.log("139");
+  // if (err) {
+  //   console.log("err:");
+  //   console.log(err, err.stack);
+  // } // an error occurred
+  // else {
+  //   console.log("data:", data);
+  // }
+  // successful response
+  /*
+  data = {
+  ARN: "arn:aws:secretsmanager:us-west-2:123456789012:secret:MyTestDatabaseSecret-a1b2c3", 
+  CreatedDate: <Date Representation>, 
+  Name: "MyTestDatabaseSecret", 
+  SecretString: "{\n  \"username\":\"david\",\n  \"password\":\"EXAMPLE-PASSWORD\"\n}\n", 
+  VersionId: "EXAMPLE1-90ab-cdef-fedc-ba987SECRET1", 
+  VersionStages: [
+      "AWSPREVIOUS"
+  ]
+  }
+  */
+
+  let connection;
+  connection = mysql.createPool({
+    host: process.env.RDSPROXY_ENDPOINT,
+    user: process.env.USERNAME,
+    password: process.env.PASSWORD,
+    // password: dbpassword,
+    database: process.env.DBNAME,
+  });
+  console.log("connection:", connection);
+
   console.log("event: ", event);
   // called whenever a GraphQL event is received
   console.log("Received event", JSON.stringify(event, null, 3));
@@ -291,7 +332,7 @@ exports.handler = async (event) => {
 async function sendNotification(address, type) {
   let result = {};
   if (type === "email") {
-    let categoryTopicsHTML = `You are now subscribed to ISED! Click here to manage your notification preferences:`;
+    let categoryTopicsHTML = `You are now subscribed to ISED! Click here to manage your notification preferences: ${LINK_TO_APP}`;
     let params = {
       Destination: { ToAddresses: [address] },
       Message: {
@@ -316,8 +357,7 @@ async function sendNotification(address, type) {
     result.email = await ses.sendEmail(params).promise();
   } else if (type === "sms") {
     let params = {
-      Message:
-        "You are now subscribed to ISED! Click here to manage your notification preferences:",
+      Message: `You are now subscribed to ISED! Open the link to manage your notification preferences: ${LINK_TO_APP}`,
       PhoneNumber: address,
     };
     result.sms = await sns.publish(params).promise();
