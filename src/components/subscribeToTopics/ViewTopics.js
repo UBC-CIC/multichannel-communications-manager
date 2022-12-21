@@ -19,8 +19,18 @@ import {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
 import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
-import { getAllCategories, getUserCategoryTopicByUserId, getUserByEmail, getTopicsOfCategoryByAcronym, getCategoriesByUserId } from "../../graphql/queries";
-import { userUnfollowCategoryTopic, userFollowCategoryTopic, userUnfollowCategory } from "../../graphql/mutations";
+import {
+  getAllCategories,
+  getUserCategoryTopicByUserId,
+  getUserByEmail,
+  getTopicsOfCategoryByAcronym,
+  getCategoriesByUserId
+} from "../../graphql/queries";
+import {
+  userUnfollowCategoryTopic,
+  userFollowCategoryTopic,
+  userUnfollowCategory
+} from "../../graphql/mutations";
 
 const ViewTopics = () => {
   const [alert, setAlert] = useState(false)
@@ -65,7 +75,8 @@ const ViewTopics = () => {
     }
   }
 
-  async function getUserSubscribedData() {
+  // get only the categories and topics the user is subscribed to
+  async function getOnlyUserSubscribedData() {
     const returnedUser = await Auth.currentAuthenticatedUser();
     let getUserId = await API.graphql(graphqlOperation(getUserByEmail, {
       user_email: returnedUser.attributes.email
@@ -84,6 +95,7 @@ const ViewTopics = () => {
     getUserSubscriptions(noDuplicates)
   }
 
+  // get all the topics the user is subscribed to
   async function getUserSubscriptions(allCategories) {
     const returnedUser = await Auth.currentAuthenticatedUser();
     let getUserId = await API.graphql(graphqlOperation(getUserByEmail, {
@@ -110,7 +122,6 @@ const ViewTopics = () => {
     }
   }
 
-  //updates pagination
   useEffect(() => {
     queriedData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -134,7 +145,6 @@ const ViewTopics = () => {
     if (e.target.checked) {
       setUserSelectedSubtopics((prev) => [...prev, `${subtopic}`]);
       setUserSelectedSubtopicsTemp((prev) => [...prev, `${subtopic}`]);
-
       setUserUnfollow((prev) =>
         prev.filter((s) => s !== `${subtopic}`)
       );
@@ -151,21 +161,27 @@ const ViewTopics = () => {
 
   const handleButtonSave = async (index) => {
     if (userAlreadySubscribed[index]) {
+      // if the user has subscribed to topics within the category then
+      // the user's selections must be filtered so that if they're unsubscribing, they can only
+      // unsubscribe from topics they were previously subscribed to, and if they're subscribing to 
+      // new topics, they can only subscribe to topics they aren't subscribed to
       let newUserSelectedSubtopics = []
       let subtopicsToUnfollow = []
-      let filteredUserSubscribedSubtopics = userSubscribed.filter((s) => s.category_acronym === topics[index].acronym)
-      let onlySubtopics = filteredUserSubscribedSubtopics.map(a => a.topic_acronym)
+      // get the user subscribed topics for this category
+      let userSubscribedDataForThisCategory = userSubscribed.filter((s) => s.category_acronym === topics[index].acronym)
+      let onlySubtopics = userSubscribedDataForThisCategory.map(a => a.topic_acronym)
       subtopicsToUnfollow = userUnfollow.filter((s) => onlySubtopics.includes(s))
       newUserSelectedSubtopics = userSelectedSubTopicsTemp.filter((s) => !(onlySubtopics.includes(s)))
+      // if the user deselects all their subscribed topics then they get unsubscribed from the category
       if (JSON.stringify(onlySubtopics) === JSON.stringify(subtopicsToUnfollow)) {
-        console.log('both')
         await API.graphql(graphqlOperation(userUnfollowCategory, {
           user_id: userID,
           category_acronym: topics[index].acronym
         }))
       } else {
+        // subscribe to the new topics the user has selected
         if (newUserSelectedSubtopics.length !== 0) {
-          let test = newUserSelectedSubtopics
+          let topicsToRemove = newUserSelectedSubtopics
           for (let x = 0; x < newUserSelectedSubtopics.length; x++) {
             console.log(newUserSelectedSubtopics[x])
             await API.graphql(graphqlOperation(userFollowCategoryTopic, {
@@ -176,12 +192,13 @@ const ViewTopics = () => {
               sms_notice: user.sms_notice
             }))
           }
-          for (let m = 0; m < test.length; m++) {
-            setUserSelectedSubtopicsTemp((prev) => prev.filter((s) => !s.includes(test)))
+          for (let m = 0; m < topicsToRemove.length; m++) {
+            setUserSelectedSubtopicsTemp((prev) => prev.filter((s) => !s.includes(topicsToRemove)))
           }
         }
+        // unsubscribe from the topics the user has deselected
         if (subtopicsToUnfollow.length !== 0) {
-          let test = subtopicsToUnfollow
+          let topicsToRemove = subtopicsToUnfollow
           for (let n = 0; n < subtopicsToUnfollow.length; n++) {
             console.log(subtopicsToUnfollow[n])
             await API.graphql(graphqlOperation(userUnfollowCategoryTopic, {
@@ -190,14 +207,14 @@ const ViewTopics = () => {
               topic_acronym: subtopicsToUnfollow[n]
             }))
           }
-          for (let m = 0; m < test.length; m++) {
-            setUserUnfollow((prev) => prev.filter((s) => !s.includes(test)))
+          for (let m = 0; m < topicsToRemove.length; m++) {
+            setUserUnfollow((prev) => prev.filter((s) => !s.includes(topicsToRemove)))
           }
         }
       }
       getUserSubscriptions(topics)
     } else {
-      let test = selectedSubTopics
+      let topicsToRemove = selectedSubTopics
       for (let i = 0; i < selectedSubTopics.length; i++) {
         let userFollowData = {
           user_id: userID,
@@ -208,20 +225,21 @@ const ViewTopics = () => {
         }
         await API.graphql(graphqlOperation(userFollowCategoryTopic, userFollowData))
       }
-      for (let m = 0; m < test.length; m++) {
-        setSelectedSubtopics((prev) => prev.filter((s) => !s.includes(test)))
+      for (let m = 0; m < topicsToRemove.length; m++) {
+        setSelectedSubtopics((prev) => prev.filter((s) => !s.includes(topicsToRemove)))
       }
     }
     setAlert(true)
   };
 
+  // filter for only user subscriptions
   const handleCheck = async (e) => {
     setImage([])
     setSubtopics([])
     setUserSelectedSubtopics([])
     setUserAlreadySubscribed([])
     if (e.target.checked) {
-      getUserSubscribedData()
+      getOnlyUserSubscribedData()
     } else {
       queriedData()
     }
@@ -234,63 +252,63 @@ const ViewTopics = () => {
       topics
         .map((topic, index) => (
           <Card sx={{width: '90%', display:'flex', justifyContent:'space-between', flexDirection:'column'}}>
-        <CardHeader
-          title={topic.title}
-          titleTypographyProps={{
-            fontSize: "1.2rem",
-            fontWeight: "400",
-          }}
-        />
-        {topic.picture_location !== null ? (
-          <CardMedia component={"img"} image={image[index]} height="150" />
-        ) : (
-          <Box
-            sx={{
-              backgroundColor: "#738DED",
-              height: "150px",
-              width: "100%",
-            }}
-          />
-        )}
-        <CardContent sx={{ p: "16px 16px 0px 16px" }}>
-          <Typography variant="body2" color="text.secondary">
-            {topic.description}
-          </Typography>
-          {userAlreadySubscribed[index] ? (
-            <FormGroup sx={{marginTop: 2, flexDirection: 'row'}}>
-              {subtopics[index]?.map((subtopic, index) => (
-                <FormControlLabel
-                  key={index}
-                  control={<Checkbox />}
-                  checked={userSelectedSubTopics.includes(subtopic)}
-                  label={subtopic}
-                  onChange={(e) => handleAlreadySubscribedChange(e, subtopic)}
-                />
-              ))}
-            </FormGroup>
-          ) : (
-            <FormGroup sx={{marginTop: 2, flexDirection: 'row'}}>
-              {subtopics[index]?.map((subtopic, index) => (
-                <FormControlLabel
-                  key={index}
-                  control={<Checkbox />}
-                  checked={selectedSubTopicsCheckbox.includes(`${subtopic}`)}
-                  label={subtopic}
-                  onChange={(e) => handleChange(e, subtopic)}
-                />
-              ))}
-            </FormGroup>
-          )}
-        </CardContent>
-        <CardActions
-          disableSpacing
-          sx={{ justifyContent: "flex-end", pt: "0px" }}
-        >
-            <Button sx={{ mr: "1em" }} onClick={() => handleButtonSave(index)}>
-              Save
-            </Button> 
-        </CardActions>
-      </Card>
+            <CardHeader
+              title={topic.title}
+              titleTypographyProps={{
+                fontSize: "1.2rem",
+                fontWeight: "400",
+              }}
+            />
+            {topic.picture_location !== null ? (
+              <CardMedia component={"img"} image={image[index]} height="150" />
+            ) : (
+              <Box
+                sx={{
+                  backgroundColor: "#738DED",
+                  height: "150px",
+                  width: "100%",
+                }}
+              />
+            )}
+            <CardContent sx={{ p: "16px 16px 0px 16px" }}>
+              <Typography variant="body2" color="text.secondary">
+                {topic.description}
+              </Typography>
+              {userAlreadySubscribed[index] ? (
+                <FormGroup sx={{marginTop: 2, flexDirection: 'row'}}>
+                  {subtopics[index]?.map((subtopic, index) => (
+                    <FormControlLabel
+                      key={index}
+                      control={<Checkbox />}
+                      checked={userSelectedSubTopics.includes(subtopic)}
+                      label={subtopic}
+                      onChange={(e) => handleAlreadySubscribedChange(e, subtopic)}
+                    />
+                  ))}
+                </FormGroup>
+              ) : (
+                <FormGroup sx={{marginTop: 2, flexDirection: 'row'}}>
+                  {subtopics[index]?.map((subtopic, index) => (
+                    <FormControlLabel
+                      key={index}
+                      control={<Checkbox />}
+                      checked={selectedSubTopicsCheckbox.includes(`${subtopic}`)}
+                      label={subtopic}
+                      onChange={(e) => handleChange(e, subtopic)}
+                    />
+                  ))}
+                </FormGroup>
+              )}
+            </CardContent>
+            <CardActions
+              disableSpacing
+              sx={{ justifyContent: "flex-end", pt: "0px" }}
+            >
+              <Button sx={{ mr: "1em" }} onClick={() => handleButtonSave(index)}>
+                Save
+              </Button> 
+            </CardActions>
+          </Card>
         ))
     );
   };
@@ -305,34 +323,33 @@ const ViewTopics = () => {
       }}
     >
       {alert ? <Collapse in={alert}><Alert severity={"success"} onClose={() => setAlert(false)}>Your changes have been saved</Alert></Collapse> : <></> }
-
       <Typography variant="body1" sx={{ mb: "2em" }}>
         Select categories of interest that you would like to receive notifications
         from. Your notification preferences can be changed at any time.
       </Typography>
       <FormControlLabel 
-            control={<Checkbox onChange={handleCheck} />}
-            label="Only show user subscriptions" 
-            />
-          <Box
-            sx={{
-              display: "grid",
-              mt: "2em",
-              gridTemplateColumns: {
-                xs: "repeat(1, 2fr)",
-                sm: "repeat(3, 2fr)",
-                md: "repeat(4, 2fr)",
-              },
-              rowGap: 3,
-              [`& .${imageListItemClasses.root}`]: {
-                display: "flex",
-                flexDirection: "column",
-              },
-              justifyItems: "center",
-            }}
-          >
-            {displayTopicOptions()}
-          </Box>
+        control={<Checkbox onChange={handleCheck} />}
+        label="Only show user subscriptions" 
+      />
+      <Box
+        sx={{
+          display: "grid",
+          mt: "2em",
+          gridTemplateColumns: {
+            xs: "repeat(1, 2fr)",
+            sm: "repeat(3, 2fr)",
+            md: "repeat(4, 2fr)",
+          },
+          rowGap: 3,
+          [`& .${imageListItemClasses.root}`]: {
+            display: "flex",
+            flexDirection: "column",
+          },
+          justifyItems: "center",
+        }}
+      >
+        {displayTopicOptions()}
+      </Box>
     </Grid>
   );
 };

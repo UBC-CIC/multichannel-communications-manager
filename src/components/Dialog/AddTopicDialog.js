@@ -17,8 +17,8 @@ import {
 } from "@mui/material";
 import { Upload, Close } from '@mui/icons-material';
 import { API, graphqlOperation, Storage } from 'aws-amplify'
-import { createCategory, createTopic, addTopicToCategory } from '../graphql/mutations';
-import { getAllTopics } from '../graphql/queries';
+import { createCategory, createTopic, addTopicToCategory } from '../../graphql/mutations';
+import { getAllTopics } from '../../graphql/queries';
 
 const AddTopicDialog = ({
   open,
@@ -102,14 +102,16 @@ const AddTopicDialog = ({
         picture_location: s3Key
       }
       try {
+        // create the category in the database
         await API.graphql(graphqlOperation(createCategory, createdTopic))
           .then(async (res) => {
-            console.log(res)
+            // create all the new topics
             for (let i = 0; i < inputFields.length; i++) {
               await API.graphql(graphqlOperation(createTopic, inputFields[i]))
             }
             let newSubtopics = inputFields.map(a => a.acronym)
             let allSubtopics = newSubtopics.concat(selectedTopics)
+            // add all the topics to the category
             for (let i = 0; i < allSubtopics.length; i++) {
               await API.graphql(graphqlOperation(addTopicToCategory, {
                 category_acronym: createdTopic.acronym,
@@ -261,6 +263,7 @@ const AddTopicDialog = ({
   );
 }
 
+// The textfield for all the new topics the user is adding
 const InputRow = ({
   index,
   item,
