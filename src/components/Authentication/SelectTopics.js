@@ -127,6 +127,8 @@ const SelectTopics = ({ handleNextStep }) => {
     handleNextStep();
   }
 
+  // filter the subtopics so that only ones that have been saved
+  // are displayed
   function backClicked() {
     const allSelectedTopicsTemp = allSelectedTopics;
     if (
@@ -169,7 +171,6 @@ const SelectTopics = ({ handleNextStep }) => {
         Select categories of interest that you would like to receive notifications
         from. Your notification preferences can be changed at any time.
       </Typography>
-
       {currentlySelectedTopic ? (
         <Box sx={{ mt: "1em" }}>
           <IconButton

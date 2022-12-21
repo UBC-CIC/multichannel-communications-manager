@@ -125,6 +125,7 @@ function Login(props) {
   }
 
   const handleDisplayStep2 = () => {
+    // only check the postal code if the user enters it
     if (formState.postal_code !== "") {
       if (!checkPostal(formState.postal_code)) {
         setInvalidPostalCodeError(true);
@@ -237,9 +238,7 @@ function Login(props) {
       handleNextStep();
     } catch (e) {
       setLoading(false);
-
       const errorMsg = e.message;
-
       if (errorMsg.includes("empty")) {
         setInputsNotFilled(true);
       } else if (errorMsg.includes("Username should be an email.")) {
@@ -250,8 +249,7 @@ function Login(props) {
     }
   }
 
-  //function to finish implementing after sign up is working properly
-  //to resend confirmation code if user did not receive it or if the email timed out
+  //function to resend confirmation code if user did not receive it or if the email timed out
   async function resendConfirmationCode() {
     try {
       const { email } = formState;
@@ -260,7 +258,6 @@ function Login(props) {
       setNewVerification(true);
     } catch (err) {
       setNewVerification(false);
-
       const errorMsg = err.message;
       if (errorMsg.includes("time")) {
         setTimeLimitError(errorMsg);
@@ -283,12 +280,13 @@ function Login(props) {
         setAccountLoginError(true);
       }
     }
-    // It we get here, the answer was sent successfully,
+    // If we get here, the answer was sent successfully,
     // but it might have been wrong (1st or 2nd time)
     // So we should test if the user is authenticated now
     try {
       // This will throw an error if the user is not yet authenticated:
       let user = await Auth.currentAuthenticatedUser();
+      // This will check if the user is an admin or not
       let group = user.signInUserSession.accessToken.payload["cognito:groups"];
       if (group === undefined) {
         updateLoginState("signedIn");

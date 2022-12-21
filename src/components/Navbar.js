@@ -13,7 +13,7 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { ExitToApp, More } from "@mui/icons-material";
+import { ExitToApp } from "@mui/icons-material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Auth } from "aws-amplify";
 import { connect } from "react-redux";
@@ -31,25 +31,16 @@ function Navbar(props) {
   const navigate = useNavigate();
 
   const [user, setUser] = useState("");
-  const [loadingBackdrop, setLoadingBackdrop] = React.useState(false);
-
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  // const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-
+  const [loadingBackdrop, setLoadingBackdrop] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const isMenuOpen = Boolean(anchorEl);
-  // const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  // const handleMobileMenuClose = () => {
-  //   setMobileMoreAnchorEl(null);
-  // };
-
   const handleMenuClose = () => {
     setAnchorEl(null);
-    // handleMobileMenuClose();
   };
 
   const handleLogout = async () => {
@@ -59,10 +50,6 @@ function Navbar(props) {
     await onSignOut();
     setLoadingBackdrop(false);
   };
-
-  // const handleMobileMenuOpen = (event) => {
-  //   setMobileMoreAnchorEl(event.currentTarget);
-  // };
 
   const menuId = "primary-search-account-menu";
   const renderMenu = (
@@ -81,27 +68,6 @@ function Navbar(props) {
       </MenuItem>
     </Menu>
   );
-
-  // const mobileMenuId = "primary-search-account-menu-mobile";
-  // const renderMobileMenu = (
-  //   <Menu
-  //     anchorEl={mobileMoreAnchorEl}
-  //     anchorOrigin={{ vertical: "top", horizontal: "right" }}
-  //     id={mobileMenuId}
-  //     keepMounted
-  //     transformOrigin={{ vertical: "top", horizontal: "right" }}
-  //     open={isMobileMenuOpen}
-  //     onClose={handleMobileMenuClose}
-  //   >
-  //     <MenuItem disabled>
-  //       <Avatar>{user.charAt(0).toUpperCase()}</Avatar>
-  //     </MenuItem>
-  //     <MenuItem onClick={handleLogout}>
-  //       <span>Logout </span>
-  //       <ExitToApp color={"secondary"} />
-  //     </MenuItem>
-  //   </Menu>
-  // );
 
   useEffect(() => {
     async function retrieveUser() {
@@ -174,16 +140,6 @@ function Navbar(props) {
               </IconButton>
             </div>
             <div>
-              {/* <IconButton
-                aria-label="show more"
-                aria-controls={mobileMenuId}
-                aria-haspopup="true"
-                onClick={handleMobileMenuOpen}
-                color="inherit"
-              >
-                <More />
-              </IconButton>
-              {renderMobileMenu} */}
               {renderMenu}
             </div>
           </Box>

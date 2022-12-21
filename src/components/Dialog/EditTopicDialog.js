@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { Close, Upload } from '@mui/icons-material';
 import { API, graphqlOperation, Storage } from 'aws-amplify'
-import { updateCategory } from '../graphql/mutations';
+import { updateCategory } from '../../graphql/mutations';
 
 const EditTopicDialog = ({
   open,

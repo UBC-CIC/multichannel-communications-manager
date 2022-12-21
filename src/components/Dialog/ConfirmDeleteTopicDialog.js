@@ -1,11 +1,11 @@
 import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    Typography,
-    Box,
-    Button,
-  } from "@mui/material";
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Typography,
+  Box,
+  Button,
+} from "@mui/material";
       
   const ConfirmDeleteTopicDialog = ({
     open,
