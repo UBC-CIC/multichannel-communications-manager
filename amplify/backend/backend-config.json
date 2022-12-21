@@ -95,7 +95,8 @@
     "isedf0082716f0082716CreateAuthChallenge": {
       "build": true,
       "providerPlugin": "awscloudformation",
-      "service": "Lambda"
+      "service": "Lambda",
+      "dependsOn": []
     },
     "isedf0082716f0082716DefineAuthChallenge": {
       "build": true,

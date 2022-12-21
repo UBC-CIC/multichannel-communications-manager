@@ -13,5 +13,6 @@
   "triggerEventPath": "CreateAuthChallenge.event.json",
   "roleName": "isedf0082716f0082716CreateAuthChallenge",
   "skipEdit": true,
-  "enableCors": false
+  "enableCors": false,
+  "permissions": {}
 }

@@ -21,7 +21,7 @@ async function conditionallyCreateDB(connection) {
   \`email_address\` text UNIQUE NOT NULL,
   \`phone_address\` varchar(50) UNIQUE,
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
-  \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL
+  \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL,
   \`email_notice\` boolean NOT NULL,
   \`sms_notice\` boolean NOT NULL
   );
@@ -130,18 +130,19 @@ exports.handler = async (event) => {
   const endpointUrl = "https://secretsmanager.us-east-1.amazonaws.com";
   const region = "ca-central-1";
 
-  // var params = {
-  //   SecretId: secretName,
-  // };
-  // let dbpassword;
-  // let sm = new SecretsManager({ region: region });
-  // console.log("137");
-  // try {
-  //   dbpassword = await sm.getSecretValue(params);
-  //   console.log("password:", password);
-  // } catch (e) {
-  //   console.log("e:", e);
-  // }
+  var params = {
+    SecretId: secretName,
+  };
+  let secret;
+  let sm = new SecretsManager({ region: region });
+  console.log("137");
+  try {
+    secret = await sm.getSecretValue(params).promise();
+    secret = JSON.parse(secret.SecretString);
+    console.log("secret:", secret);
+  } catch (e) {
+    console.log("e:", e);
+  }
   // , function (err, data) {
   // console.log("139");
   // if (err) {
@@ -166,11 +167,16 @@ exports.handler = async (event) => {
   */
 
   let connection;
+  console.log("secret: ", secret);
+  console.log("type of secret: ", typeof secret);
+  console.log("user:", secret.username);
+  console.log("password: ", secret.password);
   connection = mysql.createPool({
     host: process.env.RDSPROXY_ENDPOINT,
-    user: process.env.USERNAME,
-    password: process.env.PASSWORD,
-    // password: dbpassword,
+    // user: process.env.USERNAME,
+    // password: process.env.PASSWORD,
+    user: secret.username,
+    password: secret.password,
     database: process.env.DBNAME,
   });
   console.log("connection:", connection);

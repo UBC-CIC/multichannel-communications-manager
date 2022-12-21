@@ -46,21 +46,21 @@ Parameters:
     MaxLength: 64
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
     ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
-  DBUser:
-    Default: admin
-    Description: The database admin account username
-    Type: String
-    MinLength: 1
-    MaxLength: 16
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
-  DBPassword:
-    Description: The database admin account password
-    Type: String
-    MinLength: 1
-    MaxLength: 41
-    AllowedPattern: '[a-zA-Z0-9]+'
-    ConstraintDescription: must contain only alphanumeric characters.
+  # DBUser:
+  #   Default: admin
+  #   Description: The database admin account username
+  #   Type: String
+  #   MinLength: 1
+  #   MaxLength: 16
+  #   AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+  #   ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  # DBPassword:
+  #   Description: The database admin account password
+  #   Type: String
+  #   MinLength: 1
+  #   MaxLength: 41
+  #   AllowedPattern: '[a-zA-Z0-9]+'
+  #   ConstraintDescription: must contain only alphanumeric characters.
   DBInstanceClass:
     Description: The database instance type
     Type: String
@@ -445,8 +445,8 @@ Resources:
       EnableIAMDatabaseAuthentication: false 
       Engine: aurora-mysql
       EngineVersion: !Ref 'DBEngineVersion'
-      MasterUsername: !Ref 'DBUser'
-      MasterUserPassword: !Ref 'DBPassword'
+      # MasterUsername: !Ref 'DBUser'
+      # MasterUserPassword: !Ref 'DBPassword'
       Port: 3306
       StorageEncrypted: !Ref 'EncryptDatabase' 
       SourceRegion: !Sub '${AWS::Region}'
@@ -498,10 +498,10 @@ Resources:
     Properties: 
       Description: Stores the credentials for the RDS instance
       Name: RDSCredentials
-      # GenerateSecretString:
-      #   SecretStringTemplate: !Sub '{"username":"${DBUser}","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
-      SecretString: !Sub '{"username":"${DBUser}","password":"${DBPassword}","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
-        # GenerateStringKey: "password"
+      GenerateSecretString:
+        SecretStringTemplate: !Sub '{"username":"admin","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
+      # SecretString: !Sub '{"username":"${DBUser}","password":"${DBPassword}","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
+        GenerateStringKey: "password"
       Tags:
         - Key: "Project"
           Value: !Ref 'ProjectName'
@@ -700,8 +700,8 @@ Resources:
       Environment:
         Variables:
           DBNAME: !Ref 'DBName'
-          PASSWORD: !Ref 'DBPassword'
-          USERNAME: !Ref 'DBUser'
+          # PASSWORD: !Ref 'DBPassword'
+          # USERNAME: !Ref 'DBUser'
           RDSPROXY_ENDPOINT: !GetAtt RDSProxy.Endpoint
           ADMIN_NAME: !Ref CognitoAdminName
           ADMIN_EMAIL: !Ref CognitoAdminEmail
