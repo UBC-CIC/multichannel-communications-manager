@@ -25,6 +25,9 @@ yarn-error.log*
 # sam config
 sam/samconfig.toml
 
+# amplify custom
+amplify/team-provider-info.json
+
 #amplify-do-not-edit-begin
 amplify/\#current-cloud-backend
 amplify/.config/local-*

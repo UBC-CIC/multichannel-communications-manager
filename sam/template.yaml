@@ -35,7 +35,7 @@ Parameters:
       # AmplifyCognitoUserPoolId:
       #   Type: String
       #   Description: "The ID of the Cognito User Pool for the Amplify project (ex. us-east-1_aBcDeFgh)"  
-  AmplifyLink:
+  LinkToHostingDomain:
     Description: Link to the app hosted on amplify
     Type: String
   DBName:
@@ -64,14 +64,13 @@ Parameters:
   DBInstanceClass:
     Description: The database instance type
     Type: String
-    Default: db.t2.small
-    AllowedValues: [db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge]
+    Default: db.t3.large
+    AllowedValues: [db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t3.large, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge]
   DBEngineVersion:
     Description: The version of Aurora MySQL for the database
     Type: String
     Default: 5.7.mysql_aurora.2.09.2
-    AllowedValues: [5.7.mysql_aurora.2.07.0, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.2, 5.7.mysql_aurora.2.07.3, 5.7.mysql_aurora.2.07.4, 5.7.mysql_aurora.2.07.5, 5.7.mysql_aurora.2.07.6, 5.7.mysql_aurora.2.07.7, 5.7.mysql_aurora.2.08.0, 5.7.mysql_aurora.2.08.1, 5.7.mysql_aurora.2.08.2, 5.7.mysql_aurora.2.08.3, 5.7.mysql_aurora.2.08.4, 5.7.mysql_aurora.2.09.0, 5.7.mysql_aurora.2.09.1, 5.7.mysql_aurora.2.09.2, 5.7.mysql_aurora.2.09.3, 5.7.mysql_aurora.2.10.0, 5.7.mysql_aurora.2.10.1, 5.7.mysql_aurora.2.10.2]
-    # ,  8.0.mysql_aurora.3.01.0, 8.0.mysql_aurora.3.01.1, 8.0.mysql_aurora.3.02.0]
+    AllowedValues: [5.7.mysql_aurora.2.07.0, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.2, 5.7.mysql_aurora.2.07.3, 5.7.mysql_aurora.2.07.4, 5.7.mysql_aurora.2.07.5, 5.7.mysql_aurora.2.07.6, 5.7.mysql_aurora.2.07.7, 5.7.mysql_aurora.2.08.0, 5.7.mysql_aurora.2.08.1, 5.7.mysql_aurora.2.08.2, 5.7.mysql_aurora.2.08.3, 5.7.mysql_aurora.2.08.4, 5.7.mysql_aurora.2.09.0, 5.7.mysql_aurora.2.09.1, 5.7.mysql_aurora.2.09.2, 5.7.mysql_aurora.2.09.3, 5.7.mysql_aurora.2.10.0, 5.7.mysql_aurora.2.10.1, 5.7.mysql_aurora.2.10.2, 8.0.mysql_aurora.3.01.0, 8.0.mysql_aurora.3.01.1, 8.0.mysql_aurora.3.02.0]
   DeletionProtection:
     Description: When deletion proteciton is enabled, when you request the deletion of a database instance in the AWS Console you are blocked and may not continue without first modifying the instance and disabling deletion protection (recommended for production)
     Type: String
@@ -80,26 +79,12 @@ Parameters:
     Description: Enable encryption of the database
     Type: String
     Default: True
-  # CloudFrontPriceClass:
-  #   Type: String
-  #   Description: "The price class for CloudFront distribution"
-  #   Default: PriceClass_100
-  #   AllowedValues:
-  #     - PriceClass_100
-  #     - PriceClass_200
-  #     - PriceClass_All
   CognitoAdminName:
     Type: String
     Description: The name of the admin user for Cognito
   CognitoAdminEmail:
     Type: String
     Description: The email of the admin user for Cognito
-  # PinpointAdminName:
-  #   Type: String
-  #   Description: The name of the admin user for Pinpoint. 
-  PinpointAdminEmail:
-    Type: String
-    Description: The email of the admin user for Pinpoint. Pinpoint email notifications will be sent out from this email
 
 Resources:
   GraphQLAPIIdParameter:
@@ -109,14 +94,6 @@ Resources:
         Type: String 
         Value: "{{resolve:ssm:GraphqlApiId:1}}"
         Description: Communication Manager GraphQL Api Id
-
-  # AmplifyProject:
-    # Type: AWS::Amplify::App
-    # Properties:
-    #   Name: "{{resolve:ssm:AmplifyAppName:1}}"
-    #   EnvironmentVariables:
-    #   - Name: SES_FROM_ADDRESS
-    #     Value: !Ref CognitoAdminEmail
 
   IGW:
     Type: AWS::EC2::InternetGateway
@@ -476,10 +453,10 @@ Resources:
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
       
-  PicturesBucket:
-    Type: AWS::S3::Bucket
-    Properties: 
-      BucketName: category-pictures-bucket
+  # PicturesBucket:
+  #   Type: AWS::S3::Bucket
+  #   Properties: 
+  #     BucketName: category-pictures-bucket
 
   RDSClusterParameterGroup:
     Type: "AWS::RDS::DBClusterParameterGroup"
@@ -535,21 +512,6 @@ Resources:
               - Effect: Allow
                 Action: lambda:InvokeFunction
                 Resource: '*'
-
-  # EndpointSSM:
-  #   Type: AWS::EC2::VPCEndpoint
-  #   Properties:
-  #     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
-  #     PrivateDnsEnabled: true
-  #     SecurityGroupIds:
-  #       - !Ref OpenSecurityGroup
-  #     SubnetIds:
-  #       # - !Ref PublicSubnet1
-  #       # - !Ref PublicSubnet2
-  #       - !Ref PrivateSubnet1
-  #       - !Ref PrivateSubnet2
-  #     VpcEndpointType: Interface
-  #     VpcId: !Ref VPC
     
   EIP:
     Type: 'AWS::EC2::EIP'
@@ -558,6 +520,7 @@ Resources:
 
   NatGateway:
     Type: 'AWS::EC2::NatGateway'
+    DependsOn: PublicSubnet1
     Properties:
       AllocationId: !GetAtt 'EIP.AllocationId'
       SubnetId: !Ref PublicSubnet1
@@ -583,16 +546,6 @@ Resources:
         - !Ref PrivateSubnet2
       VpcEndpointType: Interface
       VpcId: !Ref VPC
-
-  # EndpointGatewayS3:
-  #   Type: AWS::EC2::VPCEndpoint
-  #   Properties:
-  #     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
-  #     RouteTableIds: 
-  #       - !Ref PublicRouteTable
-  #       - !Ref PrivateRouteTable
-  #     VpcEndpointType: Gateway
-  #     VpcId: !Ref VPC
 
   RDSProxyRole:
     Type: AWS::IAM::Role
@@ -683,7 +636,6 @@ Resources:
     - ClosedSecurityGroup
     - MainDBInstance
     - LambdaServiceRole
-    # - AmplifyProject
     Properties:
       FunctionName: graphQL-MySQL-Resolver
       # Layers:
@@ -705,10 +657,9 @@ Resources:
           RDSPROXY_ENDPOINT: !GetAtt RDSProxy.Endpoint
           ADMIN_NAME: !Ref CognitoAdminName
           ADMIN_EMAIL: !Ref CognitoAdminEmail
-          BUCKET_NAME: !Ref PicturesBucket
+          EMAIL_SENDER: !Ref CognitoAdminEmail
           PINPOINT_APPID: !Ref PinpointApp
-          LINK_TO_APP: !Ref AmplifyLink
-          
+          LINK_TO_APP: !Ref LinkToHostingDomain
       VpcConfig:
         SecurityGroupIds:
           # - !Ref ClosedSecurityGroup
@@ -725,48 +676,11 @@ Resources:
       RetentionInDays: 14
 
 
-# Cloudfront ##########################################
-
-  # OriginAccessIdentity:
-  #   Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
-  #   Properties:
-  #     CloudFrontOriginAccessIdentityConfig:
-  #       Comment: !Ref AWS::StackName
-
-  # CloudFrontDistribution:
-  #   Type: AWS::CloudFront::Distribution
-  #   DependsOn:
-  #   - OriginAccessIdentity
-  #   Properties:
-  #     DistributionConfig:
-  #       Origins:
-  #         - ConnectionAttempts: 3
-  #           ConnectionTimeout: 10
-  #           DomainName: !Join ['', ['{{resolve:ssm:BucketName}}','.s3.', !Sub '${AWS::Region}', '.amazonaws.com']]
-  #           Id: AmplifyBucketCloudFrontDistribution
-  #           OriginPath: "/public"
-  #           S3OriginConfig: 
-  #             OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${OriginAccessIdentity}'
-  #       Enabled: 'true'
-  #       PriceClass: !Ref CloudFrontPriceClass
-  #       HttpVersion: http2
-  #       Comment: !Sub "Distribution for the ${EnvironmentName} ${AWS::Region} project"
-  #       DefaultCacheBehavior:
-  #         CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
-  #         AllowedMethods: 
-  #           - GET
-  #           - HEAD
-  #         TargetOriginId: AmplifyBucketCloudFrontDistribution
-  #         ViewerProtocolPolicy: redirect-to-https
-  #     Tags:
-  #       - Key: "Project"
-  #         Value: !Ref 'ProjectName'
-  #       - Key: "EnvironmentName"
-  #         Value: !Ref 'EnvironmentName'
-
+  # Cognito #############################
 
   AdminCognitoUser:
     Type: AWS::Cognito::UserPoolUser
+    DependsOn: AdminSESIdentity
     Properties: 
       UserPoolId: '{{resolve:ssm:UserPoolId}}'
       Username: !Ref CognitoAdminEmail
@@ -786,6 +700,7 @@ Resources:
 
   AdminCognitoUserAttachment:
     Type: AWS::Cognito::UserPoolUserToGroupAttachment
+    DependsOn: AdminCognitoUser
     Properties: 
       GroupName: 'Admins'
       Username: !Ref AdminCognitoUser
@@ -809,26 +724,6 @@ Resources:
               Service:
                 - appsync.amazonaws.com
 
-  # AppSyncAPI:
-  #   Type: AWS::AppSync::GraphQLApi
-  #   DependsOn: 
-  #     - AppSyncLogsRole
-  #   Properties:
-  #     Name: !Sub '${ProjectName}-GraphQL-API-${EnvironmentName}'
-  #     AuthenticationType: AMAZON_COGNITO_USER_POOLS
-  #     UserPoolConfig:
-  #       AwsRegion: !Sub '${AWS::Region}'
-  #       DefaultAction: ALLOW
-  #       UserPoolId: !Ref AmplifyCognitoUserPoolId
-  #     LogConfig:
-  #       CloudWatchLogsRoleArn: !GetAtt AppSyncLogsRole.Arn
-  #       FieldLogLevel: ALL
-  #     Tags:
-  #       - Key: "Project"
-  #         Value: !Ref 'ProjectName'
-  #       - Key: "EnvironmentName"
-  #         Value: !Ref 'EnvironmentName'
-
   LambdaResolverAppSyncDataSource:
     Type: AWS::AppSync::DataSource
     DependsOn:
@@ -842,132 +737,6 @@ Resources:
       ServiceRoleArn: !GetAtt LambdaServiceRole.Arn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt graphQLMySQLResolver.Arn
-
-  # GraphQLApiSchema:
-  #   Type: AWS::AppSync::GraphQLSchema
-  #   Properties:
-  #     ApiId: !GetAtt GraphQLAPIIdParameter.Value
-  #     # TODO: replace this w reference
-  #     Definition: |
-  #       type Category {
-  #         category_id: Int!
-  #         acronym: String!
-  #         title: String!
-  #         description: String
-  #       }
-
-  #       type Topic {
-  #         topic_id: Int!
-  #         acronym: String!
-  #       }
-
-  #       type CategoryTopic {
-  #         categoryTopic_id: Int!
-  #         category_acronym: String!
-  #         topic_acronym: String!
-  #       }
-
-  #       type UserCategoryTopic {
-  #         user_id: Int!
-  #         categoryTopic_id: Int!
-  #         email_notice: Boolean!
-  #         sms_notice: Boolean
-  #       }
-
-  #       type User {
-  #         user_id: Int!
-  #         email_address: String!
-  #         phone_address: Int
-  #         phone_id: Int
-  #         postal_code: String
-  #         province: Province!
-  #       }
-
-  #       type Mutation {
-  #         createUser(
-  #           email_address: String!
-  #           phone_address: Int
-  #           postal_code: String
-  #           province: Province!
-  #         ): User
-  #         updateUser(
-  #           user_id: Int!
-  #           email_address: String
-  #           phone_address: Int
-  #           postal_code: String
-  #           province: Province
-  #         ): User
-  #         deleteUser(user_id: Int!): String
-
-  #         createCategory(
-  #           acronym: String!
-  #           title: String!
-  #           description: String
-  #         ): Category
-  #         updateCategory(
-  #           category_id: Int!
-  #           acronym: String
-  #           title: String
-  #           description: String
-  #         ): Category
-  #         # TODO: delete or archive?
-  #         deleteCategory(category_id: Int!): String
-
-  #         createTopic(acronym: String!): Topic
-  #         updateTopic(topic_id: Int!, acronym: String): Topic
-  #         deleteTopic(topic_id: Int!): String
-  #         addTopicToCategory(
-  #           category_acronym: String!
-  #           topic_acronym: String!
-  #         ): CategoryTopic
-  #         deleteCategoryTopic(category_acronym: String!, topic_acronym: String!): String
-  #         userFollowCategoryTopic(
-  #           user_id: Int!
-  #           category_acronym: String!
-  #           topic_acronym: String!
-  #           email_notice: Boolean!
-  #           sms_notice: Boolean!
-  #         ): UserCategoryTopic
-  #         userUnfollowCategoryTopic(
-  #           user_id: Int!
-  #           category_acronym: String!
-  #           topic_acronym: String!
-  #         ): User
-  #       }
-
-  #       type Query {
-  #         getUserById(user_id: Int!): User
-  #         getUserByEmail(user_email: String!): User
-  #         getUserCategoryTopicByUserId(user_id: String!): [CategoryTopic]
-  #         getCategoryByAcronym(acronym: String!): Category
-  #         getTopicsOfCategoryByAcronym(category_acronym: String!): [Topic]
-  #         getTopicByAcronym(topic_acronym: String!): Topic
-  #         getAllCategories: [Category]
-  #         getAllTopics: [Topic]
-  #         testSQL: String
-  #       }
-
-  #       schema {
-  #         query: Query
-  #         mutation: Mutation
-  #       }
-
-  #       enum Province {
-  #         AB
-  #         BC
-  #         MB
-  #         NB
-  #         NL
-  #         NT
-  #         NS
-  #         NU
-  #         ON
-  #         PE
-  #         QC
-  #         SK
-  #         YT
-  #       }
-
 
   getUserByIdResolverTemplate:
     Type: AWS::AppSync::Resolver
@@ -1334,91 +1103,9 @@ Resources:
         #end
         $util.toJson($context.result.sqlResult[0])
       ApiId: !GetAtt GraphQLAPIIdParameter.Value
-      # DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name      
       MaxBatchSize: 0
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
-      # PipelineConfig: 
-      #   Functions:
-      #   - !GetAtt CreatePinpointUserFunction.FunctionId
-      
-  # CreatePinpointUserFunction:
-  #   Type: AWS::AppSync::FunctionConfiguration
-  #   Properties: 
-  #     ApiId: !GetAtt GraphQLAPIIdParameter.Value
-  #     Code: String
-  #     DataSourceName: NONE
-  #     Name: createPinpointUserFunction
-  #     Runtime: APPSYNC_JS
-
-  # updateUserResolver:
-  #   Type: AWS::AppSync::Resolver
-  #   DependsOn:
-  #   - LambdaResolverAppSyncDataSource
-  #   Properties:
-  #     TypeName: Mutation
-  #     FieldName: updateUser
-  #     RequestMappingTemplate: |
-  #       #if( $context.arguments.email_address )
-  #         #if( $context.arguments.phone_address || $context.arguments.province || $context.arguments.postal_code)
-  #           #set( $email_address = "email_address=:email_address," )
-  #         #else
-  #           #set( $email_address = "email_address=:email_address" )
-  #         #end        
-  #       #else
-  #         #set( $email_address = "" )
-  #       #end
-  #       #if( $context.arguments.phone_address )
-  #         #if( $context.arguments.province || $context.arguments.postal_code)
-  #           #set( $phone_address = "phone_address=:phone_address," )
-  #         #else
-  #           #set( $phone_address = "phone_address=:phone_address" )
-  #         #end           
-  #       #else
-  #         #set( $phone_address = "" )
-  #       #end
-  #       #if( $context.arguments.province )
-  #         #if( $context.arguments.postal_code)
-  #           #set( $province = "province=:province," )
-  #         #else
-  #           #set( $province = "province=:province" )
-  #         #end          
-  #       #else
-  #         #set( $province = "" )
-  #       #end
-  #       #if( $context.arguments.postal_code )
-  #         #set( $postal_code = "postal_code=:postal_code" )
-  #       #else
-  #         #set( $postal_code = "" )
-  #       #end
-
-  #       {
-  #       "version": "2018-05-29",
-  #       "operation": "Invoke",
-  #       "payload": {
-  #       "sql": "UPDATE `User` SET $email_address $phone_address $province $postal_code WHERE `User`.user_id = :user_id;",
-  #       "SQLVariableMapping": {
-  #       ":user_id": $context.arguments.user_id,
-  #       ":email_address": $email_address,
-  #       ":phone_address": $phone_address,
-  #       ":province": $context.arguments.province,
-  #       ":postal_code": $context.arguments.postal_code,
-  #       },
-  #       "pinpoint":{"type": "userprofile", "action": "update"},
-  #       "responseSQL": "select * from `User` where user_id=:user_id;"
-  #       }
-  #       }
-
-  #     ResponseMappingTemplate: |
-  #       #if($ctx.error)
-  #         $util.error($ctx.error.message, $ctx.error.type)
-  #       #end
-  #       $util.toJson($context.result.sqlResult[0])
-  #     ApiId: !GetAtt GraphQLAPIIdParameter.Value
-  #     DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
-  #     Kind: UNIT
-  #     MaxBatchSize: 0
-
 
   updateUserResolverTemplate:
     Type: AWS::AppSync::Resolver
@@ -1785,35 +1472,6 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
-
-  testSQLResolverTemplate:
-    Type: AWS::AppSync::Resolver
-    DependsOn:
-    - LambdaResolverAppSyncDataSource
-    Properties:
-      TypeName: Query
-      FieldName: testSQL
-      RequestMappingTemplate: |
-        {
-        "version": "2018-05-29",
-        "operation": "Invoke",
-        "payload": {
-        "sql": "SELECT table_schema, ROUND(SUM(data_length+index_length)/1024/1024/1024,2) "size in GB" FROM information_schema.tables GROUP BY 1 ORDER BY 2 DESC;",
-        "SQLVariableMapping": {
-        }
-        }
-        }
-
-      ResponseMappingTemplate: |
-        #if($ctx.error)
-          $util.error($ctx.error.message, $ctx.error.type)
-        #end
-        "success"
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
-      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
-      Kind: UNIT
-      MaxBatchSize: 0
-
   userFollowCategoryTopicResolverTemplate:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -1972,10 +1630,10 @@ Resources:
       MaxBatchSize: 0
 
   # SES
-  SESIdentity:
+  AdminSESIdentity:
     Type: AWS::SES::EmailIdentity
     Properties:
-      EmailIdentity: !Ref PinpointAdminEmail
+      EmailIdentity: !Ref CognitoAdminEmail
   # Pinpoint Resources
   PinpointApp:
     Type: AWS::Pinpoint::App
@@ -1991,22 +1649,20 @@ Resources:
   PinpointEmailChannel:
     Type: AWS::Pinpoint::EmailChannel
     DependsOn: 
-    - SESIdentity
+    - AdminSESIdentity
     - PinpointApp
     Properties:
       ApplicationId: !Ref PinpointApp
-      FromAddress: !Ref PinpointAdminEmail
+      FromAddress: !Ref CognitoAdminEmail
       Identity: 
-        # TODO: replace with parameter
-        # !GetAtt SESIdentity.Arn
-        !Sub 'arn:aws:ses:ca-central-1:${AWS::AccountId}:identity/${PinpointAdminEmail}'
+        !Sub 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${CognitoAdminEmail}'
       Enabled: true
   EmailSenderParameter:
       Type: AWS::SSM::Parameter
       Properties: 
         Name: "EmailSenderParameter"
         Type: String 
-        Value: !Ref PinpointAdminEmail
+        Value: !Ref CognitoAdminEmail
         Description: sender email for all SES communications
 
 
@@ -2058,7 +1714,7 @@ Resources:
           # - Effect: Allow
           #   Action:
           #   - "ses:SendEmail"
-          #   Resource: 'arn:aws:ses:ca-central-1:${AWS::AccountId}:identity:*'
+          #   Resource: 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity:*'
       Description: Role for graphql resolver lambda
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
@@ -2067,68 +1723,4 @@ Resources:
       - arn:aws:iam::aws:policy/AmazonRDSFullAccess
       - arn:aws:iam::aws:policy/AWSAppSyncInvokeFullAccess
       - arn:aws:iam::aws:policy/AmazonSESFullAccess
-              # arn:aws:mobiletargeting:region:accountId:*
-        # - policyName: PinpointAdminPolicy
-
-    
-  # PinpointAdminPolicy:
-  #   Type: AWS::IAM::Policy
-  #     Properties: 
-  #       PolicyName: PinpointAdminPolicy
-  #       PolicyDocument: 
-  #         Version: '2012-10-17'
-  #         Statement:
-  #         - Sid: FullAccess
-  #           Effect: Allow
-  #           Action:
-  #           - mobiletargeting:*
-  #           Resource: arn:aws:mobiletargeting:region:accountId:*
-  #       Users: 
-  #         - String
-
-
-  # HelperLambdaPolicy:
-  #   Type: 'AWS::IAM::Policy'
-  #   Properties:
-  #     PolicyName: RDSHelperLambdaPolicy
-  #     PolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Effect: Allow
-  #           Action:
-  #             - "mobiletargeting:CreateImportJob"
-  #             - "mobiletargeting:GetImportJobs"
-  #             - "mobiletargeting:UpdateEndpoint"
-  #             - "mobiletargeting:DeleteEndpoint"
-  #             - "mobiletargeting:PhoneNumberValidate"
-  #             - "iam:GetRole"
-  #             - "iam:PassRole"
-  #           Resource: '*'
-  #     Roles:
-  #       - !Ref HelperLambdaRole
   
-
-# OUTPUTS ######################
-
-# Outputs:
-  # AmplifyBucketName:
-  #   Description: The name of the Amplify S3 bucket
-  #   Value: '{{resolve:ssm:BucketName}}'
-
-  # CloudFrontDistributionDomainName:
-  #   Description: The domain name of our CloudFront distibution
-  #   Value: !Sub 
-  #     - 'https://${Domain}/'
-  #     - Domain: !GetAtt CloudFrontDistribution.DomainName
-  
-  # CloudFrontOriginAccessIdentity:
-  #   Description: The origin access identity ID for CloudFront
-  #   Value: !Ref OriginAccessIdentity
-
-  # ShellScript:
-  #   Description: 'Run the following command to set up the Lambda trigger! NOTE: This only works on Linux, Mac, or WSL'
-  #   Value: !Sub
-  #     - './scripts/lambda_trigger.sh ${Bucket} ${Lambda} ${Oai}'
-  #     - Bucket: '{{resolve:ssm:BucketName}}'
-  #       Lambda: !GetAtt validateImageWithRekognition.Arn
-  #       Oai: !Ref OriginAccessIdentity 

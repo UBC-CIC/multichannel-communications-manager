@@ -168,46 +168,6 @@ function deleteUser(userID) {
  * @param {String} notifType can be one of 'EMAIL' or 'SMS'
  */
 function createSegment(categoryTopicID, notifType) {
-  /*
-    let request = {
-        ApplicationId: PINPOINTID,
-        WriteSegmentRequest: {
-            Name: topicID + '_' + notifType,
-            Dimensions: [
-                {
-                  UserAttributes: {
-                    [topicID]: {
-                        DimensionType: 'INCLUSIVE',
-                        Values: [notifType]
-                    }
-                  }
-                }
-              ]
-        }
-    }
-  */
-
-  // let templateSegment = {
-  //   Name: `${topicID}_${notifType}`,
-  //   Dimensions: {
-  //       UserAttributes: {
-  //         [topicID]: {
-  //           AttributeType: "INCLUSIVE",
-  //           Values: [notifType],
-  //         },
-  //       },
-  //       Demographic: {
-  //         Channel: {
-  //           DimensionType: "INCLUSIVE",
-  //           Values: [notifType],
-  //         },
-  //       },
-  //   },
-  //   SegmentGroups: {
-  //     Include: "ALL"
-  //   },
-  // };
-
   return new Promise((resolve, reject) => {
     var templateSegment = {
       Name: `${categoryTopicID}_${notifType}`,
@@ -319,7 +279,7 @@ function updateTopicChannel(
 
 /**
  * remove attribute topicID from all users
- * NOT WORKING because of pinpoint bug
+ * NOT WORKING because of pinpoint bug: https://github.com/aws/aws-sdk-js/issues/3180
  * @param {String} topicID
  */
 function deleteTopic(topicID) {
@@ -352,6 +312,5 @@ module.exports = {
   upsertEndpoint,
   upsertUserProfile,
   deleteUser,
-  // createSegment,
   updateTopicChannel,
 };

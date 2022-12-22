@@ -59,12 +59,12 @@ async function sendEmail(emailAddress, secretLoginCode) {
         Data: "Your secret login code",
       },
     },
-    Source: await getP(),
+    Source: await getSenderAddress(),
   };
   await ses.sendEmail(params).promise();
 }
 
-const getP = async () => {
+const getSenderAddress = async () => {
   let param = {
     Name: "EmailSenderParameter" /* required */,
     WithDecryption: true,
@@ -72,9 +72,5 @@ const getP = async () => {
 
   let request = await ssm.getParameter(param).promise();
   console.log(request);
-  return request.Parameters[0].Value;
-  // return request.Parameters.map((k) => {
-  //   return k.Value;
-  //   // return { [k.Name]: k.Value };
-  // });
+  return request.Parameter.Value;
 };

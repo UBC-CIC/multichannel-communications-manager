@@ -3,7 +3,7 @@ const handler = require("./helpers.js");
 const { SES, SNS, SecretsManager } = require("aws-sdk");
 const ses = new SES();
 const sns = new SNS();
-const SES_FROM_ADDRESS = "mminting@student.ubc.ca";
+const SES_FROM_ADDRESS = process.env.EMAIL_SENDER;
 const LINK_TO_APP = process.env.LINK_TO_APP;
 
 const mysql = require("mysql");
