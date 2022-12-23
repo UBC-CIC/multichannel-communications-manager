@@ -207,7 +207,8 @@
           "Statement": [
             {
               "Action": [
-                "ses:SendEmail"
+                "ses:SendEmail",
+                "ssm:GetParameter"
               ],
               "Resource": [
                 "*"

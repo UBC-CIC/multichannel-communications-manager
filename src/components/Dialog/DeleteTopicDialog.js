@@ -15,8 +15,8 @@ import {
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { API, graphqlOperation } from "aws-amplify"
-import { deleteCategory, deleteTopic } from "../graphql/mutations";
-import { getAllTopics } from '../graphql/queries';
+import { deleteCategory, deleteTopic } from "../../graphql/mutations";
+import { getAllTopics } from '../../graphql/queries';
 import { useState, useEffect } from "react";
 import ConfirmDeleteTopicDialog from "./ConfirmDeleteTopicDialog";
 
@@ -188,7 +188,7 @@ const DeleteTopicDialog = ({
         handleClose={() => setOpenConfirmDeleteTopicDialog(false)}
         handleDelete={handleDelete}
         type={type}
-        />
+      />
     </>
     );
   }

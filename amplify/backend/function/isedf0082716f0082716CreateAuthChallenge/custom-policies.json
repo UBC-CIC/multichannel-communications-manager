@@ -1,6 +1,6 @@
 [
   {
-    "Action": ["ses:SendEmail"],
+    "Action": ["ses:SendEmail", "ssm:GetParameter"],
     "Resource": ["*"]
   }
 ]

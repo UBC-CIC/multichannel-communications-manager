@@ -1,13 +1,23 @@
 import { useEffect } from "react";
-import { Grid, Typography, TextField, Autocomplete, Button, Alert, Collapse, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { 
+  Grid,
+  Typography,
+  TextField,
+  Autocomplete,
+  Button,
+  Alert,
+  Collapse,
+  ToggleButton,
+  ToggleButtonGroup
+} from "@mui/material";
 import { useState } from "react";
 import { Auth, API, graphqlOperation } from "aws-amplify"
 import useLeavingDialogPrompt from "../hooks/useLeavingDialogPrompt"
-import { LeaveWithoutSavingDialog } from "../components/LeaveWithoutSavingDialog";
+import { LeaveWithoutSavingDialog } from "../components/Dialog/LeaveWithoutSavingDialog";
 import { getUserByEmail, getUserCategoryTopicByUserId } from "../graphql/queries";
 import { updateUser, userUpdateChannelPrefrence } from "../graphql/mutations";
-import EmailChangeDialog from "../components/EmailChangeDialog";
-import PhoneNumberDialog from "../components/PhoneNumberDialog";
+import EmailChangeDialog from "../components/Dialog/EmailChangeDialog";
+import PhoneNumberDialog from "../components/Dialog/PhoneNumberDialog";
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/material.css'
 
@@ -37,7 +47,6 @@ const EditAccountInfo = () => {
   const [invalidEmailError, setInvalidEmailError] = useState(false);
   const [emailExistError, setEmailExistError] = useState(false);
   const [invalidPostalCodeError, setInvalidPostalCodeError] = useState(false);
-  const [invalidPhoneError, setInvalidPhoneError] = useState(false);
   const [canShowPrompt, setCanShowPrompt] = useState(false)
   const [showPrompt, confirmNav, cancelNav] = useLeavingDialogPrompt(canShowPrompt)
   const [openEmailConfirmDialog, setOpenEmailConfirmDialog] = useState(false);
@@ -186,6 +195,7 @@ const EditAccountInfo = () => {
   }
 
   function buttonClicked() {
+    // Only check the postal code if the user has one entered
     if (userData.postal_code !== null) {
       if (!checkPostal(userData.postal_code)) {
         setInvalidPostalCodeError(true)
@@ -208,33 +218,18 @@ const EditAccountInfo = () => {
     let updateData = {
       email: userData.email_address,
       phone_number: "+" + userData.phone_address,
-      'custom:province': userData.province,
-      'custom:postal_code': userData.postal_code
     }
-    if (userData.postal_code === null || userData.phone_address === null) {
-      if (userData.postal_code === null && userData.phone_address === null) {
-        updateData = {
-          email: userData.email_address,
-          'custom:province': userData.province,
-        }
-      } else if (userData.postal_code === null && userData.phone_address !== null) {
-        updateData = {
-          email: userData.email_address,
-          phone_number: "+" + userData.phone_address,
-          'custom:province': userData.province,
-        }
-      } else if (userData.phone_address === null && userData.postal_code !== null) {
-        updateData = {
-          email: userData.email_address,
-          'custom:province': userData.province,
-          'custom:postal_code': userData.postal_code
-        }
-      } 
+    // If the user has not entered a phone number then we cannot
+    // update it on Cognito
+    if (userData.phone_address === null) {
+      updateData = {
+        email: userData.email_address,
+      }
     } 
+    // update the user in cognito
     await Auth.updateUserAttributes(currentUser, updateData)
     .then(successAlert)
     .catch((e) => {
-      console.log(e)
       const errorMsg = e.errors[0].message
       if (errorMsg.includes("ER_DUP_ENTRY")) {
         setEmailExistError(true)
@@ -244,6 +239,8 @@ const EditAccountInfo = () => {
 
   const handleToggle = (event, newToggle) => {
     clearErrors()
+    // If the user hasn't entered their phone number before
+    // they must verify it here
     if (newToggle.includes('text') && userData.phone_address === null) {
       setOpenPhoneDialog(true)
     } else {
@@ -252,45 +249,52 @@ const EditAccountInfo = () => {
     setCanShowPrompt(true)
   };
   
+  async function updateDatabase() {
+    let email_selected, sms_selected = false
+    if (defaultNotificationPreference.includes('email') && 
+      defaultNotificationPreference.includes('text')) {
+      email_selected = true
+      sms_selected = true
+    } else if (defaultNotificationPreference.includes('email')) {
+      email_selected = true
+      sms_selected = false
+    } else {
+      email_selected = false
+      sms_selected = true
+    }
+    // If the user has changed their notification preferences, all the categories and topics
+    // they are subscribed to need to be updated 
+    if ((userData.email_notice !== email_selected) || (userData.sms_notice !== sms_selected)) {
+      let getUserTopics = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {
+        user_id: userData.user_id
+      }))
+      let userTopics = getUserTopics.data.getUserCategoryTopicByUserId
+      if (userTopics.length !== 0) {
+        for (let i = 0; i < userTopics.length; i++) {
+          await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
+            user_id: userData.user_id,
+            category_acronym: userTopics[i].category_acronym,
+            topic_acronym: userTopics[i].topic_acronym,
+            email_notice: email_selected,
+            sms_notice: sms_selected
+          }))
+        }
+      }
+    }
+    // update the user in the database
+    userData.email_notice = email_selected
+    userData.sms_notice = sms_selected
+    await API.graphql(graphqlOperation(updateUser, userData))
+    setAlert(true);
+    setAlertContent('Your changes have been successfully saved.');
+  }
+
   async function successAlert() {
+    // If the user is changing their email then the new email must be verified
     if (originalEmail !== userData.email_address) {
       setOpenEmailConfirmDialog(true)
     } else {
-      let email_selected, sms_selected = false
-      if (defaultNotificationPreference.includes('email') && 
-        defaultNotificationPreference.includes('text')) {
-        email_selected = true
-        sms_selected = true
-      } else if (defaultNotificationPreference.includes('email')) {
-        email_selected = true
-        sms_selected = false
-      } else {
-        email_selected = false
-        sms_selected = true
-      }
-    
-      if ((userData.email_notice !== email_selected) || (userData.sms_notice !== sms_selected)) {
-        let getUserTopics = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {
-          user_id: userData.user_id
-        }))
-        let userTopics = getUserTopics.data.getUserCategoryTopicByUserId
-        if (userTopics.length !== 0) {
-          for (let i = 0; i < userTopics.length; i++) {
-            await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
-              user_id: userData.user_id,
-              category_acronym: userTopics[i].category_acronym,
-              topic_acronym: userTopics[i].topic_acronym,
-              email_notice: email_selected,
-              sms_notice: sms_selected
-            }))
-          }
-        }
-      }
-      userData.email_notice = email_selected
-      userData.sms_notice = sms_selected
-      await API.graphql(graphqlOperation(updateUser, userData))
-      setAlert(true);
-      setAlertContent('Your changes have been successfully saved.');
+      updateDatabase();
     }
   }
 
@@ -311,41 +315,9 @@ const EditAccountInfo = () => {
         });
       }
     } else {
-      let email_selected, sms_selected = false
-      if (defaultNotificationPreference.includes('email') && 
-        defaultNotificationPreference.includes('text')) {
-        email_selected = true
-        sms_selected = true
-      } else if (defaultNotificationPreference.includes('email')) {
-        email_selected = true
-        sms_selected = false
-      } else {
-        email_selected = false
-        sms_selected = true
-      }
-    
-      if ((userData.email_notice !== email_selected) || (userData.sms_notice !== sms_selected)) {
-        let getUserTopics = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {
-          user_id: userData.user_id
-        }))
-        let userTopics = getUserTopics.data.getUserCategoryTopicByUserId
-        if (userTopics.length !== 0) {
-          for (let i = 0; i < userTopics.length; i++) {
-            await API.graphql(graphqlOperation(userUpdateChannelPrefrence, {
-              user_id: userData.user_id,
-              category_acronym: userTopics[i].category_acronym,
-              topic_acronym: userTopics[i].topic_acronym,
-              email_notice: email_selected,
-              sms_notice: sms_selected
-            }))
-          }
-        }
-      }
-      userData.email_notice = email_selected
-      userData.sms_notice = sms_selected
-      await API.graphql(graphqlOperation(updateUser, userData))
-      setAlert(true);
-      setAlertContent('Your changes have been successfully saved.');
+      // update all the user's changes after the new email has been verified
+      updateDatabase()
+      // update the user's credentials so that they can stay signed in after the email change
       await Auth.currentSession().then(await Auth.currentAuthenticatedUser({ bypassCache: true }))
     }
   };
@@ -380,7 +352,6 @@ const EditAccountInfo = () => {
         setOpenPhoneDialog(false);
       }
     } catch (e) {
-      console.log(e)
       setInvalidInputError(true)
     }
   };
@@ -492,8 +463,8 @@ const EditAccountInfo = () => {
                 </ToggleButton>
               </ToggleButtonGroup>
               <Button variant="contained" fullWidth onClick={buttonClicked}>
-              Save
-            </Button>
+                Save
+              </Button>
           </Grid>
       </Grid>
       <EmailChangeDialog

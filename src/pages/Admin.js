@@ -19,8 +19,8 @@ import { API, graphqlOperation, Storage } from "aws-amplify"
 import { getAllCategories } from "../graphql/queries";
 import { styled } from "@mui/material/styles";
 import AdminTopicCard from "../components/AdminTopicCard";
-import AddTopicDialog from "../components/AddTopicDialog";
-import DeleteTopicDialog from "../components/DeleteTopicDialog";
+import AddTopicDialog from "../components/Dialog/AddTopicDialog";
+import DeleteTopicDialog from "../components/Dialog/DeleteTopicDialog";
 
 const StyledImageListItemBar = styled(ImageListItemBar)`
   .MuiImageListItemBar-title {
@@ -59,6 +59,7 @@ const Admin = () => {
     if (allCategories !== null) {
       setTopics(allCategories)
       setTopicsTemp(allCategories)
+      // Get the images for all the categories
       for (let i = 0; i < allCategories.length; i++) {
         let imageURL = await Storage.get(allCategories[i].picture_location)
         setImage((prev) => [...prev, imageURL])
@@ -73,27 +74,10 @@ const Admin = () => {
     }
   }
 
-  //updates pagination
   useEffect(() => {
     queriedData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleAddNewTopicOpen = () => {
-    setOpenNewTopicDialog(true)
-  }
-
-  const handleAddNewTopicClose = () => {
-    setOpenNewTopicDialog(false)
-  }
-
-  const handleDeleteTopicOpen = () => {
-    setOpenDeleteTopicDialog(true)
-  }
-
-  const handleDeleteTopicClose = () => {
-    setOpenDeleteTopicDialog(false)
-  }
 
   function search() {
     if (searchVal === "") {
@@ -139,13 +123,13 @@ const Admin = () => {
             {topic.picture_location !== null ? 
               <img src={image[index]} alt={topic.title} /> :
               <Box
-              sx={{
-                backgroundColor: "#738DED",
-                width: "100px",
-                height: "100px",
-                borderRadius: "7px",
-              }}
-            ></Box>}
+                sx={{
+                  backgroundColor: "#738DED",
+                  width: "100px",
+                  height: "100px",
+                  borderRadius: "7px",
+                }}
+              ></Box>}
             <StyledImageListItemBar title={topic.title} position="below" />
           </StyledImageListItem>
         ))
@@ -204,7 +188,7 @@ const Admin = () => {
                 color="primary"
                 aria-label="back to topic options"
                 component="label"
-                onClick={handleAddNewTopicOpen}
+                onClick={() => setOpenNewTopicDialog(true)}
                 sx={{ width: 'fit-content', mb: "0.5em" }}
               >
                 <Add />
@@ -213,19 +197,19 @@ const Admin = () => {
                 color="primary"
                 aria-label="back to topic options"
                 component="label"
-                onClick={handleDeleteTopicOpen}
+                onClick={() => setOpenDeleteTopicDialog(true)}
                 sx={{ width: 'fit-content', mb: "0.5em" }}
               >
                 <Delete />
               </IconButton>
               <AddTopicDialog 
                 open={openNewTopicDialog}
-                handleClose={handleAddNewTopicClose}
+                handleClose={() => setOpenNewTopicDialog(false)}
                 reload={queriedData}
                 />
               <DeleteTopicDialog 
                 open={openDeleteTopicDialog}
-                handleClose={handleDeleteTopicClose}
+                handleClose={() => setOpenDeleteTopicDialog(false)}
                 topics={topicsTemp}
                 reload={queriedData}
                 />

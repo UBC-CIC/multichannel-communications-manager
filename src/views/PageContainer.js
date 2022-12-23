@@ -13,15 +13,11 @@ import {
   Box,
 } from "@mui/material";
 import {
-  Home,
   NotificationsNone,
-  EditNotifications,
   Person,
 } from "@mui/icons-material";
 import Navbar from "../components/Navbar";
-import Landing from "../pages/Landing";
 import SubscribeToTopics from "../pages/SubscribeToTopics";
-import EditNotificationPreferences from "../pages/EditNotificationPreferences";
 import EditAccountInfo from "../pages/EditAccountInfo";
 
 function PageContainer(props) {
@@ -54,26 +50,6 @@ function PageContainer(props) {
           </ListItemIcon>
           <ListItemText primary={"Subscribe to Topics"} />
         </ListItem>
-        {/* <ListItem
-          button
-          key={"subscribe-to-topics"}
-          onClick={() => navigate("/subscribe-to-topics")}
-        >
-          <ListItemIcon>
-            <NotificationsNone />
-          </ListItemIcon>
-          <ListItemText primary={"Subscribe to Topics"} />
-        </ListItem> */}
-        {/* <ListItem
-          button
-          key={"edit-notif-preferences"}
-          onClick={() => navigate("/edit-notif-preferences")}
-        >
-          <ListItemIcon>
-            <EditNotifications />
-          </ListItemIcon>
-          <ListItemText primary={"Edit Notification Preferences"} />
-        </ListItem> */}
         <ListItem
           button
           key={"edit-account-info"}
@@ -111,16 +87,6 @@ function PageContainer(props) {
           {/* Routes are added here if you need multiple page views*/}
           <Routes>
             <Route exact path={"/"} element={<SubscribeToTopics />} />
-            {/* <Route
-              exact
-              path={"/subscribe-to-topics"}
-              element={<SubscribeToTopics />}
-            /> */}
-            {/* <Route
-              exact
-              path={"/edit-notif-preferences"}
-              element={<EditNotificationPreferences />}
-            /> */}
             <Route
               exact
               path={"/edit-account-information"}

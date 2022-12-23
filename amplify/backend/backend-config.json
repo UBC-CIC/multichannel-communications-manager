@@ -95,7 +95,8 @@
     "isedf0082716f0082716CreateAuthChallenge": {
       "build": true,
       "providerPlugin": "awscloudformation",
-      "service": "Lambda"
+      "service": "Lambda",
+      "dependsOn": []
     },
     "isedf0082716f0082716DefineAuthChallenge": {
       "build": true,
@@ -156,6 +157,80 @@
             "AppClientIDWeb",
             "AppClientID",
             "CreatedSNSRole"
+          ]
+        }
+      ]
+    },
+    "paramstoreHostingUrl": {
+      "service": "customCloudformation",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [
+        {
+          "category": "api",
+          "resourceName": "ised",
+          "attributes": [
+            "GraphQLAPIKeyOutput",
+            "GraphQLAPIIdOutput",
+            "GraphQLAPIEndpointOutput"
+          ]
+        },
+        {
+          "category": "auth",
+          "resourceName": "userPoolGroups",
+          "attributes": [
+            "AdminsGroupRole"
+          ]
+        },
+        {
+          "category": "auth",
+          "resourceName": "isedf0082716f0082716",
+          "attributes": [
+            "IdentityPoolId",
+            "IdentityPoolName",
+            "UserPoolId",
+            "UserPoolArn",
+            "UserPoolName",
+            "AppClientIDWeb",
+            "AppClientID",
+            "CreatedSNSRole"
+          ]
+        },
+        {
+          "category": "function",
+          "resourceName": "isedf0082716f0082716CreateAuthChallenge",
+          "attributes": [
+            "Name",
+            "Arn",
+            "LambdaExecutionRole",
+            "Region"
+          ]
+        },
+        {
+          "category": "function",
+          "resourceName": "isedf0082716f0082716DefineAuthChallenge",
+          "attributes": [
+            "Name",
+            "Arn",
+            "LambdaExecutionRole",
+            "Region"
+          ]
+        },
+        {
+          "category": "function",
+          "resourceName": "isedf0082716f0082716VerifyAuthChallengeResponse",
+          "attributes": [
+            "Name",
+            "Arn",
+            "LambdaExecutionRole",
+            "Region"
+          ]
+        },
+        {
+          "category": "storage",
+          "resourceName": "categoryImages",
+          "attributes": [
+            "BucketName",
+            "Region"
           ]
         }
       ]

@@ -65,8 +65,10 @@ const TopicCard = ({
 
   const handleSaved = () => {
     setSaveEnabled(true)
+    // go through all the selected topics
     for (let x = 0; x < boxChecked.length; x++) {
       if (boxChecked[x] === false) {
+        // remove from allselectedtopics as the topic has been deselected
         setAllSelectedTopics((prev) => prev.filter((s) => !(s.category_acronym === selectedTopic.acronym && s.topic_acronym === alteredSubtopic[x])))
       } else {
         let userSubscribeData = {
@@ -82,7 +84,7 @@ const TopicCard = ({
     setAlert(true)
   }
 
-  //updates setSelectedSubtopics every time subtopics are selected/unselected by user
+  // get the topics and whether they've been selected/deselected
   const handleChange = (e, subtopic) => {
     setAlteredSubtopic((prev) => [...prev, subtopic])
     if (e.target.checked) {

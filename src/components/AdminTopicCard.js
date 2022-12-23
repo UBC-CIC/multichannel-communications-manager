@@ -19,7 +19,7 @@ import { API, graphqlOperation, Storage } from "aws-amplify"
 import { getTopicsOfCategoryByAcronym } from "../graphql/queries";
 import { createTopic, addTopicToCategory, deleteCategoryTopic } from "../graphql/mutations";
 import "./TopicCard.css";
-import EditTopicDialog from "./EditTopicDialog";
+import EditTopicDialog from "./Dialog/EditTopicDialog";
   
 const AdminTopicCard = ({
   selectedTopic,
@@ -62,10 +62,6 @@ const AdminTopicCard = ({
     }
   };
 
-  const handleCloseEditDialog = () => {
-    setOpenEditDialog(false)
-  }
-
   const handleDelete = async () => {
     for (let i = 0; i < selectedSubTopics.length; i++) {
       await API.graphql(graphqlOperation(deleteCategoryTopic, {
@@ -81,6 +77,7 @@ const AdminTopicCard = ({
       setInvalidInputError(true)
       setInvalidInputErrorMsg('No value entered.')
     } else {
+      // Create the topic and add it to the selected category
       await API.graphql(graphqlOperation(createTopic, {acronym: newSubtopic}))
         .then(async () => {
           await API.graphql(graphqlOperation(addTopicToCategory, {
@@ -105,7 +102,7 @@ const AdminTopicCard = ({
     setNewSubtopic(e.target.value)
   }
 
-  //renders front of the card displaying topic of interest information
+  //renders front of the card displaying category information
   const renderCardFront = () => {
     return (
       <>
@@ -161,7 +158,7 @@ const AdminTopicCard = ({
         </Card>
         <EditTopicDialog
           open={openEditDialog}
-          handleClose={handleCloseEditDialog}
+          handleClose={() => setOpenEditDialog(false)}
           selectedTopic={selectedTopic}
           setSelectedTopic={setSelectedTopic}
         />
@@ -169,7 +166,7 @@ const AdminTopicCard = ({
     );
   };
   
-  //renders the back of the card displaying all subtopics for user to select
+  // renders the back of the card displaying all of the topics
   const renderCardBack = () => {
     return (
       <Card>
@@ -230,15 +227,15 @@ const AdminTopicCard = ({
     );
   };
   
-    return (
-      <div className={`card ${isRotated ? "rotated" : ""}`}>
-        {!isRotated ? (
-          <div className="front">{renderCardFront()}</div>
-        ) : (
-          <div className="back">{renderCardBack()}</div>
-        )}
-      </div>
-    );
-  };
+  return (
+    <div className={`card ${isRotated ? "rotated" : ""}`}>
+      {!isRotated ? (
+        <div className="front">{renderCardFront()}</div>
+      ) : (
+        <div className="back">{renderCardBack()}</div>
+      )}
+    </div>
+  );
+};
   
-  export default AdminTopicCard;
+export default AdminTopicCard;
