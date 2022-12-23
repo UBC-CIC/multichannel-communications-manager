@@ -82,7 +82,7 @@ Parameters:
   CognitoAdminName:
     Type: String
     Description: The name of the admin user for Cognito
-  CognitoAdminEmail:
+  AdminEmail:
     Type: String
     Description: The email of the admin user for Cognito
 
@@ -422,8 +422,8 @@ Resources:
       EnableIAMDatabaseAuthentication: false 
       Engine: aurora-mysql
       EngineVersion: !Ref 'DBEngineVersion'
-      # MasterUsername: !Ref 'DBUser'
-      # MasterUserPassword: !Ref 'DBPassword'
+      MasterUsername: !Sub '{{resolve:secretsmanager:${RDSCredentialsSecret}::username}}'
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${RDSCredentialsSecret}::password}}'
       Port: 3306
       StorageEncrypted: !Ref 'EncryptDatabase' 
       SourceRegion: !Sub '${AWS::Region}'
@@ -469,16 +469,18 @@ Resources:
   RDSCredentialsSecret:
     Type: AWS::SecretsManager::Secret
     DependsOn:
-    - MainDBCluster
+    # - MainDBCluster
     - IGWAttachment
-    - MainDBInstance
+    # - MainDBInstance
     Properties: 
       Description: Stores the credentials for the RDS instance
       Name: RDSCredentials
       GenerateSecretString:
-        SecretStringTemplate: !Sub '{"username":"admin","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
+        SecretStringTemplate: !Sub '{"username":"admin","engine":"mysql","port":3306,"region":"${AWS::Region}"}'
+        # !Sub '{"username":"admin","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
       # SecretString: !Sub '{"username":"${DBUser}","password":"${DBPassword}","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
         GenerateStringKey: "password"
+        ExcludeCharacters: '"@/\'
       Tags:
         - Key: "Project"
           Value: !Ref 'ProjectName'
@@ -656,8 +658,8 @@ Resources:
           # USERNAME: !Ref 'DBUser'
           RDSPROXY_ENDPOINT: !GetAtt RDSProxy.Endpoint
           ADMIN_NAME: !Ref CognitoAdminName
-          ADMIN_EMAIL: !Ref CognitoAdminEmail
-          EMAIL_SENDER: !Ref CognitoAdminEmail
+          ADMIN_EMAIL: !Ref AdminEmail
+          EMAIL_SENDER: !Ref AdminEmail
           PINPOINT_APPID: !Ref PinpointApp
           LINK_TO_APP: !Ref LinkToHostingDomain
       VpcConfig:
@@ -683,14 +685,14 @@ Resources:
     DependsOn: AdminSESIdentity
     Properties: 
       UserPoolId: '{{resolve:ssm:UserPoolId}}'
-      Username: !Ref CognitoAdminEmail
+      Username: !Ref AdminEmail
       UserAttributes: 
         - Name: 'name'
           Value: !Ref CognitoAdminName
         - Name: 'email'
-          Value: !Ref CognitoAdminEmail
+          Value: !Ref AdminEmail
         # - Name: 'preferred_username'
-        #   Value: !Ref CognitoAdminEmail
+        #   Value: !Ref AdminEmail
         - Name: 'email_verified'
           Value: True
         # - Name: 'custom:type'
@@ -1633,7 +1635,7 @@ Resources:
   AdminSESIdentity:
     Type: AWS::SES::EmailIdentity
     Properties:
-      EmailIdentity: !Ref CognitoAdminEmail
+      EmailIdentity: !Ref AdminEmail
   # Pinpoint Resources
   PinpointApp:
     Type: AWS::Pinpoint::App
@@ -1653,16 +1655,16 @@ Resources:
     - PinpointApp
     Properties:
       ApplicationId: !Ref PinpointApp
-      FromAddress: !Ref CognitoAdminEmail
+      FromAddress: !Ref AdminEmail
       Identity: 
-        !Sub 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${CognitoAdminEmail}'
+        !Sub 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${AdminEmail}'
       Enabled: true
   EmailSenderParameter:
       Type: AWS::SSM::Parameter
       Properties: 
         Name: "EmailSenderParameter"
         Type: String 
-        Value: !Ref CognitoAdminEmail
+        Value: !Ref AdminEmail
         Description: sender email for all SES communications
 
 
