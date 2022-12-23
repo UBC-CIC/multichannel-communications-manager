@@ -90,7 +90,7 @@ Resources:
   GraphQLAPIIdParameter:
       Type: AWS::SSM::Parameter
       Properties: 
-        Name: "GraphQLAPIIdParam"
+        Name: "GraphQLAPIIdParameter"
         Type: String 
         Value: "{{resolve:ssm:GraphqlApiId:1}}"
         Description: Communication Manager GraphQL Api Id
@@ -680,33 +680,33 @@ Resources:
 
   # Cognito #############################
 
-  AdminCognitoUser:
-    Type: AWS::Cognito::UserPoolUser
-    DependsOn: AdminSESIdentity
-    Properties: 
-      UserPoolId: '{{resolve:ssm:UserPoolId}}'
-      Username: !Ref AdminEmail
-      UserAttributes: 
-        - Name: 'name'
-          Value: !Ref CognitoAdminName
-        - Name: 'email'
-          Value: !Ref AdminEmail
-        # - Name: 'preferred_username'
-        #   Value: !Ref AdminEmail
-        - Name: 'email_verified'
-          Value: True
-        # - Name: 'custom:type'
-        #   Value: 'Admins'
-        # - Name: 'custom:firstLogin'
-        #   Value: 'true'
+  # AdminCognitoUser:
+  #   Type: AWS::Cognito::UserPoolUser
+  #   DependsOn: AdminSESIdentity
+  #   Properties: 
+  #     UserPoolId: '{{resolve:ssm:UserPoolId}}'
+  #     Username: !Ref AdminEmail
+  #     UserAttributes: 
+  #       - Name: 'name'
+  #         Value: !Ref CognitoAdminName
+  #       - Name: 'email'
+  #         Value: !Ref AdminEmail
+  #       # - Name: 'preferred_username'
+  #       #   Value: !Ref AdminEmail
+  #       - Name: 'email_verified'
+  #         Value: True
+  #       # - Name: 'custom:type'
+  #       #   Value: 'Admins'
+  #       # - Name: 'custom:firstLogin'
+  #       #   Value: 'true'
 
-  AdminCognitoUserAttachment:
-    Type: AWS::Cognito::UserPoolUserToGroupAttachment
-    DependsOn: AdminCognitoUser
-    Properties: 
-      GroupName: 'Admins'
-      Username: !Ref AdminCognitoUser
-      UserPoolId: '{{resolve:ssm:UserPoolId}}'
+  # AdminCognitoUserAttachment:
+  #   Type: AWS::Cognito::UserPoolUserToGroupAttachment
+  #   DependsOn: AdminCognitoUser
+  #   Properties: 
+  #     GroupName: 'Admins'
+  #     Username: !Ref AdminCognitoUser
+  #     UserPoolId: '{{resolve:ssm:UserPoolId}}'
 
 
   # APPSYNC #####################################################
