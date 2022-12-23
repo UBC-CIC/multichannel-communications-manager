@@ -44,8 +44,8 @@ export class cdkStack extends cdk.Stack {
     //   parameterName: 'BucketName',
     //   stringValue: BucketNameOutput,
     // });
-    // new ssm.StringParameter(this, 'ParameterStoreUserPoolId', {
-    //   parameterName: 'UserPoolId',
-    //   stringValue: UserPoolIdOutput,
-    // });
+    new ssm.StringParameter(this, 'ParameterStoreUserPoolId', {
+      parameterName: 'UserPoolId',
+      stringValue: UserPoolIdOutput,
+    });
   }}
