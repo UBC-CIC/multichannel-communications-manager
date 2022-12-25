@@ -39,6 +39,9 @@ For instructions on how to navigate the web app interface, refer to the [Web App
 ├── node_modules
 ├── public
 ├── sam
+│   ├── events
+│   ├── lambda_functions
+│   └── template.yaml
 ├── src/
 │   ├── actions
 │   ├── components/
@@ -77,7 +80,10 @@ For instructions on how to navigate the web app interface, refer to the [Web App
 ```
 
 1. **`/docs`**: Contains all relevant documentation files
-2. **`/src`**: Contains all the source code for the site.
+2. **`/sam`**: Contains all the backend code for the site
+   1. **`/lambda_functions`**Contains the Lambda Functions for the project
+      - graphQLMySQLResolver is the Lambda function that translates an AWS AppSync request into calls to the database and Pinpoint
+3. **`/src`**: Contains all the source code for the site.
    1. **`/components`**: Reusable React components.
       - Components are organized into folders, with the folder names being the page name/functionality that the components within are used for
       - Components that are not in any subfolders:
