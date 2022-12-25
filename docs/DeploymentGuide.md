@@ -63,6 +63,19 @@ The **Deploy to Amplify Console** button will take you to your AWS console to de
    Refer to [AWS's Page on Single Page Apps](https://docs.aws.amazon.com/amplify/latest/userguide/redirects.html#redirects-for-single-page-web-apps-spa) for further information on why we did that
    ![alt text](images/deployment/deployment-04.PNG)
 
+## Register Admin Account
+
+Here, you'll learn how to register for an account on the web portal, then how to set any accounts to ISED Admin.
+
+1. At the login page for the ISED website, click create an account.
+2. Enter your profile information. When selecting notification preferences, only select EMAIL NOTIFICATIONS. Then, click NEXT.
+3. A verification code will be sent to the email that you just entered. Enter it here, and then click VERIFY.
+4. You have now registered an account in the app. Before you proceed with the web portal, you need to add yourself to Admins. Start by going to the [AWS online console](https://console.aws.amazon.com/console/home), enter `Cognito` in the search bar \![alt text](images/deployment/deployment-05.PNG)
+5. Select `Manage User Pools` and select the user pool corresponding to the project name
+6. Click the `Users and Groups` tab on the menu on the left of the screen, then select the user which you want to set to Admin \![alt text](images/deployment/admin-01.PNG)
+7. At the top of the page click `Add to group` and select `Admins` from the dropdown menu \![alt text](images/deployment/admin-02.PNG)
+8. Now come back to the web portal, refresh the page, and then you can proceed to sign in following the steps in the [Web App User Guide](docs/UserGuide.md).
+
 The frontend is almost finished being set up, but first we need to deploy our backend. 
 
 # Step 3: Backend Deployment
@@ -110,18 +123,16 @@ The following block of text is what will appear when running the command. It is 
       (Enter the link to the user portal. For now, enter the link you saved in Step 2 point 4. In the future, if you wish to set up a custom domain by yourself, you can enter the link to the custom domain here)
    Parameter DBName [sys]: 
       (Name of the database, sys is the standard name, must begin with a letter and contain only alphanumeric characters, and be 16 characters or less)
-   Parameter DBInstanceClass [db.t3.large]: 
-      (What size of database to use. This value can be changed later in RDS settings, however there will be some downtime associated with it. For more information visit https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html. The allowed values are db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t3.large, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge)
+   Parameter DBInstanceClass [db.t4g.large]: 
+      (What size of database to use. This value can be changed later in RDS settings, however there will be some downtime associated with it. For more information visit https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html. The allowed values are db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge)
    Parameter DBEngineVersion [5.7.mysql_aurora.2.09.2]: 
       (What version of MySQL Aurora to use, the default value is recommended, but any of the following allowed values should work: 5.7.mysql_aurora.2.07.0, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.1, 5.7.mysql_aurora.2.07.2, 5.7.mysql_aurora.2.07.3, 5.7.mysql_aurora.2.07.4, 5.7.mysql_aurora.2.07.5, 5.7.mysql_aurora.2.07.6, 5.7.mysql_aurora.2.07.7, 5.7.mysql_aurora.2.08.0, 5.7.mysql_aurora.2.08.1, 5.7.mysql_aurora.2.08.2, 5.7.mysql_aurora.2.08.3, 5.7.mysql_aurora.2.08.4, 5.7.mysql_aurora.2.09.0, 5.7.mysql_aurora.2.09.1, 5.7.mysql_aurora.2.09.2, 5.7.mysql_aurora.2.09.3, 5.7.mysql_aurora.2.10.0, 5.7.mysql_aurora.2.10.1, 5.7.mysql_aurora.2.10.2,  8.0.mysql_aurora.3.01.0, 8.0.mysql_aurora.3.01.1, 8.0.mysql_aurora.3.02.0)
    Parameter DeletionProtection [True]: 
       (When deletion proteciton is enabled, when you request the deletion of a database instance in the AWS Console you are blocked and may not continue without first modifying the instance and disabling deletion protection (recommended for production))
    Parameter EncryptDatabase [True]: 
       (Encrypts the database for added security)
-   Parameter CognitoAdminName []: <NAME TO USE FOR ADMIN ACCOUNT>
-      (For the first administrator user, whatever name you want associated to the account, can be your full name, or any other name you want)
-   Parameter AdminEmail []: <EMAIL TO USE FOR ADMIN ACCOUNT AND>
-      (For the first administrator user, what ever email you want associated to the account. This will be used for login, and you will receive a temporary passowrd to this email for your first login. This will also be used to send out mass emails in Pinpoint)
+   Parameter SenderEmail []: <FROM_ADDRESS FOR ALL EMAIL COMMUNICATIONS>
+      (This will be used to send out verification emails as well as campaigns in Pinpoint)
 
    #Shows you resources changes to be deployed and require a 'Y' to initiate deploy
    Confirm changes before deploy [y/N]: y
@@ -176,7 +187,7 @@ Congratulations, your web app is now deployed! You can find the website URL on t
 
 To use the account created with CloudFormation, first navigate to the link of the app. This can be found on the Amplify page, under `Hosting environments`. Clicking on the image below `main` will take you to the website. Then, just log in to the account using the email you provided in the template. For the password, a temporary one will have been sent to your inbox. After logging in, you will be instructed to choose a brand new password. -->
 
-# Step 7 (Optional): Set up other Admin Accounts
+<!-- ## Step 7 (Optional): Set up other Admin Accounts
 
 To set up other accounts as an admin, you will need to do the following steps. (Note: this assumes the user has already been registered on the app)
 
@@ -186,4 +197,4 @@ To set up other accounts as an admin, you will need to do the following steps. (
 3. Click the `Users and Groups` tab on the menu on the left of the screen, then select the user which you want to set to Admin \
    ![alt text](images/deployment/admin-01.PNG)
 4. At the top of the page click `Add to group` and select `Admins` from the dropdown menu \
-   ![alt text](images/deployment/admin-02.PNG)
+   ![alt text](images/deployment/admin-02.PNG) -->

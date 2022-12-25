@@ -36,7 +36,7 @@ Parameters:
       #   Type: String
       #   Description: "The ID of the Cognito User Pool for the Amplify project (ex. us-east-1_aBcDeFgh)"  
   LinkToHostingDomain:
-    Description: Link to the app hosted on amplify
+    Description: Link to the user portal
     Type: String
   DBName:
     Default: sys
@@ -64,8 +64,8 @@ Parameters:
   DBInstanceClass:
     Description: The database instance type
     Type: String
-    Default: db.t3.large
-    AllowedValues: [db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t3.large, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge]
+    Default: db.t4g.large
+    AllowedValues: [db.t2.small, db.t2.medium, db.t3.small, db.t3.medium, db.t4g.medium, db.t4g.large, db.r4.large, db.r4.xlarge, db.r4.2xlarge, db.r4.4xlarge, db.r4.8xlarge, db.r4.16xlarge, db.r5.large, db.r5.xlarge, db.r5.2xlarge, db.r5.4xlarge, db.r5.8xlarge, db.r5.12xlarge, db.r5.16xlarge, db.r6g.large, db.r6g.xlarge, db.r6g.2xlarge, db.r6g.4xlarge, db.r6g.8xlarge, db.r6g.12xlarge, db.r6g.16xlarge]
   DBEngineVersion:
     Description: The version of Aurora MySQL for the database
     Type: String
@@ -79,12 +79,12 @@ Parameters:
     Description: Enable encryption of the database
     Type: String
     Default: True
-  CognitoAdminName:
+  # CognitoAdminName:
+  #   Type: String
+  #   Description: The name of the admin user for Cognito
+  SenderEmail:
     Type: String
-    Description: The name of the admin user for Cognito
-  AdminEmail:
-    Type: String
-    Description: The email of the admin user for Cognito
+    Description: The email address from which end uers will receive emails
 
 Resources:
   GraphQLAPIIdParameter:
@@ -657,9 +657,9 @@ Resources:
           # PASSWORD: !Ref 'DBPassword'
           # USERNAME: !Ref 'DBUser'
           RDSPROXY_ENDPOINT: !GetAtt RDSProxy.Endpoint
-          ADMIN_NAME: !Ref CognitoAdminName
-          ADMIN_EMAIL: !Ref AdminEmail
-          EMAIL_SENDER: !Ref AdminEmail
+          # ADMIN_NAME: !Ref CognitoAdminName
+          # ADMIN_EMAIL: !Ref SenderEmail
+          EMAIL_SENDER: !Ref SenderEmail
           PINPOINT_APPID: !Ref PinpointApp
           LINK_TO_APP: !Ref LinkToHostingDomain
       VpcConfig:
@@ -685,7 +685,7 @@ Resources:
   #   DependsOn: AdminSESIdentity
   #   Properties: 
   #     UserPoolId: '{{resolve:ssm:UserPoolId}}'
-  #     Username: !Ref AdminEmail
+  #     Username: !Ref SenderEmail
   #     UserAttributes: 
   #       - Name: 'name'
   #         Value: !Ref CognitoAdminName
@@ -1635,7 +1635,7 @@ Resources:
   AdminSESIdentity:
     Type: AWS::SES::EmailIdentity
     Properties:
-      EmailIdentity: !Ref AdminEmail
+      EmailIdentity: !Ref SenderEmail
   # Pinpoint Resources
   PinpointApp:
     Type: AWS::Pinpoint::App
@@ -1655,16 +1655,16 @@ Resources:
     - PinpointApp
     Properties:
       ApplicationId: !Ref PinpointApp
-      FromAddress: !Ref AdminEmail
+      FromAddress: !Ref SenderEmail
       Identity: 
-        !Sub 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${AdminEmail}'
+        !Sub 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${SenderEmail}'
       Enabled: true
   EmailSenderParameter:
       Type: AWS::SSM::Parameter
       Properties: 
         Name: "EmailSenderParameter"
         Type: String 
-        Value: !Ref AdminEmail
+        Value: !Ref SenderEmail
         Description: sender email for all SES communications
 
 
