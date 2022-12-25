@@ -14,11 +14,11 @@ async function conditionallyCreateDB(connection) {
   // otherwise, this throws an error, which is caught in the handler and
   // the lambda handler function proceeds as usual
   let adminName = process.env.ADMIN_NAME;
-  let adminEmail = process.env.ADMIN_EMAIL;
+  // let adminEmail = process.env.ADMIN_EMAIL;
   let createDBSQL = `
     CREATE TABLE \`User\` (
   \`user_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`email_address\` text UNIQUE NOT NULL,
+  \`email_address\` varchar(64) UNIQUE NOT NULL,
   \`phone_address\` varchar(50) UNIQUE,
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
   \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL,
@@ -30,7 +30,8 @@ CREATE TABLE \`Category\` (
   \`category_id\` int PRIMARY KEY AUTO_INCREMENT,
   \`acronym\` varchar(30) UNIQUE NOT NULL,
   \`title\` varchar(50) NOT NULL,
-  \`description\` text
+  \`description\` text,
+  \`picture_location\` text
 );
 
 CREATE TABLE \`Topic\` (
@@ -81,10 +82,10 @@ ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`categoryTopic_id\`) REFEREN
     result = await executeSQL(connection, sql_statement);
   }
 
-  result = await executeSQL(
-    connection,
-    "INSERT INTO `User` (email_address) VALUES ('" + adminEmail + "');"
-  );
+  // result = await executeSQL(
+  //   connection,
+  //   "INSERT INTO `User` (email_address) VALUES ('" + adminEmail + "');"
+  // );
 
   return result;
 }
