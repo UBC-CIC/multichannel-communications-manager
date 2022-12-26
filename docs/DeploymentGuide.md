@@ -63,19 +63,6 @@ The **Deploy to Amplify Console** button will take you to your AWS console to de
    Refer to [AWS's Page on Single Page Apps](https://docs.aws.amazon.com/amplify/latest/userguide/redirects.html#redirects-for-single-page-web-apps-spa) for further information on why we did that
    ![alt text](images/deployment/deployment-04.PNG)
 
-## Register Admin Account
-
-Here, you'll learn how to register for an account on the web portal, then how to set any accounts to ISED Admin.
-
-1. At the login page for the ISED website, click create an account.
-2. Enter your profile information. When selecting notification preferences, only select EMAIL NOTIFICATIONS. Then, click NEXT.
-3. A verification code will be sent to the email that you just entered. Enter it here, and then click VERIFY.
-4. You have now registered an account in the app. Before you proceed with the web portal, you need to add yourself to Admins. Start by going to the [AWS online console](https://console.aws.amazon.com/console/home), enter `Cognito` in the search bar \![alt text](images/deployment/deployment-05.PNG)
-5. Select `Manage User Pools` and select the user pool corresponding to the project name
-6. Click the `Users and Groups` tab on the menu on the left of the screen, then select the user which you want to set to Admin \![alt text](images/deployment/admin-01.PNG)
-7. At the top of the page click `Add to group` and select `Admins` from the dropdown menu \![alt text](images/deployment/admin-02.PNG)
-8. Now come back to the web portal, refresh the page, and then you can proceed to sign in following the steps in the [Web App User Guide](docs/UserGuide.md).
-
 The frontend is almost finished being set up, but first we need to deploy our backend. 
 
 # Step 3: Backend Deployment
@@ -151,7 +138,7 @@ The following block of text is what will appear when running the command. It is 
       (You can have multiple different environments, each having different saved inputs, but for now just press enter since we do not need to worry about that for this deployment)
 ```
 
-Be sure to not close the window after this process has completed, as the Outputs section produced will be important for the next step.
+Be sure to not close the window after this process has completed so that you can monitor if any error occurred during the deployment.
 
 # Step 4: Wrap up Frontend Deployment
 
@@ -159,8 +146,8 @@ We need to add a few more things to our Amplify project before we are all done w
 
 ## Cognito
 1. At the [AWS online console](https://console.aws.amazon.com/console/home), enter `Cognito` in the search bar![alt text](images/deployment/deployment-05.PNG)
-2. Select `Manage User Pools`, then select the user pool corresponding to the project name
-3. On the left side menu, click on `MFA and verifications` and scroll down to `Which attributes do you want to verify?`. Select **Email or phone number**.![alt text](images/deployment/deployment-07.PNG)
+2. Select `Manage User Pools`, then select the user pool that begins with isedf0082716
+3. On the left side menu, click on `MFA and verifications` and scroll down to `Which attributes do you want to verify?`. Select **Email or phone number**. Then at the very bottom, click "Save changes". ![alt text](images/deployment/deployment-07.PNG)
 
 ## SES
 
@@ -183,9 +170,23 @@ Amazon SNS is what is used to send the verification texts when a user first adds
 
 Congratulations, your web app is now deployed! You can find the website URL on the main screen of Amplify under `Hosting environments`, and then clicking on the web-browser-esque image under `main`.
 
+
 <!-- # Step 6: Log into Admin Account
 
 To use the account created with CloudFormation, first navigate to the link of the app. This can be found on the Amplify page, under `Hosting environments`. Clicking on the image below `main` will take you to the website. Then, just log in to the account using the email you provided in the template. For the password, a temporary one will have been sent to your inbox. After logging in, you will be instructed to choose a brand new password. -->
+
+# Step 6: Register Admin Account
+
+Here, you'll learn how to register for an account on the web portal, then how to set any accounts to ISED Admin.
+
+1. At the login page for the ISED website, click create an account. ![alt text](images/deployment/setup_admin_welcome.PNG)
+2. Enter your profile information. When selecting notification preferences, only select EMAIL NOTIFICATIONS. Then, click NEXT. ![alt text](images/deployment/setup_admin_profile.PNG)
+3. A verification code will be sent to the email that you just entered. Enter it here, and then click VERIFY. ![alt text](images/deployment/setup_admin_verification.PNG)
+4. You have now registered an account in the app. Before you proceed with the web portal, you need to add yourself to Admins. Start by going to the [AWS online console](https://console.aws.amazon.com/console/home), enter `Cognito` in the search bar ![alt text](images/deployment/deployment-05.PNG)
+5. Select `Manage User Pools` and select the user pool that begins with isedf0082716.
+6. Click the `Users and Groups` tab on the menu on the left of the screen, then select the user which you want to set to Admin. ![alt text](images/deployment/admin-01.PNG)
+7. At the top of the page click `Add to group` and select `Admins` from the dropdown menu ![alt text](images/deployment/admin-02.PNG)
+8. Now come back to the web portal, refresh the page, and then you can proceed to sign in with the account you just registered![alt text](images/deployment/setup_admin_welcome.PNG)
 
 <!-- ## Step 7 (Optional): Set up other Admin Accounts
 

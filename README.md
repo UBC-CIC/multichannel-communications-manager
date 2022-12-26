@@ -7,6 +7,7 @@ description
 | [High Level Architecture](#high-level-architecture) | High level overview illustrating component interactions |
 | [Deployment](#deployment-guide)                     | How to deploy the project                               |
 | [User Guide](#user-guide)                           | The working solution                                    |
+| [Pinpoint Guide](#pinpoint-guide)                           | How to broadcast messages using Pinpoint                                    |
 | [Files/Directories](#files-and-directories)         | Important files/directories in the project              |
 | [Changelog](#changelog)                             | Any changes post publish                                |
 | [Credits](#credits)                                 | Meet the team behind the solution                       |
@@ -25,6 +26,9 @@ To deploy this solution, please follow the steps laid out in the [Deployment Gui
 # User Guide
 
 For instructions on how to navigate the web app interface, refer to the [Web App User Guide](docs/UserGuide.md).
+
+# Pinpoint Guide
+For instructions on how to navigate the pinpoint portal, refer to the [Pinpoint Guide](docs/PinpointGuide.md).
 
 # Files And Directories
 
@@ -98,7 +102,7 @@ For instructions on how to navigate the web app interface, refer to the [Web App
    7. **`/themes.js`**: Global styling for fonts. Note that most components have their own module-scoped styling.
 # Changelog
 
-To view the version history, please view the [Changelog](/CHANGELOG.md)
+N/A
 
 # Credits
 
