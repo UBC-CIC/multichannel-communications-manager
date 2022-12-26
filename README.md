@@ -7,6 +7,7 @@ description
 | [High Level Architecture](#high-level-architecture) | High level overview illustrating component interactions |
 | [Deployment](#deployment-guide)                     | How to deploy the project                               |
 | [User Guide](#user-guide)                           | The working solution                                    |
+| [Pinpoint Guide](#pinpoint-guide)                           | How to broadcast messages using Pinpoint                                    |
 | [Files/Directories](#files-and-directories)         | Important files/directories in the project              |
 | [Changelog](#changelog)                             | Any changes post publish                                |
 | [Credits](#credits)                                 | Meet the team behind the solution                       |
@@ -26,6 +27,9 @@ To deploy this solution, please follow the steps laid out in the [Deployment Gui
 
 For instructions on how to navigate the web app interface, refer to the [Web App User Guide](docs/UserGuide.md).
 
+# Pinpoint Guide
+For instructions on how to navigate the pinpoint portal, refer to the [Pinpoint Guide](docs/PinpointGuide.md).
+
 # Files And Directories
 
 ```text
@@ -39,6 +43,9 @@ For instructions on how to navigate the web app interface, refer to the [Web App
 ├── node_modules
 ├── public
 ├── sam
+│   ├── events
+│   ├── lambda_functions
+│   └── template.yaml
 ├── src/
 │   ├── actions
 │   ├── components/
@@ -77,7 +84,10 @@ For instructions on how to navigate the web app interface, refer to the [Web App
 ```
 
 1. **`/docs`**: Contains all relevant documentation files
-2. **`/src`**: Contains all the source code for the site.
+2. **`/sam`**: Contains all the backend code for the site
+   1. **`/lambda_functions`**Contains the Lambda Functions for the project
+      - graphQLMySQLResolver is the Lambda function that translates an AWS AppSync request into calls to the database and Pinpoint
+3. **`/src`**: Contains all the source code for the site.
    1. **`/components`**: Reusable React components.
       - Components are organized into folders, with the folder names being the page name/functionality that the components within are used for
       - Components that are not in any subfolders:
@@ -92,7 +102,7 @@ For instructions on how to navigate the web app interface, refer to the [Web App
    7. **`/themes.js`**: Global styling for fonts. Note that most components have their own module-scoped styling.
 # Changelog
 
-To view the version history, please view the [Changelog](/CHANGELOG.md)
+N/A
 
 # Credits
 
