@@ -39,6 +39,7 @@ For instructions on how to navigate the pinpoint portal, refer to the [Pinpoint 
 │   ├── images/
 │   ├── ArchitectureDeepDive.md
 │   ├── DeploymentGuide.md
+│   ├── PinpointGuide.md
 │   └── UserGuide.md
 ├── node_modules
 ├── public
@@ -85,7 +86,7 @@ For instructions on how to navigate the pinpoint portal, refer to the [Pinpoint 
 
 1. **`/docs`**: Contains all relevant documentation files
 2. **`/sam`**: Contains all the backend code for the site
-   1. **`/lambda_functions`**Contains the Lambda Functions for the project
+   1. **`/lambda_functions`**: Contains the Lambda Functions for the project
       - graphQLMySQLResolver is the Lambda function that translates an AWS AppSync request into calls to the database and Pinpoint
 3. **`/src`**: Contains all the source code for the site.
    1. **`/components`**: Reusable React components.
