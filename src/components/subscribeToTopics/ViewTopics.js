@@ -13,111 +13,127 @@ import {
   Checkbox,
   Button,
   Alert,
-  Collapse
+  Collapse,
 } from "@mui/material";
-import {
-  imageListItemClasses,
-} from "@mui/material/ImageListItem";
-import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
+import { imageListItemClasses } from "@mui/material/ImageListItem";
+import { Auth, API, graphqlOperation, Storage, I18n } from "aws-amplify";
 import {
   getAllCategories,
   getUserCategoryTopicByUserId,
   getUserByEmail,
   getTopicsOfCategoryByAcronym,
-  getCategoriesByUserId
+  getCategoriesByUserId,
 } from "../../graphql/queries";
 import {
   userUnfollowCategoryTopic,
   userFollowCategoryTopic,
-  userUnfollowCategory
+  userUnfollowCategory,
 } from "../../graphql/mutations";
 
 const ViewTopics = () => {
-  const [alert, setAlert] = useState(false)
-  const [topics, setTopics] = useState([])
-  const [subtopics, setSubtopics] = useState([])
+  const [alert, setAlert] = useState(false);
+  const [topics, setTopics] = useState([]);
+  const [subtopics, setSubtopics] = useState([]);
   const [userSubscribed, setUserSubscribed] = useState([]);
-  const [image, setImage] = useState([])
+  const [image, setImage] = useState([]);
   const [selectedSubTopics, setSelectedSubtopics] = useState([]);
-  const [selectedSubTopicsCheckbox, setSelectedSubtopicsCheckbox] = useState([]);
+  const [selectedSubTopicsCheckbox, setSelectedSubtopicsCheckbox] = useState(
+    []
+  );
   const [userSelectedSubTopics, setUserSelectedSubtopics] = useState([]);
-  const [userSelectedSubTopicsTemp, setUserSelectedSubtopicsTemp] = useState([]);
+  const [userSelectedSubTopicsTemp, setUserSelectedSubtopicsTemp] = useState(
+    []
+  );
   const [userUnfollow, setUserUnfollow] = useState([]);
   const [userID, setUserID] = useState("");
   const [userAlreadySubscribed, setUserAlreadySubscribed] = useState([]);
-  const [user, setUser] = useState()
+  const [user, setUser] = useState();
 
   async function getCategoryImages(categories) {
     for (let i = 0; i < categories.length; i++) {
-      let imageURL = await Storage.get(categories[i].picture_location)
-      setImage((prev) => [...prev, imageURL])
-    }  
+      let imageURL = await Storage.get(categories[i].picture_location);
+      setImage((prev) => [...prev, imageURL]);
+    }
   }
 
   async function queriedData() {
     let categories = await API.graphql(graphqlOperation(getAllCategories));
     let allCategories = categories.data.getAllCategories;
-    setTopics(allCategories)
-    getCategoryImages(allCategories) 
-    getTopics(allCategories)
-    getUserSubscriptions(allCategories)
+    setTopics(allCategories);
+    getCategoryImages(allCategories);
+    getTopics(allCategories);
+    getUserSubscriptions(allCategories);
   }
 
   async function getTopics(allCategories) {
     for (let i = 0; i < allCategories.length; i++) {
-      let queriedTopics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {
-        category_acronym: allCategories[i].acronym,
+      let queriedTopics = await API.graphql(
+        graphqlOperation(getTopicsOfCategoryByAcronym, {
+          category_acronym: allCategories[i].acronym,
         })
       );
       let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
       let topics = onlyTopics.map((a) => a.acronym);
-      setSubtopics(subtopics => [...subtopics, topics]);
+      setSubtopics((subtopics) => [...subtopics, topics]);
     }
   }
 
   // get only the categories and topics the user is subscribed to
   async function getOnlyUserSubscribedData() {
     const returnedUser = await Auth.currentAuthenticatedUser();
-    let getUserId = await API.graphql(graphqlOperation(getUserByEmail, {
-      user_email: returnedUser.attributes.email
-    }))
-    let categories = await API.graphql(graphqlOperation(getCategoriesByUserId, {
-      user_id: getUserId.data.getUserByEmail.user_id
-    }));
-    let noDuplicates = categories.data.getCategoriesByUserId.filter((value, index, self) =>
-        index === self.findIndex((t) => (
-          t.acronym === value.acronym
-        ))
-      )
+    let getUserId = await API.graphql(
+      graphqlOperation(getUserByEmail, {
+        user_email: returnedUser.attributes.email,
+      })
+    );
+    let categories = await API.graphql(
+      graphqlOperation(getCategoriesByUserId, {
+        user_id: getUserId.data.getUserByEmail.user_id,
+      })
+    );
+    let noDuplicates = categories.data.getCategoriesByUserId.filter(
+      (value, index, self) =>
+        index === self.findIndex((t) => t.acronym === value.acronym)
+    );
     setTopics(noDuplicates);
-    getCategoryImages(noDuplicates) 
-    getTopics(noDuplicates)
-    getUserSubscriptions(noDuplicates)
+    getCategoryImages(noDuplicates);
+    getTopics(noDuplicates);
+    getUserSubscriptions(noDuplicates);
   }
 
   // get all the topics the user is subscribed to
   async function getUserSubscriptions(allCategories) {
     const returnedUser = await Auth.currentAuthenticatedUser();
-    let getUserId = await API.graphql(graphqlOperation(getUserByEmail, {
-      user_email: returnedUser.attributes.email
-    }))
-    let userCategories = await API.graphql(graphqlOperation(getUserCategoryTopicByUserId, {
-      user_id: getUserId.data.getUserByEmail.user_id
-    }));
-    setUserID(getUserId.data.getUserByEmail.user_id)
-    setUser(getUserId.data.getUserByEmail)
-    let userSubscribedSubtopics = userCategories.data.getUserCategoryTopicByUserId
-    setUserSubscribed(userSubscribedSubtopics)
+    let getUserId = await API.graphql(
+      graphqlOperation(getUserByEmail, {
+        user_email: returnedUser.attributes.email,
+      })
+    );
+    let userCategories = await API.graphql(
+      graphqlOperation(getUserCategoryTopicByUserId, {
+        user_id: getUserId.data.getUserByEmail.user_id,
+      })
+    );
+    setUserID(getUserId.data.getUserByEmail.user_id);
+    setUser(getUserId.data.getUserByEmail);
+    let userSubscribedSubtopics =
+      userCategories.data.getUserCategoryTopicByUserId;
+    setUserSubscribed(userSubscribedSubtopics);
 
     for (let x = 0; x < allCategories.length; x++) {
-      let filteredUserSubscribedSubtopics = userSubscribedSubtopics.filter((s) => s.category_acronym === allCategories[x].acronym)
+      let filteredUserSubscribedSubtopics = userSubscribedSubtopics.filter(
+        (s) => s.category_acronym === allCategories[x].acronym
+      );
       if (filteredUserSubscribedSubtopics.length !== 0) {
         for (let i = 0; i < filteredUserSubscribedSubtopics.length; i++) {
-          setUserSelectedSubtopics((prev) => [...prev, filteredUserSubscribedSubtopics[i].topic_acronym]);
+          setUserSelectedSubtopics((prev) => [
+            ...prev,
+            filteredUserSubscribedSubtopics[i].topic_acronym,
+          ]);
         }
-        setUserAlreadySubscribed(prev => [...prev, true]);
+        setUserAlreadySubscribed((prev) => [...prev, true]);
       } else {
-        setUserAlreadySubscribed(prev => [...prev, false])
+        setUserAlreadySubscribed((prev) => [...prev, false]);
       }
     }
   }
@@ -132,9 +148,7 @@ const ViewTopics = () => {
       setSelectedSubtopics((prev) => [...prev, `${subtopic}`]);
       setSelectedSubtopicsCheckbox((prev) => [...prev, `${subtopic}`]);
     } else if (!e.target.checked) {
-      setSelectedSubtopics((prev) =>
-        prev.filter((s) => s !== `${subtopic}`)
-      );
+      setSelectedSubtopics((prev) => prev.filter((s) => s !== `${subtopic}`));
       setSelectedSubtopicsCheckbox((prev) =>
         prev.filter((s) => s !== `${subtopic}`)
       );
@@ -145,9 +159,7 @@ const ViewTopics = () => {
     if (e.target.checked) {
       setUserSelectedSubtopics((prev) => [...prev, `${subtopic}`]);
       setUserSelectedSubtopicsTemp((prev) => [...prev, `${subtopic}`]);
-      setUserUnfollow((prev) =>
-        prev.filter((s) => s !== `${subtopic}`)
-      );
+      setUserUnfollow((prev) => prev.filter((s) => s !== `${subtopic}`));
     } else if (!e.target.checked) {
       setUserSelectedSubtopics((prev) =>
         prev.filter((s) => s !== `${subtopic}`)
@@ -163,153 +175,183 @@ const ViewTopics = () => {
     if (userAlreadySubscribed[index]) {
       // if the user has subscribed to topics within the category then
       // the user's selections must be filtered so that if they're unsubscribing, they can only
-      // unsubscribe from topics they were previously subscribed to, and if they're subscribing to 
+      // unsubscribe from topics they were previously subscribed to, and if they're subscribing to
       // new topics, they can only subscribe to topics they aren't subscribed to
-      let newUserSelectedSubtopics = []
-      let subtopicsToUnfollow = []
+      let newUserSelectedSubtopics = [];
+      let subtopicsToUnfollow = [];
       // get the user subscribed topics for this category
-      let userSubscribedDataForThisCategory = userSubscribed.filter((s) => s.category_acronym === topics[index].acronym)
-      let onlySubtopics = userSubscribedDataForThisCategory.map(a => a.topic_acronym)
-      subtopicsToUnfollow = userUnfollow.filter((s) => onlySubtopics.includes(s))
-      newUserSelectedSubtopics = userSelectedSubTopicsTemp.filter((s) => !(onlySubtopics.includes(s)))
+      let userSubscribedDataForThisCategory = userSubscribed.filter(
+        (s) => s.category_acronym === topics[index].acronym
+      );
+      let onlySubtopics = userSubscribedDataForThisCategory.map(
+        (a) => a.topic_acronym
+      );
+      subtopicsToUnfollow = userUnfollow.filter((s) =>
+        onlySubtopics.includes(s)
+      );
+      newUserSelectedSubtopics = userSelectedSubTopicsTemp.filter(
+        (s) => !onlySubtopics.includes(s)
+      );
       // if the user deselects all their subscribed topics then they get unsubscribed from the category
-      if (JSON.stringify(onlySubtopics) === JSON.stringify(subtopicsToUnfollow)) {
-        await API.graphql(graphqlOperation(userUnfollowCategory, {
-          user_id: userID,
-          category_acronym: topics[index].acronym
-        }))
+      if (
+        JSON.stringify(onlySubtopics) === JSON.stringify(subtopicsToUnfollow)
+      ) {
+        await API.graphql(
+          graphqlOperation(userUnfollowCategory, {
+            user_id: userID,
+            category_acronym: topics[index].acronym,
+          })
+        );
       } else {
         // subscribe to the new topics the user has selected
         if (newUserSelectedSubtopics.length !== 0) {
-          let topicsToRemove = newUserSelectedSubtopics
+          let topicsToRemove = newUserSelectedSubtopics;
           for (let x = 0; x < newUserSelectedSubtopics.length; x++) {
-            console.log(newUserSelectedSubtopics[x])
-            await API.graphql(graphqlOperation(userFollowCategoryTopic, {
-              user_id: userID,
-              category_acronym: topics[index].acronym,
-              topic_acronym: newUserSelectedSubtopics[x],
-              email_notice: user.email_notice,
-              sms_notice: user.sms_notice
-            }))
+            console.log(newUserSelectedSubtopics[x]);
+            await API.graphql(
+              graphqlOperation(userFollowCategoryTopic, {
+                user_id: userID,
+                category_acronym: topics[index].acronym,
+                topic_acronym: newUserSelectedSubtopics[x],
+                email_notice: user.email_notice,
+                sms_notice: user.sms_notice,
+              })
+            );
           }
           for (let m = 0; m < topicsToRemove.length; m++) {
-            setUserSelectedSubtopicsTemp((prev) => prev.filter((s) => !s.includes(topicsToRemove)))
+            setUserSelectedSubtopicsTemp((prev) =>
+              prev.filter((s) => !s.includes(topicsToRemove))
+            );
           }
         }
         // unsubscribe from the topics the user has deselected
         if (subtopicsToUnfollow.length !== 0) {
-          let topicsToRemove = subtopicsToUnfollow
+          let topicsToRemove = subtopicsToUnfollow;
           for (let n = 0; n < subtopicsToUnfollow.length; n++) {
-            console.log(subtopicsToUnfollow[n])
-            await API.graphql(graphqlOperation(userUnfollowCategoryTopic, {
-              user_id: userID,
-              category_acronym: topics[index].acronym,
-              topic_acronym: subtopicsToUnfollow[n]
-            }))
+            console.log(subtopicsToUnfollow[n]);
+            await API.graphql(
+              graphqlOperation(userUnfollowCategoryTopic, {
+                user_id: userID,
+                category_acronym: topics[index].acronym,
+                topic_acronym: subtopicsToUnfollow[n],
+              })
+            );
           }
           for (let m = 0; m < topicsToRemove.length; m++) {
-            setUserUnfollow((prev) => prev.filter((s) => !s.includes(topicsToRemove)))
+            setUserUnfollow((prev) =>
+              prev.filter((s) => !s.includes(topicsToRemove))
+            );
           }
         }
       }
-      getUserSubscriptions(topics)
+      getUserSubscriptions(topics);
     } else {
-      let topicsToRemove = selectedSubTopics
+      let topicsToRemove = selectedSubTopics;
       for (let i = 0; i < selectedSubTopics.length; i++) {
         let userFollowData = {
           user_id: userID,
           category_acronym: topics[index].acronym,
           topic_acronym: selectedSubTopics[i],
           email_notice: user.email_notice,
-          sms_notice: user.sms_notice
-        }
-        await API.graphql(graphqlOperation(userFollowCategoryTopic, userFollowData))
+          sms_notice: user.sms_notice,
+        };
+        await API.graphql(
+          graphqlOperation(userFollowCategoryTopic, userFollowData)
+        );
       }
       for (let m = 0; m < topicsToRemove.length; m++) {
-        setSelectedSubtopics((prev) => prev.filter((s) => !s.includes(topicsToRemove)))
+        setSelectedSubtopics((prev) =>
+          prev.filter((s) => !s.includes(topicsToRemove))
+        );
       }
     }
-    setAlert(true)
+    setAlert(true);
   };
 
   // filter for only user subscriptions
   const handleCheck = async (e) => {
-    setImage([])
-    setSubtopics([])
-    setUserSelectedSubtopics([])
-    setUserAlreadySubscribed([])
+    setImage([]);
+    setSubtopics([]);
+    setUserSelectedSubtopics([]);
+    setUserAlreadySubscribed([]);
     if (e.target.checked) {
-      getOnlyUserSubscribedData()
+      getOnlyUserSubscribedData();
     } else {
-      queriedData()
+      queriedData();
     }
-  }
+  };
 
   const displayTopicOptions = () => {
     return (
       topics &&
       topics.length > 0 &&
-      topics
-        .map((topic, index) => (
-          <Card sx={{width: '90%', display:'flex', justifyContent:'space-between', flexDirection:'column'}}>
-            <CardHeader
-              title={topic.title}
-              titleTypographyProps={{
-                fontSize: "1.2rem",
-                fontWeight: "400",
+      topics.map((topic, index) => (
+        <Card
+          sx={{
+            width: "90%",
+            display: "flex",
+            justifyContent: "space-between",
+            flexDirection: "column",
+          }}
+        >
+          <CardHeader
+            title={topic.title}
+            titleTypographyProps={{
+              fontSize: "1.2rem",
+              fontWeight: "400",
+            }}
+          />
+          {topic.picture_location !== null ? (
+            <CardMedia component={"img"} image={image[index]} height="150" />
+          ) : (
+            <Box
+              sx={{
+                backgroundColor: "#738DED",
+                height: "150px",
+                width: "100%",
               }}
             />
-            {topic.picture_location !== null ? (
-              <CardMedia component={"img"} image={image[index]} height="150" />
+          )}
+          <CardContent sx={{ p: "16px 16px 0px 16px" }}>
+            <Typography variant="body2" color="text.secondary">
+              {topic.description}
+            </Typography>
+            {userAlreadySubscribed[index] ? (
+              <FormGroup sx={{ marginTop: 2, flexDirection: "row" }}>
+                {subtopics[index]?.map((subtopic, index) => (
+                  <FormControlLabel
+                    key={index}
+                    control={<Checkbox />}
+                    checked={userSelectedSubTopics.includes(subtopic)}
+                    label={subtopic}
+                    onChange={(e) => handleAlreadySubscribedChange(e, subtopic)}
+                  />
+                ))}
+              </FormGroup>
             ) : (
-              <Box
-                sx={{
-                  backgroundColor: "#738DED",
-                  height: "150px",
-                  width: "100%",
-                }}
-              />
+              <FormGroup sx={{ marginTop: 2, flexDirection: "row" }}>
+                {subtopics[index]?.map((subtopic, index) => (
+                  <FormControlLabel
+                    key={index}
+                    control={<Checkbox />}
+                    checked={selectedSubTopicsCheckbox.includes(`${subtopic}`)}
+                    label={subtopic}
+                    onChange={(e) => handleChange(e, subtopic)}
+                  />
+                ))}
+              </FormGroup>
             )}
-            <CardContent sx={{ p: "16px 16px 0px 16px" }}>
-              <Typography variant="body2" color="text.secondary">
-                {topic.description}
-              </Typography>
-              {userAlreadySubscribed[index] ? (
-                <FormGroup sx={{marginTop: 2, flexDirection: 'row'}}>
-                  {subtopics[index]?.map((subtopic, index) => (
-                    <FormControlLabel
-                      key={index}
-                      control={<Checkbox />}
-                      checked={userSelectedSubTopics.includes(subtopic)}
-                      label={subtopic}
-                      onChange={(e) => handleAlreadySubscribedChange(e, subtopic)}
-                    />
-                  ))}
-                </FormGroup>
-              ) : (
-                <FormGroup sx={{marginTop: 2, flexDirection: 'row'}}>
-                  {subtopics[index]?.map((subtopic, index) => (
-                    <FormControlLabel
-                      key={index}
-                      control={<Checkbox />}
-                      checked={selectedSubTopicsCheckbox.includes(`${subtopic}`)}
-                      label={subtopic}
-                      onChange={(e) => handleChange(e, subtopic)}
-                    />
-                  ))}
-                </FormGroup>
-              )}
-            </CardContent>
-            <CardActions
-              disableSpacing
-              sx={{ justifyContent: "flex-end", pt: "0px" }}
-            >
-              <Button sx={{ mr: "1em" }} onClick={() => handleButtonSave(index)}>
-                Save
-              </Button> 
-            </CardActions>
-          </Card>
-        ))
+          </CardContent>
+          <CardActions
+            disableSpacing
+            sx={{ justifyContent: "flex-end", pt: "0px" }}
+          >
+            <Button sx={{ mr: "1em" }} onClick={() => handleButtonSave(index)}>
+              {I18n.get("save")}
+            </Button>
+          </CardActions>
+        </Card>
+      ))
     );
   };
 
@@ -322,14 +364,21 @@ const ViewTopics = () => {
         height: "100%",
       }}
     >
-      {alert ? <Collapse in={alert}><Alert severity={"success"} onClose={() => setAlert(false)}>Your changes have been saved</Alert></Collapse> : <></> }
+      {alert ? (
+        <Collapse in={alert}>
+          <Alert severity={"success"} onClose={() => setAlert(false)}>
+            Your changes have been saved
+          </Alert>
+        </Collapse>
+      ) : (
+        <></>
+      )}
       <Typography variant="body1" sx={{ mb: "2em" }}>
-        Select categories of interest that you would like to receive notifications
-        from. Your notification preferences can be changed at any time.
+        {I18n.get("initialCategoriesSelect")}{" "}
       </Typography>
-      <FormControlLabel 
+      <FormControlLabel
         control={<Checkbox onChange={handleCheck} />}
-        label="Only show user subscriptions" 
+        label="Only show user subscriptions"
       />
       <Box
         sx={{

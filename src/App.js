@@ -13,21 +13,19 @@ import Login from "./components/Authentication/Login_material";
 import PageContainer from "./views/PageContainer";
 import Admin from "./pages/Admin";
 import Navbar from "./components/Navbar";
-import { LocalizationProvider } from "@mui/lab";
+import en from "./components/localization/en.json";
+import fr from "./components/localization/fr.json";
+import { languageData } from "./components/localization/languageData";
 
 Amplify.configure(awsmobile);
 
-const dict = {
-  fr: {
-    "Sign In": "Se connecter",
-    "Sign Up": "S'inscrire",
-  },
-};
-
-I18n.putVocabularies(dict);
+I18n.putVocabularies(languageData);
 
 function App(props) {
   const { loginState, updateLoginState } = props;
+  const [language, setLanguage] = useState("fr");
+  I18n.setLanguage(language);
+  console.log("current language: ", language);
 
   const [currentLoginState, updateCurrentLoginState] = useState(loginState);
 
@@ -52,50 +50,50 @@ function App(props) {
   }
 
   return (
+    // <LocalizationProvider>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <LocalizationProvider>
-          <div style={{ width: "100vw", height: "100vh", overflowX: "hidden" }}>
-            {currentLoginState !== "signedIn" &&
-              currentLoginState !== "Admin" && (
-                /* Login component options:
-                 *
-                 * [logo: "custom", "none"]
-                 * [type: "video", "image", "static"]
-                 * [themeColor: "standard", "#012144" (color hex value in quotes) ]
-                 *  Suggested alternative theme colors: #037dad, #5f8696, #495c4e, #4f2828, #ba8106, #965f94
-                 * [animateTitle: true, false]
-                 * [title: string]
-                 * [darkMode (changes font/logo color): true, false]
-                 * [disableSignUp: true, false]
-                 * */
-                <Login
-                  logo={"custom"}
-                  type={"image"}
-                  themeColor={"standard"}
-                  animateTitle={false}
-                  title={"ISED"}
-                  darkMode={true}
-                  disableSignUp={true}
-                />
-              )}
-            {currentLoginState === "signedIn" && (
-              <BrowserRouter>
-                <PageContainer />
-              </BrowserRouter>
+        <div style={{ width: "100vw", height: "100vh", overflowX: "hidden" }}>
+          {currentLoginState !== "signedIn" &&
+            currentLoginState !== "Admin" && (
+              /* Login component options:
+               *
+               * [logo: "custom", "none"]
+               * [type: "video", "image", "static"]
+               * [themeColor: "standard", "#012144" (color hex value in quotes) ]
+               *  Suggested alternative theme colors: #037dad, #5f8696, #495c4e, #4f2828, #ba8106, #965f94
+               * [animateTitle: true, false]
+               * [title: string]
+               * [darkMode (changes font/logo color): true, false]
+               * [disableSignUp: true, false]
+               * */
+              <Login
+                logo={"custom"}
+                type={"image"}
+                themeColor={"standard"}
+                animateTitle={false}
+                title={"ISED"}
+                darkMode={true}
+                disableSignUp={true}
+              />
             )}
-            {currentLoginState === "Admin" && (
-              <BrowserRouter>
-                <Navbar showSideMenuButton={false} />
-                <main style={{ flexGrow: 1, padding: "50px" }}>
-                  <Admin />
-                </main>
-              </BrowserRouter>
-            )}
-          </div>
-        </LocalizationProvider>
+          {currentLoginState === "signedIn" && (
+            <BrowserRouter>
+              <PageContainer />
+            </BrowserRouter>
+          )}
+          {currentLoginState === "Admin" && (
+            <BrowserRouter>
+              <Navbar showSideMenuButton={false} />
+              <main style={{ flexGrow: 1, padding: "50px" }}>
+                <Admin />
+              </main>
+            </BrowserRouter>
+          )}
+        </div>
       </ThemeProvider>
     </StyledEngineProvider>
+    // </LocalizationProvider>
   );
 }
 

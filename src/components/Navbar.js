@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { ExitToApp } from "@mui/icons-material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { Auth } from "aws-amplify";
+import { Auth, I18n } from "aws-amplify";
 import { connect } from "react-redux";
 import { updateLoginState } from "../actions/loginAction";
 import { updateMenuState } from "../actions/menuAction";
@@ -63,7 +63,7 @@ function Navbar(props) {
       onClose={handleMenuClose}
     >
       <MenuItem onClick={handleLogout}>
-        <span>Logout </span>
+        <span>{I18n.get("logout")}</span>
         <ExitToApp color={"secondary"} />
       </MenuItem>
     </Menu>
@@ -139,9 +139,7 @@ function Navbar(props) {
                 <Avatar>{user.charAt(0).toUpperCase()}</Avatar>
               </IconButton>
             </div>
-            <div>
-              {renderMenu}
-            </div>
+            <div>{renderMenu}</div>
           </Box>
         </Toolbar>
       </AppBar>

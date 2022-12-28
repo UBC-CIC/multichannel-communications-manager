@@ -15,7 +15,7 @@ import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
 import { styled } from "@mui/material/styles";
-import { API, graphqlOperation, Storage } from "aws-amplify";
+import { API, graphqlOperation, Storage, I18n } from "aws-amplify";
 import { userFollowCategoryTopic } from "../../graphql/mutations";
 import { getAllCategories } from "../../graphql/queries";
 import "./Login.css";
@@ -55,7 +55,7 @@ const SelectTopics = ({ handleNextStep }) => {
   const [selectedSubtopics, setSelectedSubtopics] = useState([]);
   const [saveEnabled, setSaveEnabled] = useState(false);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
-  const [image, setImage] = useState([])
+  const [image, setImage] = useState([]);
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
@@ -66,9 +66,9 @@ const SelectTopics = ({ handleNextStep }) => {
     let allCategories = categories.data.getAllCategories;
     setTopics(allCategories);
     for (let i = 0; i < allCategories.length; i++) {
-      let imageURL = await Storage.get(allCategories[i].picture_location)
-      setImage((prev) => [...prev, imageURL])
-    }    
+      let imageURL = await Storage.get(allCategories[i].picture_location);
+      setImage((prev) => [...prev, imageURL]);
+    }
 
     const topicsPageCount =
       allCategories &&
@@ -100,16 +100,18 @@ const SelectTopics = ({ handleNextStep }) => {
             }}
             onClick={() => setCurrentlySelectedTopic(topic)}
           >
-            {topic.picture_location !== null ? 
-              <img src={image[index]} alt={topic.title} /> :
+            {topic.picture_location !== null ? (
+              <img src={image[index]} alt={topic.title} />
+            ) : (
               <Box
-              sx={{
-                backgroundColor: "#738DED",
-                width: "100px",
-                height: "100px",
-                borderRadius: "7px",
-              }}
-            ></Box>}
+                sx={{
+                  backgroundColor: "#738DED",
+                  width: "100px",
+                  height: "100px",
+                  borderRadius: "7px",
+                }}
+              ></Box>
+            )}
             <StyledImageListItemBar title={topic.title} position="below" />
           </StyledImageListItem>
         ))
@@ -122,7 +124,7 @@ const SelectTopics = ({ handleNextStep }) => {
     for (var i = 0; i < allSelectedTopicsTemp.length; i++) {
       await API.graphql(
         graphqlOperation(userFollowCategoryTopic, allSelectedTopicsTemp[i])
-      ).catch(e=>console.log(e))
+      ).catch((e) => console.log(e));
     }
     handleNextStep();
   }
@@ -165,11 +167,12 @@ const SelectTopics = ({ handleNextStep }) => {
       }}
     >
       <Typography sx={{ my: "0.5em" }} className={"login-wrapper-top-header"}>
-        Select Categories of Interest
+        {I18n.get("selectCategoriesTitle")}
       </Typography>
       <Typography variant="body2">
-        Select categories of interest that you would like to receive notifications
-        from. Your notification preferences can be changed at any time.
+        Select categories of interest that you would like to receive
+        notifications from. Your notification preferences can be changed at any
+        time.
       </Typography>
       {currentlySelectedTopic ? (
         <Box sx={{ mt: "1em" }}>
@@ -260,7 +263,7 @@ const SelectTopics = ({ handleNextStep }) => {
             variant="contained"
             onClick={nextClicked}
           >
-            Next
+            {I18n.get("next")}
           </SubmitButton>
         </>
       )}

@@ -1,10 +1,18 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Typography,
+} from "@mui/material";
+import I18n from "aws-amplify";
 
 export const LeaveWithoutSavingDialog = ({
   showDialog,
   setShowDialog,
   cancelNavigation,
-  confirmNavigation
+  confirmNavigation,
 }) => {
   const handleDialogClose = () => {
     setShowDialog(false);
@@ -12,20 +20,20 @@ export const LeaveWithoutSavingDialog = ({
 
   return (
     <Dialog
-      open={showDialog} 
+      open={showDialog}
       PaperProps={{ sx: { minWidth: "45%", padding: "2em" } }}
       onClose={handleDialogClose}
-      >
-      <DialogTitle>Leaving Page?</DialogTitle>
+    >
+      <DialogTitle>{I18n.get("confirmLeavePage")}</DialogTitle>
       <DialogContent sx={{ mt: "1em" }}>
-        <Typography>Your changes have not been saved. Do you want to leave without saving?</Typography>
+        <Typography>{I18n.get("changesNotSaved")}</Typography>
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" onClick={cancelNavigation}>
-          No
+          {I18n.get("no")}
         </Button>
         <Button variant="contained" onClick={confirmNavigation}>
-          Yes
+          {I18n.get("yes")}
         </Button>
       </DialogActions>
     </Dialog>

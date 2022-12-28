@@ -9,12 +9,17 @@ import {
   Typography,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip
+  Tooltip,
 } from "@mui/material";
 import { Alert } from "@mui/lab";
-import PhoneInput from 'react-phone-input-2'
-import 'react-phone-input-2/lib/high-res.css'
-import { ArrowBack, AlternateEmail, Dialpad, HelpOutline } from "@mui/icons-material";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/high-res.css";
+import {
+  ArrowBack,
+  AlternateEmail,
+  Dialpad,
+  HelpOutline,
+} from "@mui/icons-material";
 import theme from "../../themes";
 import { Auth, API, graphqlOperation } from "aws-amplify";
 import { createUser } from "../../graphql/mutations";
@@ -27,6 +32,7 @@ import { styled } from "@mui/material/styles";
 import SignUpStepper from "./SignUpStepper";
 import SelectTopics from "./SelectTopics";
 import ProfileCreationSuccess from "./ProfileCreationSuccess";
+import { I18n } from "aws-amplify";
 
 const initialFormState = {
   email: "",
@@ -84,26 +90,28 @@ function Login(props) {
   const [invalidEmailError, setInvalidEmailError] = useState(false);
   const [emptyAuthCode, setEmptyAuthCode] = useState(false);
   const [timeLimitError, setTimeLimitError] = useState("");
-  const [defaultNotificationError, setDefaultNotificationError] = useState(false)
+  const [defaultNotificationError, setDefaultNotificationError] =
+    useState(false);
   const [cognitoUser, setCognitoUser] = useState();
-  const [defaultNotificationPreference, setDefaultNotificationPreference] = useState([]);
-  const [userPhone, setUserPhone] = useState('')
-  const [invalidInputError, setInvalidInputError] = useState(false)
+  const [defaultNotificationPreference, setDefaultNotificationPreference] =
+    useState([]);
+  const [userPhone, setUserPhone] = useState("");
+  const [invalidInputError, setInvalidInputError] = useState(false);
 
   const provinceOptions = [
-    "Alberta",
-    "British Columbia",
-    "Manitoba",
-    "New Brunswick",
-    "Newfoundland and Labrador",
-    "Northwest Territories",
-    "Nova Scotia",
-    "Nunavut",
-    "Ontario",
-    "Prince Edward Island",
-    "Quebec",
-    "Saskatchewan",
-    "Yukon",
+    I18n.get("bc"),
+    I18n.get("ab"),
+    I18n.get("mb"),
+    I18n.get("nb"),
+    I18n.get("nl"),
+    I18n.get("nt"),
+    I18n.get("ns"),
+    I18n.get("nu"),
+    I18n.get("on"),
+    I18n.get("pe"),
+    I18n.get("qc"),
+    I18n.get("sk"),
+    I18n.get("yt"),
   ];
 
   const [activeStep, setActiveStep] = useState(0);
@@ -131,19 +139,16 @@ function Login(props) {
         setInvalidPostalCodeError(true);
       }
     }
-    if (
-      formState.email === "" ||
-      formState.province === ""
-    ) {
+    if (formState.email === "" || formState.province === "") {
       setInputsNotFilled(true);
     } else if (defaultNotificationPreference.length === 0) {
-      setDefaultNotificationError(true)
+      setDefaultNotificationError(true);
     } else {
-      if (defaultNotificationPreference.includes('text')) {
+      if (defaultNotificationPreference.includes("text")) {
         if (userPhone === "") {
-          setInvalidInputError(true)
+          setInvalidInputError(true);
         } else {
-          signUp()
+          signUp();
         }
       } else {
         signUp();
@@ -161,8 +166,8 @@ function Login(props) {
     setInputsNotFilled(false);
     setEmptyAuthCode(false);
     setUserExistError(false);
-    setDefaultNotificationError(false)
-    setInvalidInputError(false)
+    setDefaultNotificationError(false);
+    setInvalidInputError(false);
   }
 
   //updates province dropdown value or text box input fields for the General Information form step
@@ -179,7 +184,7 @@ function Login(props) {
   }
 
   const handleToggle = (event, newToggle) => {
-    clearErrors()
+    clearErrors();
     setDefaultNotificationPreference(newToggle);
   };
 
@@ -305,29 +310,29 @@ function Login(props) {
 
   function convertProvinceToAcronym(province) {
     let acronym;
-    if (province === "Alberta") {
+    if (province === I18n.get("ab")) {
       acronym = "AB";
-    } else if (province === "British Columbia") {
+    } else if (province === I18n.get("bc")) {
       acronym = "BC";
-    } else if (province === "Manitoba") {
+    } else if (province === I18n.get("mb")) {
       acronym = "MB";
-    } else if (province === "New Brunswick") {
+    } else if (province === I18n.get("nb")) {
       acronym = "NB";
-    } else if (province === "Newfoundland and Labrador") {
+    } else if (province === I18n.get("nl")) {
       acronym = "NL";
-    } else if (province === "Northwest Territories") {
+    } else if (province === I18n.get("nt")) {
       acronym = "NT";
-    } else if (province === "Nova Scotia") {
+    } else if (province === I18n.get("ns")) {
       acronym = "NS";
-    } else if (province === "Nunavut") {
+    } else if (province === I18n.get("nu")) {
       acronym = "NU";
-    } else if (province === "Ontario") {
+    } else if (province === I18n.get("on")) {
       acronym = "ON";
-    } else if (province === "Prince Edward Island") {
+    } else if (province === I18n.get("pe")) {
       acronym = "PE";
-    } else if (province === "Quebec") {
+    } else if (province === I18n.get("qc")) {
       acronym = "QC";
-    } else if (province === "Saskatchewan") {
+    } else if (province === I18n.get("sk")) {
       acronym = "SK";
     } else {
       acronym = "YT";
@@ -349,17 +354,20 @@ function Login(props) {
         })
           .then(async (data) => {
             let prov = convertProvinceToAcronym(formState.province);
-            let email_selected, sms_selected = false
-            if (defaultNotificationPreference.includes('email') && 
-              defaultNotificationPreference.includes('text')) {
-              email_selected = true
-              sms_selected = true
-            } else if (defaultNotificationPreference.includes('email')) {
-              email_selected = true
-              sms_selected = false
+            let email_selected,
+              sms_selected = false;
+            if (
+              defaultNotificationPreference.includes("email") &&
+              defaultNotificationPreference.includes("text")
+            ) {
+              email_selected = true;
+              sms_selected = true;
+            } else if (defaultNotificationPreference.includes("email")) {
+              email_selected = true;
+              sms_selected = false;
             } else {
-              email_selected = false
-              sms_selected = true
+              email_selected = false;
+              sms_selected = true;
             }
             const userData = {
               email_address: formState.email,
@@ -367,19 +375,15 @@ function Login(props) {
               postal_code: formState.postal_code,
               province: prov,
               email_notice: email_selected,
-              sms_notice: sms_selected
+              sms_notice: sms_selected,
             };
             await API.graphql(graphqlOperation(createUser, userData));
-            handleNextStep()
+            handleNextStep();
           })
           .catch((e) => {
             const errorMsg = e.message;
             console.log(e);
-            if (
-              errorMsg.includes(
-                "Invalid verification code provided, please try again."
-              )
-            ) {
+            if (errorMsg.includes(I18n.get("invalidVerificationCode"))) {
               setVerificationError(true);
             }
           });
@@ -530,19 +534,19 @@ function Login(props) {
                   sx={{ mb: "1em" }}
                   className={"login-wrapper-top-header"}
                 >
-                {activeStep === 0
-                  ? "Welcome!"
-                  : activeStep === 1 && "Verification"}
+                  {activeStep === 0
+                    ? I18n.get("welcome")
+                    : activeStep === 1 && "Verification"}
                 </Typography>
                 <span className={"login-wrapper-action-header"}>
                   {loginState === "signIn" ? (
-                    <span>Sign In</span>
+                    <span>{I18n.get("signIn")}</span>
                   ) : loginState === "signUp" && activeStep === 0 ? (
-                    <span>Please start by providing general information</span>
+                    <span>{I18n.get("profilePrompt")}</span>
                   ) : loginState === "confirmSignUp" && activeStep === 1 ? (
-                    <span>Verify Account</span>
+                    <span>{I18n.get("verifyAccount")}</span>
                   ) : loginState === "forgotPassword" ? (
-                    <span>Forgot your password?</span>
+                    <span>{I18n.get("forgotpassword")}</span>
                   ) : (
                     <span></span>
                   )}
@@ -555,18 +559,16 @@ function Login(props) {
                   User does not exist.
                 </BannerMessage>
                 <BannerMessage type={"error"} typeCheck={accountLoginError}>
-                  Too many incorrect attempts.
+                  {I18n.get("userNone")}
                 </BannerMessage>
                 {/* username */}
                 <TextFieldStartAdornment
                   startIcon={<AlternateEmail />}
-                  placeholder={"Email"}
+                  placeholder={I18n.get("email")}
                   name={"email"}
                   type={"email"}
                   error={accountCreationEmailExistError || invalidEmailError}
-                  helperText={
-                    !!invalidEmailError && "Please enter a valid email."
-                  }
+                  helperText={!!invalidEmailError && I18n.get("invalidEmail")}
                   onChange={onChange}
                   onKeyDown={onKeyDownSignIn}
                 />
@@ -578,7 +580,7 @@ function Login(props) {
                   {/* sign in button */}
                   <SubmitButtonWithLoading
                     submitAction={signIn}
-                    submitMessage={"Sign In"}
+                    submitMessage={I18n.get("signIn")}
                     loadingState={loading}
                   />
                 </Grid>
@@ -600,7 +602,7 @@ function Login(props) {
                       variant="contained"
                       onClick={() => resetStates("signUp")}
                     >
-                      Create an Account
+                      {I18n.get("createAccount")}
                     </DefaultButton>
                   </Grid>
                 </div>
@@ -610,13 +612,16 @@ function Login(props) {
             {loginState === "signUp" && activeStep === 0 && (
               <Grid>
                 <BannerMessage type={"error"} typeCheck={inputsNotFilled}>
-                  Please fill in the required fields.
+                  {I18n.get("missingRequiredField")}
                 </BannerMessage>
-                <BannerMessage type={"error"} typeCheck={defaultNotificationError}>
-                  Please select your notification preferences.
+                <BannerMessage
+                  type={"error"}
+                  typeCheck={defaultNotificationError}
+                >
+                  {I18n.get("missingNoticePreference")}
                 </BannerMessage>
                 <BannerMessage type={"error"} typeCheck={invalidInputError}>
-                  Please enter a valid phone number.
+                  {I18n.get("invalidPhone")}
                 </BannerMessage>
                 <Box
                   sx={{
@@ -628,14 +633,14 @@ function Login(props) {
                 >
                   <TextFieldStartAdornment
                     startIcon={false}
-                    label={"Email *"}
+                    label={I18n.get("email") + " *"}
                     name={"email"}
                     type="email"
                     error={accountCreationEmailExistError || invalidEmailError}
                     helperText={
                       (!!accountCreationEmailExistError &&
-                        "An account with the given email already exists.") ||
-                      (!!invalidEmailError && "Please enter a valid email.")
+                        I18n.get("accountExists")) ||
+                      (!!invalidEmailError && I18n.get("invalidEmail"))
                     }
                     onChange={onChange}
                   />
@@ -644,27 +649,33 @@ function Login(props) {
                     id={"province"}
                     options={provinceOptions}
                     renderInput={(params) => (
-                      <TextField {...params} label="Province *" />
+                      <TextField
+                        {...params}
+                        label={I18n.get("province") + " *"}
+                      />
                     )}
                     ListboxProps={{ style: { maxHeight: "7rem" } }}
                     onChange={onChange}
                   />
                   <TextFieldStartAdornment
                     startIcon={false}
-                    label={"Postal Code"}
+                    label={I18n.get("postalCode")}
                     name={"postal_code"}
                     error={invalidPostalCodeError}
                     helperText={
-                      !!invalidPostalCodeError &&
-                      "Please enter a valid postal code."
+                      !!invalidPostalCodeError && I18n.get("invalidPostalCode")
                     }
                     type="text"
                     onChange={onChange}
                   />
-                  <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1}}>
-                    <Tooltip title="This is how you will receive notifications for the topics you subscribe to.
-                    It can be changed at any time."><HelpOutline /></Tooltip>
-                    <span>Select your notification preferences:</span>
+                  <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
+                    <Tooltip
+                      title="This is how you will receive notifications for the topics you subscribe to.
+                    It can be changed at any time."
+                    >
+                      <HelpOutline />
+                    </Tooltip>
+                    <span>{I18n.get("notifPreferencePrompt")}</span>
                   </Box>
                   <ToggleButtonGroup
                     color="primary"
@@ -674,26 +685,29 @@ function Login(props) {
                     aria-label="text formatting"
                   >
                     <ToggleButton value="email" aria-label="email_notice">
-                      Email Notifications
+                      {I18n.get("emailNotice")}
                     </ToggleButton>
                     <ToggleButton value="text" aria-label="sms_notice">
-                      Text Notifications
+                      {I18n.get("textNotice")}
                     </ToggleButton>
                   </ToggleButtonGroup>
-                  {defaultNotificationPreference.includes('text') ?
+                  {defaultNotificationPreference.includes("text") ? (
                     <PhoneInput
-                      country={'ca'}
+                      country={"ca"}
                       onlyCountries={["ca"]}
                       disableDropdown
                       countryCodeEditable={false}
                       value={userPhone}
-                      onChange={value => setUserPhone(value)}
-                    /> : <></>}
+                      onChange={(value) => setUserPhone(value)}
+                    />
+                  ) : (
+                    <></>
+                  )}
                 </Box>
                 <BackAndSubmitButtons
                   backAction={() => resetStates("signIn")}
                   submitAction={handleDisplayStep2}
-                  submitMessage={"Next"}
+                  submitMessage={I18n.get("next")}
                   loadingState={loading}
                 />
               </Grid>
@@ -702,31 +716,31 @@ function Login(props) {
             {((loginState === "confirmSignUp" && activeStep === 1) ||
               loginState === "verifyEmail") && (
               <Grid>
-                {loginState === "verifyEmail" ? 
-                  <span>
-                    Please check your email for a confirmation code. This may
-                    take several minutes.
-                  </span> :
+                {loginState === "verifyEmail" ? (
+                  <span>{I18n.get("checkEmailVerification")}</span>
+                ) : (
                   <Grid container item xs={12}>
                     <span>
-                      If you selected to receive notifications via text then a confirmation code
-                      will be sent to your phone. Otherwise it will be sent to your email. This may
-                      take several minutes.
+                      If you selected to receive notifications via text then a
+                      confirmation code will be sent to your phone. Otherwise it
+                      will be sent to your email. This may take several minutes.
                     </span>
                     <br />
                     <span>
-                      <strong>Note: </strong>Future sign-ins will have the verification code sent to your email,
-                      regardless of if you selected text.
+                      <strong>Note: </strong>Future sign-ins will have the
+                      verification code sent to your email, regardless of if you
+                      selected text.
                     </span>
-                  </Grid>}
+                  </Grid>
+                )}
                 <BannerMessage type={"error"} typeCheck={verificationError}>
-                  Invalid verification code provided, please try again.
+                  {I18n.get("invalidVerificationCode")}
                 </BannerMessage>
                 <BannerMessage type={"error"} typeCheck={timeLimitError !== ""}>
                   {timeLimitError}
                 </BannerMessage>
                 <BannerMessage type={"success"} typeCheck={newVerification}>
-                  New verification code sent successfully.
+                  {I18n.get("newVerifyCodeSent")}
                 </BannerMessage>
                 <Grid
                   container
@@ -737,27 +751,25 @@ function Login(props) {
                 >
                   <TextFieldStartAdornment
                     startIcon={<Dialpad />}
-                    placeholder="Enter your confirmation code."
+                    placeholder={I18n.get("verifyCodePrompt")}
                     name={"authCode"}
                     error={emptyAuthCode}
-                    helperText={
-                      !!emptyAuthCode && "This field must be filled out."
-                    }
+                    helperText={!!emptyAuthCode && I18n.get("emptyFieldErr")}
                     type="text"
                     autoComplete={"new-password"}
                     onChange={onChange}
                   />
                 </Grid>
                 <Grid>
-                  <span>Didn't receive your verification code?</span>
+                  <span>{I18n.get("verifyCodePrompt")}</span>
                   <Button onClick={resendConfirmationCode}>
-                    <span>Resend Code</span>
+                    <span>{I18n.get("resendCode")}</span>
                   </Button>
                 </Grid>
                 <BackAndSubmitButtons
                   backAction={() => resetStates("signUp")}
                   submitAction={verifyEmail}
-                  submitMessage={"Verify"}
+                  submitMessage={I18n.get("verify")}
                   loadingState={loading}
                 />
               </Grid>
@@ -831,7 +843,7 @@ const BackAndSubmitButtons = ({ backAction, ...others }) => {
           startIcon={<ArrowBack />}
           onClick={backAction}
         >
-          Back
+          {I18n.get("back")}
         </DefaultButton>
       </Grid>
       <Grid container item md={7} justify={"flex-end"}>

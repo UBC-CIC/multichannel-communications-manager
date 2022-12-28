@@ -11,87 +11,109 @@ import {
   FormControlLabel,
   Checkbox,
   Alert,
-  Collapse
+  Collapse,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
-import { Auth, API, graphqlOperation, Storage } from "aws-amplify"
+import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
 import "./TopicCard.css";
-import { getTopicsOfCategoryByAcronym, getUserByEmail } from "../graphql/queries";
+import {
+  getTopicsOfCategoryByAcronym,
+  getUserByEmail,
+} from "../graphql/queries";
+import I18n from "aws-amplify";
 
 const TopicCard = ({
   selectedTopic,
   setSaveEnabled,
   selectedSubTopics,
   setSelectedSubtopics,
-  setAllSelectedTopics
+  setAllSelectedTopics,
 }) => {
   const { title, description, picture_location } = selectedTopic;
   const [selectedNotifications, setSelectedNotifications] = useState({});
-  const [boxChecked, setBoxCheck] = useState([])
-  const [alteredSubtopic, setAlteredSubtopic] = useState([])
-  const [subtopics, setSubtopics] = useState([])
-  const [userID, setUserID] = useState("")
-  const [image, setImage] = useState('')
-  const [alert, setAlert] = useState(false)
+  const [boxChecked, setBoxCheck] = useState([]);
+  const [alteredSubtopic, setAlteredSubtopic] = useState([]);
+  const [subtopics, setSubtopics] = useState([]);
+  const [userID, setUserID] = useState("");
+  const [image, setImage] = useState("");
+  const [alert, setAlert] = useState(false);
 
   async function queriedSubtopics() {
-    let queriedTopics = await API.graphql(graphqlOperation(getTopicsOfCategoryByAcronym, {category_acronym: selectedTopic.acronym}))
-    let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym
-    let topics = onlyTopics.map(a => a.acronym)
-    setSubtopics(topics)
+    let queriedTopics = await API.graphql(
+      graphqlOperation(getTopicsOfCategoryByAcronym, {
+        category_acronym: selectedTopic.acronym,
+      })
+    );
+    let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
+    let topics = onlyTopics.map((a) => a.acronym);
+    setSubtopics(topics);
   }
 
   useEffect(() => {
-    queriedSubtopics()
+    queriedSubtopics();
     async function retrieveUser() {
       try {
         const returnedUser = await Auth.currentAuthenticatedUser();
-        let databaseUser = await API.graphql(graphqlOperation(getUserByEmail, { user_email: returnedUser.attributes.email }));
-        setSelectedNotifications({email: databaseUser.data.getUserByEmail.email_notice,
-          text: databaseUser.data.getUserByEmail.sms_notice})
-        setUserID(databaseUser.data.getUserByEmail.user_id)
+        let databaseUser = await API.graphql(
+          graphqlOperation(getUserByEmail, {
+            user_email: returnedUser.attributes.email,
+          })
+        );
+        setSelectedNotifications({
+          email: databaseUser.data.getUserByEmail.email_notice,
+          text: databaseUser.data.getUserByEmail.sms_notice,
+        });
+        setUserID(databaseUser.data.getUserByEmail.user_id);
       } catch (e) {
         console.log(e);
       }
     }
     async function getCategoryImage() {
-      let imageURL = await Storage.get(picture_location)
-      setImage(imageURL)
+      let imageURL = await Storage.get(picture_location);
+      setImage(imageURL);
     }
-    getCategoryImage()
+    getCategoryImage();
     retrieveUser();
-    setSaveEnabled(false)
+    setSaveEnabled(false);
   }, []);
 
   const handleSaved = () => {
-    setSaveEnabled(true)
+    setSaveEnabled(true);
     // go through all the selected topics
     for (let x = 0; x < boxChecked.length; x++) {
       if (boxChecked[x] === false) {
         // remove from allselectedtopics as the topic has been deselected
-        setAllSelectedTopics((prev) => prev.filter((s) => !(s.category_acronym === selectedTopic.acronym && s.topic_acronym === alteredSubtopic[x])))
+        setAllSelectedTopics((prev) =>
+          prev.filter(
+            (s) =>
+              !(
+                s.category_acronym === selectedTopic.acronym &&
+                s.topic_acronym === alteredSubtopic[x]
+              )
+          )
+        );
       } else {
         let userSubscribeData = {
           user_id: userID,
           category_acronym: selectedTopic.acronym,
           topic_acronym: alteredSubtopic[x],
           email_notice: selectedNotifications.email,
-          sms_notice: selectedNotifications.text
-        }
-        setAllSelectedTopics(prev => [...prev, userSubscribeData])
+          sms_notice: selectedNotifications.text,
+        };
+        setAllSelectedTopics((prev) => [...prev, userSubscribeData]);
       }
-    } 
-    setAlert(true)
-  }
+    }
+    setAlert(true);
+  };
 
   // get the topics and whether they've been selected/deselected
   const handleChange = (e, subtopic) => {
-    setAlteredSubtopic((prev) => [...prev, subtopic])
+    setAlteredSubtopic((prev) => [...prev, subtopic]);
     if (e.target.checked) {
-      setBoxCheck((prev) => [...prev, true])
+      setBoxCheck((prev) => [...prev, true]);
       setSelectedSubtopics((prev) => [...prev, `${title}/${subtopic}`]);
     } else if (!e.target.checked) {
-      setBoxCheck((prev) => [...prev, false])
+      setBoxCheck((prev) => [...prev, false]);
       setSelectedSubtopics((prev) =>
         prev.filter((s) => s !== `${title}/${subtopic}`)
       );
@@ -100,7 +122,15 @@ const TopicCard = ({
 
   return (
     <>
-      {alert ? <Collapse in={alert}><Alert severity={"success"} onClose={() => setAlert(false)}>Your changes have been saved</Alert></Collapse> : <></> }
+      {alert ? (
+        <Collapse in={alert}>
+          <Alert severity={"success"} onClose={() => setAlert(false)}>
+            Your changes have been saved
+          </Alert>
+        </Collapse>
+      ) : (
+        <></>
+      )}
       <Card>
         <CardHeader
           title={title}
@@ -110,7 +140,12 @@ const TopicCard = ({
           }}
         />
         {picture_location !== null ? (
-          <CardMedia component={"img"} image={image} sx={{objectFit: 'fill'}} height="150" />
+          <CardMedia
+            component={"img"}
+            image={image}
+            sx={{ objectFit: "fill" }}
+            height="150"
+          />
         ) : (
           <Box
             sx={{
@@ -124,17 +159,17 @@ const TopicCard = ({
           <Typography variant="body2" color="text.secondary">
             {description}
           </Typography>
-          <FormGroup sx={{marginTop: 2, flexDirection: 'row'}}>
-          {subtopics.map((subtopic, index) => (
-            <FormControlLabel
-              key={index}
-              control={<Checkbox />}
-              checked={selectedSubTopics.includes(`${title}/${subtopic}`)}
-              label={subtopic}
-              onChange={(e) => handleChange(e, subtopic)}
-            />
-          ))}
-        </FormGroup>
+          <FormGroup sx={{ marginTop: 2, flexDirection: "row" }}>
+            {subtopics.map((subtopic, index) => (
+              <FormControlLabel
+                key={index}
+                control={<Checkbox />}
+                checked={selectedSubTopics.includes(`${title}/${subtopic}`)}
+                label={subtopic}
+                onChange={(e) => handleChange(e, subtopic)}
+              />
+            ))}
+          </FormGroup>
         </CardContent>
         <CardActions
           disableSpacing
@@ -148,8 +183,8 @@ const TopicCard = ({
             }}
           >
             <Button sx={{ mr: "1em" }} onClick={handleSaved}>
-            Save
-          </Button>
+              {I18n.get("save")}
+            </Button>
           </Box>
         </CardActions>
       </Card>
