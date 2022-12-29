@@ -420,7 +420,7 @@ const EditAccountInfo = () => {
         />
         <Grid item>
           <Typography variant="h3" sx={{ mb: "1.5em" }}>
-            Edit Account Information
+            {I18n.get("editAccountTab")}
           </Typography>
         </Grid>
         <Grid
@@ -442,7 +442,7 @@ const EditAccountInfo = () => {
             value={userData.email_address}
             error={emailExistError || invalidEmailError || emptyEmailError}
             helperText={
-              (!!emailExistError && I18n.get("accountExists")) ||
+              (!!emailExistError && I18n.get("accountExistsErr")) ||
               (!!invalidEmailError && I18n.get("invalidEmail")) ||
               (!!emptyEmailError && I18n.get("emptyFieldErr"))
             }

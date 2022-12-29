@@ -23,13 +23,16 @@ type Category {
   category_id: Int!
   acronym: String!
   title: String!
+  title_fr: String!
   description: String
+  description_fr: String
   picture_location: String
 }
 
 type Topic {
   topic_id: Int!
   acronym: String!
+  acronym_fr: String!
 }
 
 type CategoryTopic {
@@ -96,20 +99,24 @@ type Mutation {
   createCategory(
     acronym: String!
     title: String!
+    title_fr: String!
     description: String
+    description_fr: String
     picture_location: String
   ): Category
   updateCategory(
     category_id: Int!
     acronym: String
     title: String
+    title_fr: String
     description: String
+    description_fr: String
     picture_location: String
   ): Category
   # TODO: delete or archive?
   deleteCategory(category_id: Int!): String
 
-  createTopic(acronym: String!): Topic
+  createTopic(acronym: String!, acronym_fr: String!): Topic
   # updateTopic(topic_id: Int!, acronym: String): Topic
   deleteTopic(topic_id: Int!): String
   addTopicToCategory(

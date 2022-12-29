@@ -6,7 +6,7 @@ import {
   Box,
   Button,
 } from "@mui/material";
-import I18n from "aws-amplify";
+import { I18n } from "aws-amplify";
 
 const ConfirmDeleteTopicDialog = ({
   open,

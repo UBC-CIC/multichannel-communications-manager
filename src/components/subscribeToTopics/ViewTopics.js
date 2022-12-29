@@ -378,7 +378,7 @@ const ViewTopics = () => {
       </Typography>
       <FormControlLabel
         control={<Checkbox onChange={handleCheck} />}
-        label="Only show user subscriptions"
+        label={I18n.get("subscribedFilter")}
       />
       <Box
         sx={{

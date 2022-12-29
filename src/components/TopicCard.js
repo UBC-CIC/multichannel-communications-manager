@@ -14,13 +14,12 @@ import {
   Collapse,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
-import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
+import { Auth, API, graphqlOperation, Storage, I18n } from "aws-amplify";
 import "./TopicCard.css";
 import {
   getTopicsOfCategoryByAcronym,
   getUserByEmail,
 } from "../graphql/queries";
-import I18n from "aws-amplify";
 
 const TopicCard = ({
   selectedTopic,
@@ -29,7 +28,8 @@ const TopicCard = ({
   setSelectedSubtopics,
   setAllSelectedTopics,
 }) => {
-  const { title, description, picture_location } = selectedTopic;
+  const { title, title_fr, description, description_fr, picture_location } =
+    selectedTopic;
   const [selectedNotifications, setSelectedNotifications] = useState({});
   const [boxChecked, setBoxCheck] = useState([]);
   const [alteredSubtopic, setAlteredSubtopic] = useState([]);
@@ -45,7 +45,15 @@ const TopicCard = ({
       })
     );
     let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
-    let topics = onlyTopics.map((a) => a.acronym);
+    console.log("queriedTopics: ", queriedTopics);
+    console.log("onlyTopics: ", onlyTopics);
+    // setSubtopics(onlyTopics);
+    // console.log("subtopics: ", subtopics);
+    let topics = onlyTopics.map((a) =>
+      navigator.language === "fr" || navigator.language.startsWith("fr-")
+        ? a.acronym_fr
+        : a.acronym
+    );
     setSubtopics(topics);
   }
 
@@ -111,11 +119,27 @@ const TopicCard = ({
     setAlteredSubtopic((prev) => [...prev, subtopic]);
     if (e.target.checked) {
       setBoxCheck((prev) => [...prev, true]);
-      setSelectedSubtopics((prev) => [...prev, `${title}/${subtopic}`]);
+      setSelectedSubtopics((prev) => [
+        ...prev,
+        `${
+          navigator.language === "fr" || navigator.language.startsWith("fr-")
+            ? title_fr
+            : title
+        }/${subtopic}`,
+      ]);
     } else if (!e.target.checked) {
       setBoxCheck((prev) => [...prev, false]);
       setSelectedSubtopics((prev) =>
-        prev.filter((s) => s !== `${title}/${subtopic}`)
+        prev.filter(
+          (s) =>
+            s !==
+            `${
+              navigator.language === "fr" ||
+              navigator.language.startsWith("fr-")
+                ? title_fr
+                : title
+            }/${subtopic}`
+        )
       );
     }
   };
@@ -126,6 +150,7 @@ const TopicCard = ({
         <Collapse in={alert}>
           <Alert severity={"success"} onClose={() => setAlert(false)}>
             Your changes have been saved
+            {/* TODO translation */}
           </Alert>
         </Collapse>
       ) : (
@@ -133,7 +158,11 @@ const TopicCard = ({
       )}
       <Card>
         <CardHeader
-          title={title}
+          title={
+            navigator.language === "fr" || navigator.language.startsWith("fr-")
+              ? title_fr
+              : title
+          }
           titleTypographyProps={{
             fontSize: "1.2rem",
             fontWeight: "400",
@@ -157,14 +186,23 @@ const TopicCard = ({
         )}
         <CardContent sx={{ p: "16px 16px 0px 16px" }}>
           <Typography variant="body2" color="text.secondary">
-            {description}
+            {navigator.language === "fr" || navigator.language.startsWith("fr-")
+              ? description_fr
+              : description}
           </Typography>
           <FormGroup sx={{ marginTop: 2, flexDirection: "row" }}>
             {subtopics.map((subtopic, index) => (
               <FormControlLabel
                 key={index}
                 control={<Checkbox />}
-                checked={selectedSubTopics.includes(`${title}/${subtopic}`)}
+                checked={selectedSubTopics.includes(
+                  `${
+                    navigator.language === "fr" ||
+                    navigator.language.startsWith("fr-")
+                      ? title_fr
+                      : title
+                  }/${subtopic}`
+                )}
                 label={subtopic}
                 onChange={(e) => handleChange(e, subtopic)}
               />

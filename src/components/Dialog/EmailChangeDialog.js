@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { Dialpad } from "@mui/icons-material";
 import TextFieldStartAdornment from "../Authentication/TextFieldStartAdornment";
-import I18n from "aws-amplify";
+import { I18n } from "aws-amplify";
 
 const EmailChangeDialog = ({
   open,

@@ -6,7 +6,7 @@ import {
   DialogTitle,
   Typography,
 } from "@mui/material";
-import I18n from "aws-amplify";
+import { I18n } from "aws-amplify";
 
 export const LeaveWithoutSavingDialog = ({
   showDialog,

@@ -66,19 +66,25 @@ export const createCategory = /* GraphQL */ `
   mutation CreateCategory(
     $acronym: String!
     $title: String!
+    $title_fr: String!
     $description: String
+    $description_fr: String
     $picture_location: String
   ) {
     createCategory(
       acronym: $acronym
       title: $title
+      title_fr: $title_fr
       description: $description
+      description_fr: $description_fr
       picture_location: $picture_location
     ) {
       category_id
       acronym
       title
+      title_fr
       description
+      description_fr
       picture_location
     }
   }
@@ -88,20 +94,26 @@ export const updateCategory = /* GraphQL */ `
     $category_id: Int!
     $acronym: String
     $title: String
+    $title_fr: String
     $description: String
+    $description_fr: String
     $picture_location: String
   ) {
     updateCategory(
       category_id: $category_id
       acronym: $acronym
       title: $title
+      title_fr: $title_fr
       description: $description
+      description_fr: $description_fr
       picture_location: $picture_location
     ) {
       category_id
       acronym
       title
+      title_fr
       description
+      description_fr
       picture_location
     }
   }
@@ -112,10 +124,11 @@ export const deleteCategory = /* GraphQL */ `
   }
 `;
 export const createTopic = /* GraphQL */ `
-  mutation CreateTopic($acronym: String!) {
-    createTopic(acronym: $acronym) {
+  mutation CreateTopic($acronym: String!, $acronym_fr: String!) {
+    createTopic(acronym: $acronym, acronym_fr: $acronym_fr) {
       topic_id
       acronym
+      acronym_fr
     }
   }
 `;

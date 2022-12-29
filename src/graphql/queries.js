@@ -65,7 +65,9 @@ export const getCategoryByAcronym = /* GraphQL */ `
       category_id
       acronym
       title
+      title_fr
       description
+      description_fr
       picture_location
     }
   }
@@ -75,6 +77,7 @@ export const getTopicsOfCategoryByAcronym = /* GraphQL */ `
     getTopicsOfCategoryByAcronym(category_acronym: $category_acronym) {
       topic_id
       acronym
+      acronym_fr
     }
   }
 `;
@@ -83,6 +86,7 @@ export const getTopicByAcronym = /* GraphQL */ `
     getTopicByAcronym(topic_acronym: $topic_acronym) {
       topic_id
       acronym
+      acronym_fr
     }
   }
 `;
@@ -92,7 +96,9 @@ export const getAllCategories = /* GraphQL */ `
       category_id
       acronym
       title
+      title_fr
       description
+      description_fr
       picture_location
     }
   }
@@ -102,6 +108,7 @@ export const getAllTopics = /* GraphQL */ `
     getAllTopics {
       topic_id
       acronym
+      acronym_fr
     }
   }
 `;

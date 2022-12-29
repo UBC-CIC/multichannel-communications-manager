@@ -25,7 +25,7 @@ function App(props) {
   const { loginState, updateLoginState } = props;
   const [language, setLanguage] = useState("fr");
   I18n.setLanguage(language);
-  console.log("current language: ", language);
+  console.log("current navigator language: ", navigator.language);
 
   const [currentLoginState, updateCurrentLoginState] = useState(loginState);
 

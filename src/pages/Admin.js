@@ -151,7 +151,7 @@ const Admin = () => {
       }}
     >
       <Typography variant="h3" sx={{ mb: "1em" }}>
-        Welcome!
+        {I18n.get("welcome")}
       </Typography>
       {currentlySelectedTopic ? (
         <Box>

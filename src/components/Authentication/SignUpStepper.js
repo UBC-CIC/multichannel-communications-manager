@@ -12,7 +12,7 @@ const SignUpStepper = ({ activeStep }) => {
   const steps = [
     I18n.get("generalInfo"),
     I18n.get("verification"),
-    I18n.get("selectCatgories"),
+    I18n.get("selectCategories"),
   ];
 
   const theme = useTheme();

@@ -30,13 +30,16 @@ CREATE TABLE \`Category\` (
   \`category_id\` int PRIMARY KEY AUTO_INCREMENT,
   \`acronym\` varchar(30) UNIQUE NOT NULL,
   \`title\` varchar(50) NOT NULL,
+  \`title_fr\` varchar(50) NOT NULL,
   \`description\` text,
+  \`description_fr\` text,
   \`picture_location\` text
 );
 
 CREATE TABLE \`Topic\` (
   \`topic_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`acronym\` varchar(30) UNIQUE NOT NULL
+  \`acronym\` varchar(30) UNIQUE NOT NULL,
+  \`acronym_fr\` varchar(30) UNIQUE NOT NULL
 );
 
 CREATE TABLE \`CategoryTopic\` (
@@ -120,6 +123,8 @@ function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
       // if in the GraphQL request, a user does not pass in the value of a variable required in the statement, set the variable to null
       escapedValue = null;
     }
+    console.log("key: ", key);
+    console.log("escapedVal: ", escapedValue);
     sql = sql.replace(key, escapedValue);
   });
 
@@ -144,28 +149,6 @@ exports.handler = async (event) => {
   } catch (e) {
     console.log("e:", e);
   }
-  // , function (err, data) {
-  // console.log("139");
-  // if (err) {
-  //   console.log("err:");
-  //   console.log(err, err.stack);
-  // } // an error occurred
-  // else {
-  //   console.log("data:", data);
-  // }
-  // successful response
-  /*
-  data = {
-  ARN: "arn:aws:secretsmanager:us-west-2:123456789012:secret:MyTestDatabaseSecret-a1b2c3", 
-  CreatedDate: <Date Representation>, 
-  Name: "MyTestDatabaseSecret", 
-  SecretString: "{\n  \"username\":\"david\",\n  \"password\":\"EXAMPLE-PASSWORD\"\n}\n", 
-  VersionId: "EXAMPLE1-90ab-cdef-fedc-ba987SECRET1", 
-  VersionStages: [
-      "AWSPREVIOUS"
-  ]
-  }
-  */
 
   let connection;
   console.log("secret: ", secret);

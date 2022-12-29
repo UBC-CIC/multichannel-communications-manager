@@ -186,7 +186,7 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
                 inputProps={{ maxLength: 49 }}
                 size="small"
                 type="text"
-                label={I18n.get("title")}
+                label={I18n.get("titleEn")}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </Box>
@@ -216,10 +216,29 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
               />
             </Button>
           </Box>
+
           <TextField
             type="text"
             InputLabelProps={{ shrink: true }}
-            label={I18n.get("description")}
+            label={I18n.get("descriptionEn")}
+            multiline
+            rows={5}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <Box width={"40%"}>
+            <TextField
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ maxLength: 49 }}
+              size="small"
+              type="text"
+              label={I18n.get("titleFr")}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </Box>
+          <TextField
+            type="text"
+            InputLabelProps={{ shrink: true }}
+            label={I18n.get("descriptionFr")}
             multiline
             rows={5}
             onChange={(e) => setDescription(e.target.value)}

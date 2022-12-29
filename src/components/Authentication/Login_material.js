@@ -639,7 +639,7 @@ function Login(props) {
                     error={accountCreationEmailExistError || invalidEmailError}
                     helperText={
                       (!!accountCreationEmailExistError &&
-                        I18n.get("accountExists")) ||
+                        I18n.get("accountExistsErr")) ||
                       (!!invalidEmailError && I18n.get("invalidEmail"))
                     }
                     onChange={onChange}

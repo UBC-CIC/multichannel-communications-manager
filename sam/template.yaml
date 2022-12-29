@@ -87,10 +87,10 @@ Parameters:
     Description: The email address from which end uers will receive emails
 
 Resources:
-  GraphQLAPIIdParameter:
+  GraphQLApiIdParameter:
       Type: AWS::SSM::Parameter
       Properties: 
-        Name: "GraphQLAPIIdParameter"
+        Name: "GraphQLApiIdParameter"
         Type: String 
         Value: "{{resolve:ssm:GraphqlApiId:1}}"
         Description: Communication Manager GraphQL Api Id
@@ -731,16 +731,17 @@ Resources:
     DependsOn:
     - graphQLMySQLResolver
     # - GraphQLApiSchema
-    # - GraphQLAPIIdParameter
+    # - GraphQLApiIdParameter
     Properties:
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
+      # ApiId: "{{resolve:ssm:GraphqlApiId:1}}"
       Name: LambdaHandler
       Type: AWS_LAMBDA
       ServiceRoleArn: !GetAtt LambdaServiceRole.Arn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt graphQLMySQLResolver.Arn
 
-  getUserByIdResolverTemplate:
+  getUserByIdResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -764,12 +765,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  getUserByEmailResolverTemplate:
+  getUserByEmailResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -793,12 +794,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
   
-  getUserCategoryTopicByUserIdResolverTemplate:
+  getUserCategoryTopicByUserIdResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -822,12 +823,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
 
-  getCategoriesByUserIdResolverTemplate:
+  getCategoriesByUserIdResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -851,12 +852,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
 
-  getCategoryTopicByIdResolverTemplate:
+  getCategoryTopicByIdResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -880,12 +881,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
 
-  getCategoryByAcronymResolverTemplate:
+  getCategoryByAcronymResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -909,12 +910,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type) 
         #end 
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0   
 
-  getTopicsOfCategoryByAcronymResolverTemplate:
+  getTopicsOfCategoryByAcronymResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -937,12 +938,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  getTopicByAcronymResolverTemplate:
+  getTopicByAcronymResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -966,12 +967,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  getAllTopicsResolverTemplate:
+  getAllTopicsResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -994,12 +995,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  getAllCategoriesResolverTemplate:
+  getAllCategoriesResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1022,12 +1023,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  getAllCategoryTopicsResolverTemplate:
+  getAllCategoryTopicsResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1050,12 +1051,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  createUserResolverTemplate:
+  createUserResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1104,12 +1105,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       MaxBatchSize: 0
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
 
-  updateUserResolverTemplate:
+  updateUserResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1195,12 +1196,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  deleteUserResolverTemplate:
+  deleteUserResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1224,12 +1225,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "Succeeded"
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  createCategoryResolverTemplate:
+  createCategoryResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1238,16 +1239,19 @@ Resources:
       FieldName: createCategory
       RequestMappingTemplate: |
         #set($description = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.description, null)))
+        #set($description_fr = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.description_fr, null)))
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `Category` (acronym, title, description, picture_location) values (:acronym, :title, :description, :picture_location);",
+        "sql": "insert into `Category` (acronym, title, description, picture_location, title_fr, description_fr) values (:acronym, :title, :description, :picture_location, :title_fr, :description_fr);",
         "SQLVariableMapping": {
         ":acronym": "$context.arguments.acronym",
         ":title": "$context.arguments.title",
         ":description": $description,
-        ":picture_location": "$context.arguments.picture_location"
+        ":picture_location": "$context.arguments.picture_location",
+        ":title_fr": "$context.arguments.title_fr",
+        ":description_fr": $description_fr
         },
         "responseSQL": "select * from `Category` where acronym=:acronym;"
         }
@@ -1257,12 +1261,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  updateCategoryResolverTemplate:
+  updateCategoryResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1271,7 +1275,7 @@ Resources:
       FieldName: updateCategory
       RequestMappingTemplate: |
         #if( $context.arguments.acronym )
-          #if( $context.arguments.title || $context.arguments.description || $context.arguments.picture_location)
+          #if( $context.arguments.title || $context.arguments.title_fr || $context.arguments.description || $context.arguments.description_fr || $context.arguments.picture_location)
             #set( $acronym = "acronym=:acronym," )
           #else
             #set( $acronym = "acronym=:acronym" )
@@ -1280,7 +1284,7 @@ Resources:
           #set( $acronym = "" )
         #end
         #if( $context.arguments.title )
-          #if( $context.arguments.description || $context.arguments.picture_location)
+          #if( $context.arguments.title_fr || $context.arguments.description || $context.arguments.description_fr || $context.arguments.picture_location)
             #set( $title = "title=:title," )
           #else
             #set( $title = "title=:title" )
@@ -1288,14 +1292,32 @@ Resources:
         #else
           #set( $title = "" )
         #end
+        #if( $context.arguments.title_fr )
+          #if( $context.arguments.description || $context.arguments.description_fr || $context.arguments.picture_location)
+            #set( $titleinfr = "title_fr=:fr_title," )
+          #else
+            #set( $titleinfr = "title_fr=:fr_title" )
+          #end
+        #else
+          #set( $titleinfr = "" )
+        #end
         #if( $context.arguments.description )
-          #if( $context.arguments.picture_location)
+          #if($context.arguments.description_fr || $context.arguments.picture_location)
             #set( $description = "description=:description," )
           #else
             #set( $description = "description=:description" )
           #end        
         #else
           #set( $description = "" )
+        #end
+        #if( $context.arguments.description_fr )
+          #if($context.arguments.picture_location)
+            #set( $descriptioninfr = "description_fr=:fr_description," )
+          #else
+            #set( $descriptioninfr = "description_fr=:fr_description" )
+          #end        
+        #else
+          #set( $descriptioninfr = "" )
         #end
         #if( $context.arguments.picture_location )
           #set( $picture_location = "picture_location=:picture_location" )
@@ -1307,12 +1329,14 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `Category` SET $acronym $title $description $picture_location WHERE `Category`.category_id = :category_id;",
+        "sql": "UPDATE `Category` SET $acronym $title $titleinfr $description $descriptioninfr $picture_location WHERE `Category`.category_id = :category_id;",
         "SQLVariableMapping": {
         ":category_id": $context.arguments.category_id,
         ":acronym": "$context.arguments.acronym",
         ":title": "$context.arguments.title",
+        ":fr_title": "$context.arguments.title_fr",
         ":description": "$context.arguments.description",
+        ":fr_description": "$context.arguments.description_fr",
         ":picture_location": "$context.arguments.picture_location"
         },
         "responseSQL": "select * from `Category` where category_id=:category_id;"
@@ -1323,13 +1347,13 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
 
-  deleteCategoryResolverTemplate:
+  deleteCategoryResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1352,13 +1376,13 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "'delete succeeded'"
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
 
-  createTopicResolverTemplate:
+  createTopicResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1370,9 +1394,10 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `Topic` (acronym) values (:acronym);",
+        "sql": "insert into `Topic` (acronym, acronym_fr) values (:acronym, :acronym_fr);",
         "SQLVariableMapping": {
-        ":acronym": "$context.arguments.acronym"
+        ":acronym": "$context.arguments.acronym",
+        ":acronym_fr": "$context.arguments.acronym_fr"
         },
         "responseSQL": "select * from `Topic` where acronym=:acronym;"
         }
@@ -1382,12 +1407,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  deleteTopicResolverTemplate:
+  deleteTopicResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1410,12 +1435,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "Delete succeeded"
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  addTopicToCategoryResolverTemplate:
+  addTopicToCategoryResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1440,12 +1465,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  deleteCategoryTopicResolverTemplate:
+  deleteCategoryTopicResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1469,12 +1494,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  userFollowCategoryTopicResolverTemplate:
+  userFollowCategoryTopicResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1515,12 +1540,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  userUpdateChannelPrefrenceResolverTemplate:
+  userUpdateChannelPrefrenceResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1563,12 +1588,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  userUnfollowCategoryTopicResolverTemplate:
+  userUnfollowCategoryTopicResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1595,12 +1620,12 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         $util.toJson($context.result.sqlResult[0])
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
 
-  userUnfollowCategoryResolverTemplate:
+  userUnfollowCategoryResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1626,7 +1651,34 @@ Resources:
           $util.error($ctx.error.message, $ctx.error.type)
         #end
         "success"
-      ApiId: !GetAtt GraphQLAPIIdParameter.Value
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
+  testSQLResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaResolverAppSyncDataSource
+    Properties:
+      TypeName: Query
+      FieldName: testSQL
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": 
+          "alter table Category add column title_fr VARCHAR(50) NOT NULL;",
+        "SQLVariableMapping": {}
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        "success"
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0

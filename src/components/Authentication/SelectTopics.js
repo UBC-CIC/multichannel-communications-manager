@@ -112,7 +112,15 @@ const SelectTopics = ({ handleNextStep }) => {
                 }}
               ></Box>
             )}
-            <StyledImageListItemBar title={topic.title} position="below" />
+            <StyledImageListItemBar
+              title={
+                navigator.language === "fr" ||
+                navigator.language.startsWith("fr-")
+                  ? topic.title_fr
+                  : topic.title
+              }
+              position="below"
+            />
           </StyledImageListItem>
         ))
         .slice((page - 1) * topicsPerPage, page * topicsPerPage)
@@ -170,9 +178,7 @@ const SelectTopics = ({ handleNextStep }) => {
         {I18n.get("selectCategoriesTitle")}
       </Typography>
       <Typography variant="body2">
-        Select categories of interest that you would like to receive
-        notifications from. Your notification preferences can be changed at any
-        time.
+        {I18n.get("initialCategoriesSelect")}
       </Typography>
       {currentlySelectedTopic ? (
         <Box sx={{ mt: "1em" }}>

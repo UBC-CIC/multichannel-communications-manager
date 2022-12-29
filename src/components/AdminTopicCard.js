@@ -24,7 +24,7 @@ import {
 } from "../graphql/mutations";
 import "./TopicCard.css";
 import EditTopicDialog from "./Dialog/EditTopicDialog";
-import I18n from "aws-amplify";
+import { I18n } from "aws-amplify";
 
 const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
   const { title, description, picture_location } = selectedTopic;
