@@ -38,11 +38,9 @@ const ViewTopics = () => {
   // description
   // picture_location
   const [topics, setTopics] = useState([]);
-
   // all subtopics (on the page)
   // acronym string -> obj
   const [subtopics, setSubtopics] = useState([]);
-
   // userSubscription relationships, set once
   // user_id
   // category_acronym
@@ -50,36 +48,28 @@ const ViewTopics = () => {
   // email_notice
   // sms_notice
   const [userSubscribed, setUserSubscribed] = useState([]);
-
   const [image, setImage] = useState([]);
-
   //
   // acronym string
   const [selectedSubTopics, setSelectedSubtopics] = useState([]);
-
   // for categories that user is not subscribed to, if its topics are checked by the user
   // acronym string
   const [selectedSubTopicsCheckbox, setSelectedSubtopicsCheckbox] = useState(
     []
   );
-
   // for categories that user is subscribed to, if its topics are checked by the user
   // acronym string
   const [userSelectedSubTopics, setUserSelectedSubtopics] = useState([]);
-
   // acronym string
   const [userSelectedSubTopicsTemp, setUserSelectedSubtopicsTemp] = useState(
     []
   );
-
   // acronym string
   const [userUnfollow, setUserUnfollow] = useState([]);
   const [userID, setUserID] = useState("");
-
   // if user already subscribed to the topic on the page at corresponding index
   // bool
   const [userAlreadySubscribed, setUserAlreadySubscribed] = useState([]);
-
   const [user, setUser] = useState();
 
   async function getCategoryImages(categories) {
@@ -106,12 +96,7 @@ const ViewTopics = () => {
         })
       );
       let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
-      let topics = onlyTopics;
-      // .map((a) =>
-      //   navigator.language === "fr" || navigator.language.startsWith("fr-")
-      //     ? a.acronym_fr
-      //     : a.acronym
-      // );
+      let topics = onlyTopics.map((a) => a.acronym);
       setSubtopics((subtopics) => [...subtopics, topics]);
     }
   }
@@ -163,25 +148,12 @@ const ViewTopics = () => {
         (s) => s.category_acronym === allCategories[x].acronym
       );
       if (filteredUserSubscribedSubtopics.length !== 0) {
-        console.log(
-          "filteredUserSubscribedSubtopics",
-          filteredUserSubscribedSubtopics
-        );
         for (let i = 0; i < filteredUserSubscribedSubtopics.length; i++) {
           setUserSelectedSubtopics((prev) => [
             ...prev,
-            filteredUserSubscribedSubtopics[i],
+            filteredUserSubscribedSubtopics[i].topic_acronym,
           ]);
         }
-        console.log("userSelectedSubtopics", userSelectedSubTopics);
-        console.log(
-          "1",
-          userSelectedSubTopics.map((t) => t.acronym).includes("test")
-        );
-        console.log(
-          "userSelectedSubTopics.map((t) => t.acronym)",
-          userSelectedSubTopics.map((t) => t.acronym)
-        );
         setUserAlreadySubscribed((prev) => [...prev, true]);
       } else {
         setUserAlreadySubscribed((prev) => [...prev, false]);
@@ -196,45 +168,29 @@ const ViewTopics = () => {
 
   const handleChange = (e, subtopic) => {
     if (e.target.checked) {
-      setSelectedSubtopics((prev) => [...prev, subtopic]);
-      console.log("subtopic to add: ", JSON.stringify(subtopic));
-      setSelectedSubtopicsCheckbox((prev) => {
-        // console.log("prev: ", prev);
-        // console.log("...prev: ", ...prev);
-        // console.log("return: ", [...prev, subtopic]);
-        return [...prev, subtopic];
-      });
-      console.log("selectedSubTopics in handleChange: ", selectedSubTopics);
-      console.log(
-        "selectedSubTopicsCheckbox in handleChange: ",
-        selectedSubTopicsCheckbox
-      );
+      setSelectedSubtopics((prev) => [...prev, `${subtopic}`]);
+      setSelectedSubtopicsCheckbox((prev) => [...prev, `${subtopic}`]);
     } else if (!e.target.checked) {
-      setSelectedSubtopics((prev) => {
-        console.log("setSelectedSubtopics prev: ", prev);
-        return prev.filter((s) => s.acronym !== subtopic.acronym);
-      });
-      // console.log("selectedSubTopics in handleChange: ", selectedSubTopics);
+      setSelectedSubtopics((prev) => prev.filter((s) => s !== `${subtopic}`));
       setSelectedSubtopicsCheckbox((prev) =>
-        prev.filter((s) => s !== subtopic)
+        prev.filter((s) => s !== `${subtopic}`)
       );
     }
   };
 
   const handleAlreadySubscribedChange = (e, subtopic) => {
-    console.log("189");
-    console.log("e.target.checked", e.target.checked);
-
     if (e.target.checked) {
-      setUserSelectedSubtopics((prev) => [...prev, subtopic]);
-      setUserSelectedSubtopicsTemp((prev) => [...prev, subtopic]);
-      setUserUnfollow((prev) => prev.filter((s) => s !== subtopic));
+      setUserSelectedSubtopics((prev) => [...prev, `${subtopic}`]);
+      setUserSelectedSubtopicsTemp((prev) => [...prev, `${subtopic}`]);
+      setUserUnfollow((prev) => prev.filter((s) => s !== `${subtopic}`));
     } else if (!e.target.checked) {
-      setUserSelectedSubtopics((prev) => prev.filter((s) => s !== subtopic));
-      setUserSelectedSubtopicsTemp((prev) =>
-        prev.filter((s) => s !== subtopic)
+      setUserSelectedSubtopics((prev) =>
+        prev.filter((s) => s !== `${subtopic}`)
       );
-      setUserUnfollow((prev) => [...prev, subtopic]);
+      setUserSelectedSubtopicsTemp((prev) =>
+        prev.filter((s) => s !== `${subtopic}`)
+      );
+      setUserUnfollow((prev) => [...prev, `${subtopic}`]);
     }
   };
 
@@ -250,10 +206,9 @@ const ViewTopics = () => {
       let userSubscribedDataForThisCategory = userSubscribed.filter(
         (s) => s.category_acronym === topics[index].acronym
       );
-      let onlySubtopics = userSubscribedDataForThisCategory;
-      // .map(
-      //   (a) => a.topic_acronym
-      // );
+      let onlySubtopics = userSubscribedDataForThisCategory.map(
+        (a) => a.topic_acronym
+      );
       subtopicsToUnfollow = userUnfollow.filter((s) =>
         onlySubtopics.includes(s)
       );
@@ -276,19 +231,11 @@ const ViewTopics = () => {
           let topicsToRemove = newUserSelectedSubtopics;
           for (let x = 0; x < newUserSelectedSubtopics.length; x++) {
             console.log(newUserSelectedSubtopics[x]);
-            let userfollowinput = {
-              user_id: userID,
-              category_acronym: topics[index].acronym,
-              topic_acronym: newUserSelectedSubtopics[x].acronym,
-              email_notice: user.email_notice,
-              sms_notice: user.sms_notice,
-            };
-            console.log("buttonsave follow input: ", userfollowinput);
             await API.graphql(
               graphqlOperation(userFollowCategoryTopic, {
                 user_id: userID,
                 category_acronym: topics[index].acronym,
-                topic_acronym: newUserSelectedSubtopics[x].acronym,
+                topic_acronym: newUserSelectedSubtopics[x],
                 email_notice: user.email_notice,
                 sms_notice: user.sms_notice,
               })
@@ -309,7 +256,7 @@ const ViewTopics = () => {
               graphqlOperation(userUnfollowCategoryTopic, {
                 user_id: userID,
                 category_acronym: topics[index].acronym,
-                topic_acronym: subtopicsToUnfollow[n].acronym,
+                topic_acronym: subtopicsToUnfollow[n],
               })
             );
           }
@@ -327,25 +274,18 @@ const ViewTopics = () => {
         let userFollowData = {
           user_id: userID,
           category_acronym: topics[index].acronym,
-          topic_acronym: selectedSubTopics[i].acronym,
+          topic_acronym: selectedSubTopics[i],
           email_notice: user.email_notice,
           sms_notice: user.sms_notice,
         };
-        console.log("selectedSubTopics: ", JSON.toString(selectedSubTopics));
-        console.log("userfollowinput: ", userFollowData);
-
         await API.graphql(
           graphqlOperation(userFollowCategoryTopic, userFollowData)
         );
       }
       for (let m = 0; m < topicsToRemove.length; m++) {
-        setSelectedSubtopics((prev) => {
-          console.log("prev: ", prev);
-          return prev.filter((s) => {
-            console.log("s: ", s);
-            return !s.includes(topicsToRemove);
-          });
-        });
+        setSelectedSubtopics((prev) =>
+          prev.filter((s) => !s.includes(topicsToRemove))
+        );
       }
     }
     setAlert(true);
@@ -413,15 +353,8 @@ const ViewTopics = () => {
                   <FormControlLabel
                     key={index}
                     control={<Checkbox />}
-                    checked={userSelectedSubTopics
-                      .map((t) => t.topic_acronym)
-                      .includes(subtopic.acronym)}
-                    label={
-                      navigator.language === "fr" ||
-                      navigator.language.startsWith("fr-")
-                        ? subtopic.acronym_fr
-                        : subtopic
-                    }
+                    checked={userSelectedSubTopics.includes(subtopic)}
+                    label={subtopic}
                     onChange={(e) => handleAlreadySubscribedChange(e, subtopic)}
                   />
                 ))}
@@ -432,16 +365,8 @@ const ViewTopics = () => {
                   <FormControlLabel
                     key={index}
                     control={<Checkbox />}
-                    // checked={selectedSubTopicsCheckbox.includes(`${subtopic}`)}
-                    checked={selectedSubTopicsCheckbox
-                      .map((t) => t.topic_acronym)
-                      .includes(subtopic.acronym)}
-                    label={
-                      navigator.language === "fr" ||
-                      navigator.language.startsWith("fr-")
-                        ? subtopic.acronym_fr
-                        : subtopic
-                    }
+                    checked={selectedSubTopicsCheckbox.includes(`${subtopic}`)}
+                    label={subtopic}
                     onChange={(e) => handleChange(e, subtopic)}
                   />
                 ))}
@@ -474,7 +399,6 @@ const ViewTopics = () => {
         <Collapse in={alert}>
           <Alert severity={"success"} onClose={() => setAlert(false)}>
             Your changes have been saved
-            {/* TODO translation */}
           </Alert>
         </Collapse>
       ) : (
