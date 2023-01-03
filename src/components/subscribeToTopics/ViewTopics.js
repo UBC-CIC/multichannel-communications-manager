@@ -96,7 +96,8 @@ const ViewTopics = () => {
         })
       );
       let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
-      let topics = onlyTopics.map((a) => a.acronym);
+      let topics = onlyTopics;
+      // .map((a) => a.acronym);
       setSubtopics((subtopics) => [...subtopics, topics]);
     }
   }
@@ -353,9 +354,16 @@ const ViewTopics = () => {
                   <FormControlLabel
                     key={index}
                     control={<Checkbox />}
-                    checked={userSelectedSubTopics.includes(subtopic)}
-                    label={subtopic}
-                    onChange={(e) => handleAlreadySubscribedChange(e, subtopic)}
+                    checked={userSelectedSubTopics.includes(subtopic.acronym)}
+                    label={
+                      navigator.language === "fr" ||
+                      navigator.language.startsWith("fr-")
+                        ? subtopic.acronym_fr
+                        : subtopic
+                    }
+                    onChange={(e) =>
+                      handleAlreadySubscribedChange(e, subtopic.acronym)
+                    }
                   />
                 ))}
               </FormGroup>
@@ -365,9 +373,16 @@ const ViewTopics = () => {
                   <FormControlLabel
                     key={index}
                     control={<Checkbox />}
-                    checked={selectedSubTopicsCheckbox.includes(`${subtopic}`)}
-                    label={subtopic}
-                    onChange={(e) => handleChange(e, subtopic)}
+                    checked={selectedSubTopicsCheckbox.includes(
+                      subtopic.acronym
+                    )}
+                    label={
+                      navigator.language === "fr" ||
+                      navigator.language.startsWith("fr-")
+                        ? subtopic.acronym_fr
+                        : subtopic
+                    }
+                    onChange={(e) => handleChange(e, subtopic.acronym)}
                   />
                 ))}
               </FormGroup>
