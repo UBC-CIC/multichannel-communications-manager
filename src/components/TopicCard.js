@@ -45,16 +45,10 @@ const TopicCard = ({
       })
     );
     let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
-    console.log("queriedTopics: ", queriedTopics);
-    console.log("onlyTopics: ", onlyTopics);
-    // setSubtopics(onlyTopics);
-    // console.log("subtopics: ", subtopics);
-    let topics = onlyTopics.map((a) =>
-      navigator.language === "fr" || navigator.language.startsWith("fr-")
-        ? a.acronym_fr
-        : a.acronym
-    );
+    let topics = onlyTopics;
+    // .map((a) => a.acronym);
     setSubtopics(topics);
+    console.log("subtopics", subtopics);
   }
 
   useEffect(() => {
@@ -119,27 +113,11 @@ const TopicCard = ({
     setAlteredSubtopic((prev) => [...prev, subtopic]);
     if (e.target.checked) {
       setBoxCheck((prev) => [...prev, true]);
-      setSelectedSubtopics((prev) => [
-        ...prev,
-        `${
-          navigator.language === "fr" || navigator.language.startsWith("fr-")
-            ? title_fr
-            : title
-        }/${subtopic}`,
-      ]);
+      setSelectedSubtopics((prev) => [...prev, `${title}/${subtopic}`]);
     } else if (!e.target.checked) {
       setBoxCheck((prev) => [...prev, false]);
       setSelectedSubtopics((prev) =>
-        prev.filter(
-          (s) =>
-            s !==
-            `${
-              navigator.language === "fr" ||
-              navigator.language.startsWith("fr-")
-                ? title_fr
-                : title
-            }/${subtopic}`
-        )
+        prev.filter((s) => s !== `${title}/${subtopic}`)
       );
     }
   };
@@ -150,7 +128,7 @@ const TopicCard = ({
         <Collapse in={alert}>
           <Alert severity={"success"} onClose={() => setAlert(false)}>
             Your changes have been saved
-            {/* TODO translation */}
+            {/* TODO */}
           </Alert>
         </Collapse>
       ) : (
@@ -196,15 +174,15 @@ const TopicCard = ({
                 key={index}
                 control={<Checkbox />}
                 checked={selectedSubTopics.includes(
-                  `${
-                    navigator.language === "fr" ||
-                    navigator.language.startsWith("fr-")
-                      ? title_fr
-                      : title
-                  }/${subtopic}`
+                  `${title}/${subtopic.acronym}`
                 )}
-                label={subtopic}
-                onChange={(e) => handleChange(e, subtopic)}
+                label={
+                  navigator.language === "fr" ||
+                  navigator.language.startsWith("fr-")
+                    ? subtopic.acronym_fr
+                    : subtopic.acronym
+                }
+                onChange={(e) => handleChange(e, subtopic.acronym)}
               />
             ))}
           </FormGroup>

@@ -724,6 +724,7 @@ function Login(props) {
                       If you selected to receive notifications via text then a
                       confirmation code will be sent to your phone. Otherwise it
                       will be sent to your email. This may take several minutes.
+                      {/* TODO translation */}
                     </span>
                     <br />
                     <span>

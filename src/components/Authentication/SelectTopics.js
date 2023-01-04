@@ -210,7 +210,9 @@ const SelectTopics = ({ handleNextStep }) => {
           >
             {selectedSubtopics.length > 0 && (
               <Box sx={{ display: "flex", mt: "2em", flexDirection: "column" }}>
-                <Typography variant="body2">Currently Selected:</Typography>
+                <Typography variant="body2">
+                  {I18n.get("currentSelection")}
+                </Typography>
                 <Box
                   sx={{
                     display: "flex",
