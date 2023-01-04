@@ -13,8 +13,6 @@ import Login from "./components/Authentication/Login_material";
 import PageContainer from "./views/PageContainer";
 import Admin from "./pages/Admin";
 import Navbar from "./components/Navbar";
-import en from "./components/localization/en.json";
-import fr from "./components/localization/fr.json";
 import { languageData } from "./components/localization/languageData";
 
 Amplify.configure(awsmobile);
@@ -23,7 +21,11 @@ I18n.putVocabularies(languageData);
 
 function App(props) {
   const { loginState, updateLoginState } = props;
-  const [language, setLanguage] = useState("fr");
+  const [language, setLanguage] = useState(
+    navigator.language === "fr" || navigator.language.startsWith("fr-")
+      ? "fr"
+      : "en"
+  );
   I18n.setLanguage(language);
   console.log("current navigator language: ", navigator.language);
 

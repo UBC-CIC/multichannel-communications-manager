@@ -359,7 +359,7 @@ const ViewTopics = () => {
                       navigator.language === "fr" ||
                       navigator.language.startsWith("fr-")
                         ? subtopic.acronym_fr
-                        : subtopic
+                        : subtopic.acronym
                     }
                     onChange={(e) =>
                       handleAlreadySubscribedChange(e, subtopic.acronym)
@@ -380,7 +380,7 @@ const ViewTopics = () => {
                       navigator.language === "fr" ||
                       navigator.language.startsWith("fr-")
                         ? subtopic.acronym_fr
-                        : subtopic
+                        : subtopic.acronym
                     }
                     onChange={(e) => handleChange(e, subtopic.acronym)}
                   />
