@@ -27,7 +27,8 @@ import EditTopicDialog from "./Dialog/EditTopicDialog";
 import { I18n } from "aws-amplify";
 
 const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
-  const { title, description, picture_location } = selectedTopic;
+  const { title, title_fr, description, description_fr, picture_location } =
+    selectedTopic;
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedSubTopics, setSelectedSubtopics] = useState([]);
   const [isRotated, setIsRotated] = useState(false);
@@ -120,7 +121,12 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
       <>
         <Card>
           <CardHeader
-            title={title}
+            title={
+              navigator.language === "fr" ||
+              navigator.language.startsWith("fr-")
+                ? title_fr
+                : title
+            }
             titleTypographyProps={{
               fontSize: "1.2rem",
               fontWeight: "400",
@@ -144,7 +150,10 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
           )}
           <CardContent sx={{ p: "16px 16px 0px 16px" }}>
             <Typography variant="body2" color="text.secondary">
-              {description}
+              {navigator.language === "fr" ||
+              navigator.language.startsWith("fr-")
+                ? description_fr
+                : description}
             </Typography>
           </CardContent>
           <CardActions
@@ -163,6 +172,7 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
                 onClick={() => setIsRotated(!isRotated)}
               >
                 View Topics
+                {/* TODO */}
               </Button>
               <IconButton
                 aria-label="subscribe to topic"
@@ -192,7 +202,12 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
         >
           <Box width={"100%"}>
             <CardHeader
-              title={title}
+              title={
+                navigator.language === "fr" ||
+                navigator.language.startsWith("fr-")
+                  ? title_fr
+                  : title
+              }
               titleTypographyProps={{
                 fontSize: "1.2rem",
                 fontWeight: "400",

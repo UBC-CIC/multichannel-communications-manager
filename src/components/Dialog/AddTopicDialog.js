@@ -30,8 +30,10 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
   const [newTopic, setNewTopic] = useState("");
   const [selectedTopics, setSelectedTopics] = useState([]);
   const [title, setTitle] = useState("");
+  const [titleFr, setTitleFr] = useState("");
   const [acronym, setAcronym] = useState("");
   const [description, setDescription] = useState("");
+  const [descriptionFr, setDescriptionFr] = useState("");
   const [topicExistsError, setTopicsExistError] = useState(false);
   const [uploadFile, setUploadFile] = useState();
   const [selectedUploadFile, setSelectedUploadFile] = useState("");
@@ -97,7 +99,9 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
       let createdTopic = {
         acronym: acronym,
         title: title,
+        title_fr: titleFr,
         description: description,
+        description_fr: descriptionFr,
         picture_location: s3Key,
       };
       try {
@@ -223,7 +227,7 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
             label={I18n.get("descriptionEn")}
             multiline
             rows={5}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => setDescriptionFr(e.target.value)}
           />
           <Box width={"40%"}>
             <TextField
@@ -231,8 +235,8 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
               inputProps={{ maxLength: 49 }}
               size="small"
               type="text"
-              label={I18n.get("titleFr")}
-              onChange={(e) => setTitle(e.target.value)}
+              label={I18n.get("titleFr") + " *"}
+              onChange={(e) => setTitleFr(e.target.value)}
             />
           </Box>
           <TextField

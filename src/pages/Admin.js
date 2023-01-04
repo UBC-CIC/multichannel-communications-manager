@@ -123,7 +123,15 @@ const Admin = () => {
             onClick={() => setCurrentlySelectedTopic(topic)}
           >
             {topic.picture_location !== null ? (
-              <img src={image[index]} alt={topic.title} />
+              <img
+                src={image[index]}
+                alt={
+                  navigator.language === "fr" ||
+                  navigator.language.startsWith("fr-")
+                    ? topic.title_fr
+                    : topic.title
+                }
+              />
             ) : (
               <Box
                 sx={{
@@ -134,7 +142,15 @@ const Admin = () => {
                 }}
               ></Box>
             )}
-            <StyledImageListItemBar title={topic.title} position="below" />
+            <StyledImageListItemBar
+              title={
+                navigator.language === "fr" ||
+                navigator.language.startsWith("fr-")
+                  ? topic.title_fr
+                  : topic.title
+              }
+              position="below"
+            />
           </StyledImageListItem>
         ))
         .slice((page - 1) * topicsPerPage, page * topicsPerPage)
