@@ -45,7 +45,8 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
       })
     );
     let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
-    let topics = onlyTopics.map((a) => a.acronym);
+    let topics = onlyTopics;
+    // .map((a) => a.acronym);
     setSubtopics(topics);
   }
 
@@ -171,8 +172,7 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
                 sx={{ mr: "1em" }}
                 onClick={() => setIsRotated(!isRotated)}
               >
-                View Topics
-                {/* TODO */}
+                {I18n.get("viewTopics")}
               </Button>
               <IconButton
                 aria-label="subscribe to topic"
@@ -234,7 +234,7 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
               <FormControlLabel
                 key={index}
                 control={<Checkbox />}
-                checked={selectedSubTopics.includes(subtopic)}
+                checked={selectedSubTopics.includes(subtopic.acronym)}
                 label={subtopic}
                 onChange={(e) => handleChange(e, subtopic)}
               />

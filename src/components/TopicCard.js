@@ -127,8 +127,7 @@ const TopicCard = ({
       {alert ? (
         <Collapse in={alert}>
           <Alert severity={"success"} onClose={() => setAlert(false)}>
-            Your changes have been saved
-            {/* TODO */}
+            {I18n.get("changesSaved")}
           </Alert>
         </Collapse>
       ) : (

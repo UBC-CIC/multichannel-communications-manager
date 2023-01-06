@@ -43,6 +43,11 @@ export const languageData = {
     maxIncorrectAttempts: "Too many incorrect attempts.",
     UserNone: "User does not exist.",
     confirmationPrompt: "Enter your confirmation code",
+    confirmationNote:
+      "If you selected to receive notifications via text then a confirmation code will be sent to your phone. Otherwise it will be sent to your email. This may take several minutes.",
+    note: "Note: ",
+    emailNote:
+      "Future sign-ins will have the verification code sent to your email, regardless of if you selected text.",
     // select categories
     selectCategories: "Categories of Interest",
     selectCategoriesTitle: "Select Categories of Interest",
@@ -72,6 +77,7 @@ export const languageData = {
     nocurrentTopics: "Currently no topics",
     missingValue: "No value entered.",
     topicExistsErr: "Topic already exists.",
+    viewTopics: "View Topics",
     // user profile edit
     emailUpdateSuccess: "Your email has been successfully updated.",
     confirmLeavePage: "Leaving Page?",
@@ -82,6 +88,7 @@ export const languageData = {
     subscribeTab: "Subscribe to Topics",
     editAccountTab: "Edit Account Information",
     subscribedFilter: "Subscribed only",
+    changesSaved: "Your changes have been saved",
     // nav
     logout: "Logout ",
     // steps
@@ -155,6 +162,11 @@ export const languageData = {
     maxIncorrectAttempts: "Trop de tentatives incorrectes.",
     UserNone: "L'utilisateur n'existe pas.",
     confirmationPrompt: "Entrez votre code de confirmation",
+    confirmationNote:
+      "Si vous avez choisi de recevoir des notifications par SMS, un code de confirmation sera envoyé sur votre téléphone. Sinon, il sera envoyé à votre adresse e-mail. Cela peut prendre plusieurs minutes.",
+    note: "Noter: ",
+    emailNote:
+      "Lors des futures connexions, le code de vérification sera envoyé à votre adresse e-mail, que vous ayez ou non sélectionné du texte.",
     // select categories
     selectCategories: "Catégories d'intérêt",
     selectCategoriesTitle: "Sélectionnez les catégories d'intérêt",
@@ -184,6 +196,7 @@ export const languageData = {
     nocurrentTopics: "Aucun sujet pour le moment",
     missingValue: "Aucune valeur saisie.",
     topicExistsErr: "Le sujet existe déjà.",
+    viewTopics: "Afficher les sujets",
     // user profile edit
     emailUpdateSuccess: "Your email has been successfully updated.",
     confirmLeavePage: "Leaving Page?",
@@ -194,6 +207,7 @@ export const languageData = {
     subscribeTab: "Abonnez-vous aux sujets",
     editAccountTab: "Modifier les informations du compte",
     subscribedFilter: "Abonné uniquement",
+    changesSaved: "Vos changements ont été enregistrés",
     // nav
     logout: "Se déconnecter ",
     // steps

@@ -720,17 +720,11 @@ function Login(props) {
                   <span>{I18n.get("checkEmailVerification")}</span>
                 ) : (
                   <Grid container item xs={12}>
-                    <span>
-                      If you selected to receive notifications via text then a
-                      confirmation code will be sent to your phone. Otherwise it
-                      will be sent to your email. This may take several minutes.
-                      {/* TODO translation */}
-                    </span>
+                    <span>{I18n.get("confirmationNote")}</span>
                     <br />
                     <span>
-                      <strong>Note: </strong>Future sign-ins will have the
-                      verification code sent to your email, regardless of if you
-                      selected text.
+                      <strong>{I18n.get("note")}</strong>
+                      {I18n.get("emailNote")}
                     </span>
                   </Grid>
                 )}

@@ -3,22 +3,6 @@
 input AMPLIFY {
   globalAuthRule: AuthRule = { allow: public }
 } # FOR TESTING ONLY!
-# input S3ObjectInput {
-#   # bucket: String!
-#   # region: String!
-#   localUri: String
-#   # visibility: Visibility
-#   # key: String
-#   # mimeType: String
-# }
-
-# type S3Object {
-#   # bucket: String!
-#   # region: String!
-#   # key: String!
-#   input: String
-# }
-
 type Category {
   category_id: Int!
   acronym: String!
@@ -159,6 +143,7 @@ type Query {
   getAllTopics: [Topic]
   getAllCategoryTopics: [CategoryTopic]
   testSQL: String
+  placeHolder: String
 }
 
 schema {
