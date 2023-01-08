@@ -93,7 +93,7 @@ type Mutation {
     picture_location: String
     english_title: String!
     english_description: String
-  ): CategoryFull
+  ): Category
   addCategoryDisplayLanguage(
     category_id: Int!
     language: Language!
@@ -116,7 +116,7 @@ type Mutation {
     language: Language!
     name: String!
   ): TopicFull
-  updateTopic(topic_id: Int!, language: String!, name: String!): TopicFull
+  updateTopic(topic_id: Int!, language: Language!, name: String!): TopicFull
   deleteTopic(topic_id: Int!): String
   addTopicToCategory(category_id: Int!, topic_id: Int!): CategoryTopic
   deleteCategoryTopic(category_id: Int!, topic_id: Int!): String
@@ -147,14 +147,17 @@ type Query {
   getUserByEmail(user_email: String!): User
 
   getUserCategoryTopicByUserId(user_id: Int!): [UserCategoryTopic]
-  getCategoriesByUserId(user_id: Int!, language: String): [CategorySubscription]
+  getCategoriesByUserId(
+    user_id: Int!
+    language: Language!
+  ): [CategorySubscription]
   getCategoryTopicById(categoryTopic_id: Int!): CategoryTopic
-  getCategory(category_id: Int!): CategoryFull
-  getTopicsOfCategory(category_id: Int!): [TopicFull]
-  getTopic(topic_id: Int!): TopicFull
+  getCategory(category_id: Int!, language: Language!): CategoryFull
+  getTopicsOfCategory(category_id: Int!, language: Language): [TopicFull]
+  getTopic(topic_id: Int!, language: Language!): TopicFull
 
-  getAllCategoriesForLanguage(language: String!): [CategoryFull]
-  getAllTopicsForLanguage(language: String!): [TopicFull]
+  getAllCategoriesForLanguage(language: Language!): [CategoryFull]
+  # getAllTopicsForLanguage(language: language!): [TopicFull]
   getAllCategoryTopics: [CategoryTopic]
   testSQL: String
 }

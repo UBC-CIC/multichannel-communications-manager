@@ -41,7 +41,7 @@ export const getUserCategoryTopicByUserId = /* GraphQL */ `
   }
 `;
 export const getCategoriesByUserId = /* GraphQL */ `
-  query GetCategoriesByUserId($user_id: Int!, $language: String) {
+  query GetCategoriesByUserId($user_id: Int!, $language: Language) {
     getCategoriesByUserId(user_id: $user_id, language: $language) {
       id
       language
@@ -63,8 +63,8 @@ export const getCategoryTopicById = /* GraphQL */ `
   }
 `;
 export const getCategory = /* GraphQL */ `
-  query GetCategory($category_id: Int!) {
-    getCategory(category_id: $category_id) {
+  query GetCategory($category_id: Int!, $language: Language!) {
+    getCategory(category_id: $category_id, language: $language) {
       category_id
       language
       title
@@ -74,8 +74,8 @@ export const getCategory = /* GraphQL */ `
   }
 `;
 export const getTopicsOfCategory = /* GraphQL */ `
-  query GetTopicsOfCategory($category_id: Int!) {
-    getTopicsOfCategory(category_id: $category_id) {
+  query GetTopicsOfCategory($category_id: Int!, $language: Language) {
+    getTopicsOfCategory(category_id: $category_id, language: $language) {
       topic_id
       language
       name
@@ -83,8 +83,8 @@ export const getTopicsOfCategory = /* GraphQL */ `
   }
 `;
 export const getTopic = /* GraphQL */ `
-  query GetTopic($topic_id: Int!) {
-    getTopic(topic_id: $topic_id) {
+  query GetTopic($topic_id: Int!, $language: Language!) {
+    getTopic(topic_id: $topic_id, language: $language) {
       topic_id
       language
       name
@@ -92,22 +92,13 @@ export const getTopic = /* GraphQL */ `
   }
 `;
 export const getAllCategoriesForLanguage = /* GraphQL */ `
-  query GetAllCategoriesForLanguage($language: String!) {
+  query GetAllCategoriesForLanguage($language: Language!) {
     getAllCategoriesForLanguage(language: $language) {
       category_id
       language
       title
       description
       picture_location
-    }
-  }
-`;
-export const getAllTopicsForLanguage = /* GraphQL */ `
-  query GetAllTopicsForLanguage($language: String!) {
-    getAllTopicsForLanguage(language: $language) {
-      topic_id
-      language
-      name
     }
   }
 `;

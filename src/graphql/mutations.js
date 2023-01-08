@@ -80,9 +80,6 @@ export const createCategory = /* GraphQL */ `
       english_description: $english_description
     ) {
       category_id
-      language
-      title
-      description
       picture_location
     }
   }
@@ -160,7 +157,7 @@ export const addTopicDisplayLanguage = /* GraphQL */ `
   }
 `;
 export const updateTopic = /* GraphQL */ `
-  mutation UpdateTopic($topic_id: Int!, $language: String!, $name: String!) {
+  mutation UpdateTopic($topic_id: Int!, $language: Language!, $name: String!) {
     updateTopic(topic_id: $topic_id, language: $language, name: $name) {
       topic_id
       language

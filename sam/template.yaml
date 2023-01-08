@@ -402,7 +402,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
 
-  MainDBCluster:
+  DBCluster:
     Type: AWS::RDS::DBCluster
     DependsOn:
     - VPC
@@ -411,7 +411,7 @@ Resources:
     - DBPrivateSubnetGrouping
     Properties: 
       DatabaseName: !Ref 'DBName'
-      DBClusterIdentifier: db-cluster
+      DBClusterIdentifier: dbcluster
       DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
       DBSubnetGroupName: !Ref DBPrivateSubnetGrouping
       DeletionProtection: !Ref 'DeletionProtection'
@@ -435,15 +435,15 @@ Resources:
       VpcSecurityGroupIds:  
         - !Ref MySQLAuroraInboundSG
 
-  MainDBInstance:
+  DBInstance:
     Type: AWS::RDS::DBInstance
     DependsOn:
-    - MainDBCluster
+    - DBCluster
     Properties: 
-      DBClusterIdentifier: db-cluster
+      DBClusterIdentifier: dbcluster
       Engine: aurora-mysql 
       DBInstanceClass: !Ref 'DBInstanceClass'
-      DBInstanceIdentifier: !Sub '${ProjectName}-${EnvironmentName}-instance'
+      DBInstanceIdentifier: !Sub '${ProjectName}-${EnvironmentName}-dbinstance'
       PubliclyAccessible: false 
       # DBParameterGroupName: 
       #   Ref: RDSDBParameterGroup
@@ -469,16 +469,16 @@ Resources:
   RDSCredentialsSecret:
     Type: AWS::SecretsManager::Secret
     DependsOn:
-    # - MainDBCluster
+    # - DBCluster
     - IGWAttachment
-    # - MainDBInstance
+    # - DBInstance
     Properties: 
       Description: Stores the credentials for the RDS instance
       Name: RDSCredentials
       GenerateSecretString:
         SecretStringTemplate: !Sub '{"username":"admin","engine":"mysql","port":3306,"region":"${AWS::Region}"}'
-        # !Sub '{"username":"admin","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
-      # SecretString: !Sub '{"username":"${DBUser}","password":"${DBPassword}","engine":"mysql","host":"${MainDBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
+        # !Sub '{"username":"admin","engine":"mysql","host":"${DBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
+      # SecretString: !Sub '{"username":"${DBUser}","password":"${DBPassword}","engine":"mysql","host":"${DBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
         GenerateStringKey: "password"
         ExcludeCharacters: '"@/\'
       Tags:
@@ -553,7 +553,7 @@ Resources:
     Type: AWS::IAM::Role
     DependsOn:
       - RDSCredentialsSecret
-      - MainDBInstance
+      - DBInstance
     Properties:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -574,15 +574,15 @@ Resources:
                 Resource: !Ref RDSCredentialsSecret
               - Effect: Allow
                 Action: rds-db:connect
-                Resource: !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:${MainDBCluster}"
+                Resource: !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:${DBCluster}"
               - Effect: Allow
                 Action: rds-db:connect
-                Resource: !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:${MainDBInstance}"
+                Resource: !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:${DBInstance}"
 
   RDSProxy:
     Type: AWS::RDS::DBProxy
     DependsOn:
-    - MainDBInstance
+    - DBInstance
     - RDSCredentialsSecret
     - PrivateSubnet1
     - PrivateSubnet2
@@ -610,11 +610,11 @@ Resources:
   RDSProxyTargetGroup:
     Type: AWS::RDS::DBProxyTargetGroup
     DependsOn:
-    - MainDBCluster
+    - DBCluster
     - RDSProxy
     Properties:
       DBProxyName: !Ref RDSProxy
-      DBClusterIdentifiers: [!Ref MainDBCluster] 
+      DBClusterIdentifiers: [!Ref DBCluster] 
       TargetGroupName: default
       ConnectionPoolConfigurationInfo:
           MaxConnectionsPercent: 100
@@ -636,7 +636,7 @@ Resources:
     DependsOn:
     - RDSProxy
     - ClosedSecurityGroup
-    - MainDBInstance
+    - DBInstance
     - LambdaServiceRole
     Properties:
       FunctionName: graphQL-MySQL-Resolver
@@ -828,6 +828,7 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0   
 
+# TODO
   getCategoriesByUserIdResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -840,7 +841,7 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select c.acronym, c.title, c.description, c.picture_location, uct.email_notice, uct.sms_notice from `Category` c, `UserCategoryTopic` uct, `CategoryTopic` ct where uct.user_id = :user_id and ct.category_acronym = c.acronym and ct.categoryTopic_id = uct.categoryTopic_id;",
+        "sql": "select c.acronym, c.title, c.description, c.picture_location, uct.email_notice, uct.sms_notice from `Category` c, `UserCategoryTopic` uct, `CategoryTopic` ct where uct.user_id = :user_id and ct.category_id = c.acronym and ct.categoryTopic_id = uct.categoryTopic_id;",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         }
@@ -886,21 +887,23 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0   
 
-  getCategoryByAcronymResolver:
+# TODO test this
+  getCategoryResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
-      FieldName: getCategoryByAcronym
+      FieldName: getCategory
       RequestMappingTemplate: |
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select * from `Category` where `Category`.acronym = :1;",
+        "sql": "select * from CategoryInfo ci, Category c where c.category_id = :1 and ci.language = :2 and c.category_id = ci.category_id;",
         "SQLVariableMapping": {
-        ":1": "$context.arguments.acronym"
+        ":1": $context.arguments.category_id,
+        ":2": "$context.arguments.language"
         }
         }
         }
@@ -915,21 +918,22 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0   
 
-  getTopicsOfCategoryByAcronymResolver:
+  getTopicsOfCategoryResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
-      FieldName: getTopicsOfCategoryByAcronym
+      FieldName: getTopicsOfCategory
       RequestMappingTemplate: |
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select * from `Topic`, `CategoryTopic` where `Topic`.acronym = `CategoryTopic`.topic_acronym and `CategoryTopic`.category_acronym = :1;",
+        "sql": "select t.topic_id, t.language, t.name from TopicInfo t, CategoryTopic ct where ct.category_id = :1 and t.topic_id = ct.topic_id and t.topic_language = :2;",
         "SQLVariableMapping": {
-        ":1": "$context.arguments.category_acronym"
+        ":1": $context.arguments.category_id,
+        ":2": $context.arguments.language
         }
         }
         }
@@ -943,21 +947,22 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
-  getTopicByAcronymResolver:
+  getTopicResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
-      FieldName: getTopicByAcronym
+      FieldName: getTopic
       RequestMappingTemplate: |
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select * from `Topic` where `Topic`.acronym = :1;",
+        "sql": "select * from `TopicInfo` where `TopicInfo`.topic_id = :1 and `TopicInfo`.language = :2;",
         "SQLVariableMapping": {
-        ":1": "$context.arguments.topic_acronym"
+        ":1": $context.arguments.topic_id,
+        ":2": "$context.arguments.language"
         }
         }
         }
@@ -972,48 +977,49 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
-  getAllTopicsResolver:
+  # getAllTopicsResolver:
+  #   Type: AWS::AppSync::Resolver
+  #   DependsOn:
+  #   - LambdaResolverAppSyncDataSource
+  #   Properties:
+  #     TypeName: Query
+  #     FieldName: getAllTopics
+  #     RequestMappingTemplate: |
+  #       {
+  #       "version": "2018-05-29",
+  #       "operation": "Invoke",
+  #       "payload": {
+  #       "sql": "select * from `Topic`",
+  #       "SQLVariableMapping": {
+  #       }
+  #       }
+  #       }
+
+  #     ResponseMappingTemplate: |
+  #       #if($ctx.error)
+  #         $util.error($ctx.error.message, $ctx.error.type)
+  #       #end
+  #       $util.toJson($context.result.sqlResult)
+  #     ApiId: !GetAtt GraphQLApiIdParameter.Value
+  #     DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
+  #     Kind: UNIT
+  #     MaxBatchSize: 0
+
+  getAllCategoriesForLanguageResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
     Properties:
       TypeName: Query
-      FieldName: getAllTopics
+      FieldName: getAllCategoriesForLanguage
       RequestMappingTemplate: |
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select * from `Topic`",
+        "sql": "select * from `CategoryInfo` where `CategoryInfo`.language=:1",
         "SQLVariableMapping": {
-        }
-        }
-        }
-
-      ResponseMappingTemplate: |
-        #if($ctx.error)
-          $util.error($ctx.error.message, $ctx.error.type)
-        #end
-        $util.toJson($context.result.sqlResult)
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
-      Kind: UNIT
-      MaxBatchSize: 0
-
-  getAllCategoriesResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn:
-    - LambdaResolverAppSyncDataSource
-    Properties:
-      TypeName: Query
-      FieldName: getAllCategories
-      RequestMappingTemplate: |
-        {
-        "version": "2018-05-29",
-        "operation": "Invoke",
-        "payload": {
-        "sql": "select * from `Category`",
-        "SQLVariableMapping": {
+        ":1": "$context.arguments.language"
         }
         }
         }
@@ -1086,7 +1092,7 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `User` (email_address, phone_address, postal_code, province, email_notice, sms_notice) values (:email_address, :phone_address, :postal_code, :province, :email_notice, :sms_notice);",
+        "sql": "insert into `User` (email_address, phone_address, postal_code, province, email_notice, sms_notice, language) values (:email_address, :phone_address, :postal_code, :province, :email_notice, :sms_notice, :language);",
         "SQLVariableMapping": {
         ":email_address": "$context.arguments.email_address",
         ":phone_address": $phone_address,
@@ -1095,6 +1101,7 @@ Resources:
         ":province": "$context.arguments.province",
         ":email_notice": $email_notice,
         ":sms_notice": $sms_notice,
+        ":language": "$context.arguments.language"
         },
         "pinpoint":{"type": "userprofile", "action": "insert"},
         "responseSQL": "select * from `User` where email_address=:email_address"
@@ -1110,6 +1117,7 @@ Resources:
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
 
+  # TODO
   updateUserResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -1122,6 +1130,7 @@ Resources:
         #set($email_address = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.email_address, null)))
         #set($province = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.province, null)))
         #set($postal_code = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
+        #set($language = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
 
         #if($context.arguments.email_notice)
           #set( $sql_email_notice = "email_notice=true, " )
@@ -1179,13 +1188,14 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `User` SET $sql_email_notice $sql_sms_notice $sql_email_address $sql_phone_address $sql_province $sql_postal_code WHERE `User`.user_id = :user_id;",
+        "sql": "UPDATE `User` SET $sql_email_notice $sql_sms_notice $sql_email_address $sql_phone_address $sql_province $sql_postal_code $language WHERE `User`.user_id = :user_id;",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_address": $email_address,
         ":phone_address": $phone_address,
         ":province": $province,
         ":postal_code": $postal_code,
+        ":language": $language
         },
         "pinpoint":{"type": "userprofile", "action": "update"},
         "responseSQL": "select * from `User` where user_id=:user_id;"
@@ -1238,22 +1248,19 @@ Resources:
       TypeName: Mutation
       FieldName: createCategory
       RequestMappingTemplate: |
-        #set($description = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.description, null)))
-        #set($description_fr = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.description_fr, null)))
+        #set($picture_location = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.picture_location, null)))
+        #set($description = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.english_description, null)))
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `Category` (acronym, title, description, picture_location, title_fr, description_fr) values (:acronym, :title, :description, :picture_location, :title_fr, :description_fr);",
+        "sql": "insert into Category (picture_location) values ($picture_location); SET @last_id_in_table1 = LAST_INSERT_ID(); INSERT INTO CategoryInfo (category_id,language,title,description) VALUES (@last_id_in_table1, 'en', :title, :description); ",
         "SQLVariableMapping": {
-        ":acronym": "$context.arguments.acronym",
-        ":title": "$context.arguments.title",
-        ":description": $description,
-        ":picture_location": "$context.arguments.picture_location",
-        ":title_fr": "$context.arguments.title_fr",
-        ":description_fr": $description_fr
+        ":picture_location": $picture_location,
+        ":title": "$context.arguments.english_title",
+        ":description": $description
         },
-        "responseSQL": "select * from `Category` where acronym=:acronym;"
+        "responseSQL": "select * from `CategoryInfo` where title=:title;"
         }
         }
       ResponseMappingTemplate: |
@@ -1266,6 +1273,42 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
+
+  addCategoryDisplayLanguageResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaResolverAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: addCategoryDisplayLanguage
+      RequestMappingTemplate: |
+        #set($description = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.description, null)))
+        #set($description_fr = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.description_fr, null)))
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "insert into `CategoryInfo` (category_id, language, title, description) values (:id, :language, :title, :description);",
+        "SQLVariableMapping": {
+        ":id": $context.arguments.category_id,
+        ":language": "$context.arguments.language",
+        ":title": "$context.arguments.title",
+        ":description": $description
+        },
+        "responseSQL": "select * from `Category` where category_id=:id;"
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        $util.toJson($context.result.sqlResult[0])
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
+  # TODO
   updateCategoryResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -1381,7 +1424,6 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
-
   createTopicResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -1394,12 +1436,11 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `Topic` (acronym, acronym_fr) values (:acronym, :acronym_fr);",
+        "sql": "INSERT INTO Topic () VALUES (); SET @last_id_in_table1 = LAST_INSERT_ID(); INSERT INTO TopicInfo (topic_id,language,name) VALUES (@last_id_in_table1, 'en', :name); ",
         "SQLVariableMapping": {
-        ":acronym": "$context.arguments.acronym",
-        ":acronym_fr": "$context.arguments.acronym_fr"
+        ":name": "$context.arguments.english_name"
         },
-        "responseSQL": "select * from `Topic` where acronym=:acronym;"
+        "responseSQL": "select * from `TopicInfo` where name=:name and language='en';"
         }
         }
       ResponseMappingTemplate: |
@@ -1411,6 +1452,69 @@ Resources:
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
+
+  addTopicDisplayLanguageResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaResolverAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: addTopicDisplayLanguage
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "insert into `TopicInfo` (topic_id, language, name) values (:id, :language, :name);",
+        "SQLVariableMapping": {
+        ":id": $context.arguments.topic_id,
+        ":language": "$context.arguments.language",
+        ":name": "$context.arguments.name"
+        },
+        "responseSQL": "select * from `TopicInfo` where topic_id=:id and language=:language;"
+        }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        $util.toJson($context.result.sqlResult[0])
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
+  # TODO
+  # updateTopicResolver:
+  #   Type: AWS::AppSync::Resolver
+  #   DependsOn:
+  #   - LambdaResolverAppSyncDataSource
+  #   Properties:
+  #     TypeName: Mutation
+  #     FieldName: updateTopic
+  #     RequestMappingTemplate: |
+  #       {
+  #       "version": "2018-05-29",
+  #       "operation": "Invoke",
+  #       "payload": {
+  #       "sql": "insert into `Topic` (language, name) values (:language, :name);",
+  #       "SQLVariableMapping": {
+  #       ":language": "$context.arguments.language",
+  #       ":name": "$context.arguments.name"
+  #       },
+  #       "responseSQL": "select * from `Topic` where name=:name;"
+  #       }
+  #       }
+  #     ResponseMappingTemplate: |
+  #       #if($ctx.error)
+  #         $util.error($ctx.error.message, $ctx.error.type)
+  #       #end
+  #       $util.toJson($context.result.sqlResult[0])
+  #     ApiId: !GetAtt GraphQLApiIdParameter.Value
+  #     DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
+  #     Kind: UNIT
+  #     MaxBatchSize: 0
+
 
   deleteTopicResolver:
     Type: AWS::AppSync::Resolver
@@ -1426,7 +1530,7 @@ Resources:
         "payload": {
         "sql": "delete from `Topic` where topic_id=:topic_id;",
         "SQLVariableMapping": {
-        ":topic_id": "$context.arguments.topic_id"
+        ":topic_id": $context.arguments.topic_id
         }
         }
         }
@@ -1452,12 +1556,12 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into `CategoryTopic` (category_acronym, topic_acronym) values (:category_acronym, :topic_acronym);",
+        "sql": "insert into `CategoryTopic` (category_id, topic_id) values (:category_id, :topic_id);",
         "SQLVariableMapping": {
-        ":category_acronym": "$context.arguments.category_acronym",
-        ":topic_acronym": "$context.arguments.topic_acronym"
+        ":category_id": $context.arguments.category_id,
+        ":topic_id": $context.arguments.topic_id
         },
-        "responseSQL": "select * from `CategoryTopic` where category_acronym=:category_acronym and topic_acronym=:topic_acronym;"
+        "responseSQL": "select * from `CategoryTopic` where category_id=:category_id and topic_id=:topic_id;"
         }
         }
       ResponseMappingTemplate: |
@@ -1482,10 +1586,10 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "delete from `CategoryTopic` where category_acronym=:category_acronym and topic_acronym=:topic_acronym;",
+        "sql": "delete from `CategoryTopic` where category_id=:category_id and topic_id=:topic_id;",
         "SQLVariableMapping": {
-        ":category_acronym": "$context.arguments.category_acronym",
-        ":topic_acronym": "$context.arguments.topic_acronym"
+        ":category_id": $context.arguments.category_id,
+        ":topic_id": $context.arguments.topic_id
         }
         }
         }
@@ -1517,22 +1621,22 @@ Resources:
         #else	
           #set( $sms_notice = false )
         #end
-        ## "insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic`, `UserCategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
+        ## "insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic`, `UserCategoryTopic` where `CategoryTopic`.category_id = :category_id and `CategoryTopic`.topic_id = :topic_id;",
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
         "sql": 
-          "insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
+          "insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_id = :category_id and `CategoryTopic`.topic_id = :topic_id;",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_notice": $email_notice,
         ":sms_notice": $sms_notice,
-        ":category_acronym": "$context.arguments.category_acronym",
-        ":topic_acronym": "$context.arguments.topic_acronym"
+        ":category_id": $context.arguments.category_id,
+        ":topic_id": $context.arguments.topic_id
         },
         "pinpoint": {"type": "usersubscription", "action": "insert"},
-        "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_acronym=:category_acronym and `CategoryTopic`.topic_acronym=:topic_acronym;"
+        "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_id=:category_id and `CategoryTopic`.topic_id=:topic_id;"
         }
         }
       ResponseMappingTemplate: |
@@ -1563,24 +1667,24 @@ Resources:
         #else	
           #set( $sms_notice = false )
         #end
-        ## "update table `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic`, `UserCategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
+        ## "update table `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic`, `UserCategoryTopic` where `CategoryTopic`.category_id = :category_id and `CategoryTopic`.topic_id = :topic_id;",
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
         "sql":
-          "update `UserCategoryTopic`, `CategoryTopic` set `UserCategoryTopic`.email_notice = :email_notice, `UserCategoryTopic`.sms_notice = :sms_notice where `UserCategoryTopic`.user_id = :user_id and `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id;",
-          ##"update `UserCategoryTopic` set email_notice=:email_notice, sms_notice=:sms_notice from (select categoryTopic_id from `CategoryTopic`) as CategoryTopic where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym and `UserCategoryTopic`.categoryTopic_id=`CategoryTopic`.categoryTopic_id;",
-          ##"insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym;",
+          "update `UserCategoryTopic`, `CategoryTopic` set `UserCategoryTopic`.email_notice = :email_notice, `UserCategoryTopic`.sms_notice = :sms_notice where `UserCategoryTopic`.user_id = :user_id and `CategoryTopic`.category_id = :category_id and `CategoryTopic`.topic_id = :topic_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id;",
+          ##"update `UserCategoryTopic` set email_notice=:email_notice, sms_notice=:sms_notice from (select categoryTopic_id from `CategoryTopic`) as CategoryTopic where `CategoryTopic`.category_id = :category_id and `CategoryTopic`.topic_id = :topic_id and `UserCategoryTopic`.categoryTopic_id=`CategoryTopic`.categoryTopic_id;",
+          ##"insert into `UserCategoryTopic` (user_id, email_notice, sms_notice, categoryTopic_id) select :user_id, :email_notice, :sms_notice, `CategoryTopic`.categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_id = :category_id and `CategoryTopic`.topic_id = :topic_id;",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_notice": $email_notice,
         ":sms_notice": $sms_notice,
-        ":category_acronym": "$context.arguments.category_acronym",
-        ":topic_acronym": "$context.arguments.topic_acronym"
+        ":category_id": $context.arguments.category_id,
+        ":topic_id": $context.arguments.topic_id
         },
         "pinpoint": {"type": "usersubscription", "action": "update"},
-        "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_acronym=:category_acronym and `CategoryTopic`.topic_acronym=:topic_acronym;"
+        "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_id=:category_id and `CategoryTopic`.topic_id=:topic_id;"
         }
         }
       ResponseMappingTemplate: |
@@ -1606,11 +1710,11 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": 
-          "delete from `UserCategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id in (select categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym and `CategoryTopic`.topic_acronym = :topic_acronym);",
+          "delete from `UserCategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id in (select categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_id = :category_id and `CategoryTopic`.topic_id = :topic_id);",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
-        ":category_acronym": "$context.arguments.category_acronym",
-        ":topic_acronym": "$context.arguments.topic_acronym"
+        ":category_id": $context.arguments.category_id,
+        ":topic_id": $context.arguments.topic_id
         },
         "pinpoint": {"type": "usersubscription", "action": "delete"}
         }
@@ -1638,10 +1742,10 @@ Resources:
         "operation": "Invoke",
         "payload": {
         "sql": 
-          "delete from `UserCategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id in (select categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_acronym = :category_acronym);",
+          "delete from `UserCategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id in (select categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_id = :category_id);",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
-        ":category_acronym": "$context.arguments.category_acronym",
+        ":category_id": $context.arguments.category_id,
         },
         "pinpoint": {"type": "usersubscription", "action": "delete"}
         }

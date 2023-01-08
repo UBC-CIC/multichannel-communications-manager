@@ -18,11 +18,11 @@ async function conditionallyCreateDB(connection) {
   let createDBSQL = `
   CREATE TABLE \`User\` (
   \`user_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`email_address\` text UNIQUE NOT NULL,
-  \`phone_address\` text UNIQUE,
+  \`email_address\` varchar(64) UNIQUE NOT NULL,
+  \`phone_address\` varchar(20) UNIQUE,
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
   \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL,
-  \`language\` ENUM ('en', 'fr') NOT NULL
+  \`language\` ENUM ('en', 'fr') NOT NULL,
   \`email_notice\` boolean NOT NULL,
   \`sms_notice\` boolean NOT NULL
 );
