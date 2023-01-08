@@ -7,6 +7,7 @@ export const createUser = /* GraphQL */ `
     $phone_address: String
     $postal_code: String
     $province: Province!
+    $language: Language!
     $email_notice: Boolean!
     $sms_notice: Boolean!
   ) {
@@ -15,6 +16,7 @@ export const createUser = /* GraphQL */ `
       phone_address: $phone_address
       postal_code: $postal_code
       province: $province
+      language: $language
       email_notice: $email_notice
       sms_notice: $sms_notice
     ) {
@@ -23,6 +25,7 @@ export const createUser = /* GraphQL */ `
       phone_address
       postal_code
       province
+      language
       email_notice
       sms_notice
     }
@@ -35,6 +38,7 @@ export const updateUser = /* GraphQL */ `
     $phone_address: String
     $postal_code: String
     $province: Province
+    $language: Language
     $email_notice: Boolean!
     $sms_notice: Boolean!
   ) {
@@ -44,6 +48,7 @@ export const updateUser = /* GraphQL */ `
       phone_address: $phone_address
       postal_code: $postal_code
       province: $province
+      language: $language
       email_notice: $email_notice
       sms_notice: $sms_notice
     ) {
@@ -52,6 +57,7 @@ export const updateUser = /* GraphQL */ `
       phone_address
       postal_code
       province
+      language
       email_notice
       sms_notice
     }
@@ -64,27 +70,40 @@ export const deleteUser = /* GraphQL */ `
 `;
 export const createCategory = /* GraphQL */ `
   mutation CreateCategory(
-    $acronym: String!
-    $title: String!
-    $title_fr: String!
-    $description: String
-    $description_fr: String
     $picture_location: String
+    $english_title: String!
+    $english_description: String
   ) {
     createCategory(
-      acronym: $acronym
-      title: $title
-      title_fr: $title_fr
-      description: $description
-      description_fr: $description_fr
       picture_location: $picture_location
+      english_title: $english_title
+      english_description: $english_description
     ) {
       category_id
-      acronym
+      language
       title
-      title_fr
       description
-      description_fr
+      picture_location
+    }
+  }
+`;
+export const addCategoryDisplayLanguage = /* GraphQL */ `
+  mutation AddCategoryDisplayLanguage(
+    $category_id: Int!
+    $language: Language!
+    $title: String!
+    $description: String
+  ) {
+    addCategoryDisplayLanguage(
+      category_id: $category_id
+      language: $language
+      title: $title
+      description: $description
+    ) {
+      category_id
+      language
+      title
+      description
       picture_location
     }
   }
@@ -92,28 +111,19 @@ export const createCategory = /* GraphQL */ `
 export const updateCategory = /* GraphQL */ `
   mutation UpdateCategory(
     $category_id: Int!
-    $acronym: String
+    $language: String!
     $title: String
-    $title_fr: String
     $description: String
-    $description_fr: String
     $picture_location: String
   ) {
     updateCategory(
       category_id: $category_id
-      acronym: $acronym
+      language: $language
       title: $title
-      title_fr: $title_fr
       description: $description
-      description_fr: $description_fr
       picture_location: $picture_location
     ) {
       category_id
-      acronym
-      title
-      title_fr
-      description
-      description_fr
       picture_location
     }
   }
@@ -124,11 +134,37 @@ export const deleteCategory = /* GraphQL */ `
   }
 `;
 export const createTopic = /* GraphQL */ `
-  mutation CreateTopic($acronym: String!, $acronym_fr: String!) {
-    createTopic(acronym: $acronym, acronym_fr: $acronym_fr) {
+  mutation CreateTopic($english_name: String!) {
+    createTopic(english_name: $english_name) {
       topic_id
-      acronym
-      acronym_fr
+      language
+      name
+    }
+  }
+`;
+export const addTopicDisplayLanguage = /* GraphQL */ `
+  mutation AddTopicDisplayLanguage(
+    $topic_id: Int!
+    $language: Language!
+    $name: String!
+  ) {
+    addTopicDisplayLanguage(
+      topic_id: $topic_id
+      language: $language
+      name: $name
+    ) {
+      topic_id
+      language
+      name
+    }
+  }
+`;
+export const updateTopic = /* GraphQL */ `
+  mutation UpdateTopic($topic_id: Int!, $language: String!, $name: String!) {
+    updateTopic(topic_id: $topic_id, language: $language, name: $name) {
+      topic_id
+      language
+      name
     }
   }
 `;
@@ -138,48 +174,37 @@ export const deleteTopic = /* GraphQL */ `
   }
 `;
 export const addTopicToCategory = /* GraphQL */ `
-  mutation AddTopicToCategory(
-    $category_acronym: String!
-    $topic_acronym: String!
-  ) {
-    addTopicToCategory(
-      category_acronym: $category_acronym
-      topic_acronym: $topic_acronym
-    ) {
+  mutation AddTopicToCategory($category_id: Int!, $topic_id: Int!) {
+    addTopicToCategory(category_id: $category_id, topic_id: $topic_id) {
       categoryTopic_id
-      category_acronym
-      topic_acronym
+      category_id
+      topic_id
     }
   }
 `;
 export const deleteCategoryTopic = /* GraphQL */ `
-  mutation DeleteCategoryTopic(
-    $category_acronym: String!
-    $topic_acronym: String!
-  ) {
-    deleteCategoryTopic(
-      category_acronym: $category_acronym
-      topic_acronym: $topic_acronym
-    )
+  mutation DeleteCategoryTopic($category_id: Int!, $topic_id: Int!) {
+    deleteCategoryTopic(category_id: $category_id, topic_id: $topic_id)
   }
 `;
 export const userFollowCategoryTopic = /* GraphQL */ `
   mutation UserFollowCategoryTopic(
     $user_id: Int!
-    $category_acronym: String!
-    $topic_acronym: String!
+    $category_id: Int!
+    $topic_id: Int!
     $email_notice: Boolean!
     $sms_notice: Boolean!
   ) {
     userFollowCategoryTopic(
       user_id: $user_id
-      category_acronym: $category_acronym
-      topic_acronym: $topic_acronym
+      category_id: $category_id
+      topic_id: $topic_id
       email_notice: $email_notice
       sms_notice: $sms_notice
     ) {
       user_id
-      categoryTopic_id
+      category_id
+      topic_id
       email_notice
       sms_notice
     }
@@ -188,20 +213,21 @@ export const userFollowCategoryTopic = /* GraphQL */ `
 export const userUpdateChannelPrefrence = /* GraphQL */ `
   mutation UserUpdateChannelPrefrence(
     $user_id: Int!
-    $category_acronym: String!
-    $topic_acronym: String!
+    $category_id: Int!
+    $topic_id: Int!
     $email_notice: Boolean!
     $sms_notice: Boolean!
   ) {
     userUpdateChannelPrefrence(
       user_id: $user_id
-      category_acronym: $category_acronym
-      topic_acronym: $topic_acronym
+      category_id: $category_id
+      topic_id: $topic_id
       email_notice: $email_notice
       sms_notice: $sms_notice
     ) {
       user_id
-      categoryTopic_id
+      category_id
+      topic_id
       email_notice
       sms_notice
     }
@@ -210,26 +236,18 @@ export const userUpdateChannelPrefrence = /* GraphQL */ `
 export const userUnfollowCategoryTopic = /* GraphQL */ `
   mutation UserUnfollowCategoryTopic(
     $user_id: Int!
-    $category_acronym: String!
-    $topic_acronym: String!
+    $category_id: Int!
+    $topic_id: Int!
   ) {
     userUnfollowCategoryTopic(
       user_id: $user_id
-      category_acronym: $category_acronym
-      topic_acronym: $topic_acronym
-    ) {
-      user_id
-      email_address
-      phone_address
-      postal_code
-      province
-      email_notice
-      sms_notice
-    }
+      category_id: $category_id
+      topic_id: $topic_id
+    )
   }
 `;
 export const userUnfollowCategory = /* GraphQL */ `
-  mutation UserUnfollowCategory($user_id: Int!, $category_acronym: String!) {
-    userUnfollowCategory(user_id: $user_id, category_acronym: $category_acronym)
+  mutation UserUnfollowCategory($user_id: Int!, $category_id: Int!) {
+    userUnfollowCategory(user_id: $user_id, category_id: $category_id)
   }
 `;

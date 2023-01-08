@@ -5,47 +5,54 @@ input AMPLIFY {
 } # FOR TESTING ONLY!
 type Category {
   category_id: Int!
-  acronym: String!
+  # title: String!
+  # title_fr: String!
+  # description: String
+  # description_fr: String
+  picture_location: String
+}
+
+type CategoryFull {
+  category_id: Int!
+  language: Language
   title: String!
-  title_fr: String!
   description: String
-  description_fr: String
   picture_location: String
 }
 
 type Topic {
   topic_id: Int!
-  acronym: String!
-  acronym_fr: String!
+}
+
+type TopicFull {
+  topic_id: Int!
+  language: Language!
+  name: String!
 }
 
 type CategoryTopic {
   categoryTopic_id: Int!
-  category_acronym: String!
-  topic_acronym: String!
+  # category_acronym: String!
+  # topic_acronym: String!
+  category_id: Int!
+  topic_id: Int!
 }
 
 type UserCategoryTopic {
   user_id: Int!
-  categoryTopic_id: Int!
-  email_notice: Boolean!
-  sms_notice: Boolean
-}
-
-type UserCategoryTopicFull {
-  user_id: Int!
-  category_acronym: String!
-  topic_acronym: String!
+  category_id: Int!
+  topic_id: Int!
   email_notice: Boolean!
   sms_notice: Boolean!
 }
 
 type CategorySubscription {
-  acronym: String
-  title: String
+  id: Int!
+  language: Language!
+  title: String!
   description: String
-  email_notice: Boolean
-  sms_notice: Boolean
+  email_notice: Boolean!
+  sms_notice: Boolean!
   picture_location: String
 }
 
@@ -53,9 +60,9 @@ type User {
   user_id: Int!
   email_address: String!
   phone_address: String
-  # phone_id: Int
   postal_code: String
   province: Province!
+  language: String
   email_notice: Boolean!
   sms_notice: Boolean!
 }
@@ -66,6 +73,7 @@ type Mutation {
     phone_address: String
     postal_code: String
     province: Province!
+    language: Language!
     email_notice: Boolean!
     sms_notice: Boolean!
   ): User
@@ -75,75 +83,80 @@ type Mutation {
     phone_address: String
     postal_code: String
     province: Province
+    language: Language
     email_notice: Boolean!
     sms_notice: Boolean!
   ): User
   deleteUser(user_id: Int!): String
 
   createCategory(
-    acronym: String!
-    title: String!
-    title_fr: String!
-    description: String
-    description_fr: String
     picture_location: String
-  ): Category
+    english_title: String!
+    english_description: String
+  ): CategoryFull
+  addCategoryDisplayLanguage(
+    category_id: Int!
+    language: Language!
+    title: String!
+    description: String
+  ): CategoryFull
   updateCategory(
     category_id: Int!
-    acronym: String
+    language: String!
     title: String
-    title_fr: String
     description: String
-    description_fr: String
     picture_location: String
   ): Category
   # TODO: delete or archive?
   deleteCategory(category_id: Int!): String
 
-  createTopic(acronym: String!, acronym_fr: String!): Topic
-  # updateTopic(topic_id: Int!, acronym: String): Topic
+  createTopic(english_name: String!): TopicFull
+  addTopicDisplayLanguage(
+    topic_id: Int!
+    language: Language!
+    name: String!
+  ): TopicFull
+  updateTopic(topic_id: Int!, language: String!, name: String!): TopicFull
   deleteTopic(topic_id: Int!): String
-  addTopicToCategory(
-    category_acronym: String!
-    topic_acronym: String!
-  ): CategoryTopic
-  deleteCategoryTopic(category_acronym: String!, topic_acronym: String!): String
+  addTopicToCategory(category_id: Int!, topic_id: Int!): CategoryTopic
+  deleteCategoryTopic(category_id: Int!, topic_id: Int!): String
   userFollowCategoryTopic(
     user_id: Int!
-    category_acronym: String!
-    topic_acronym: String!
+    category_id: Int!
+    topic_id: Int!
     email_notice: Boolean!
     sms_notice: Boolean!
   ): UserCategoryTopic
   userUpdateChannelPrefrence(
     user_id: Int!
-    category_acronym: String!
-    topic_acronym: String!
+    category_id: Int!
+    topic_id: Int!
     email_notice: Boolean!
     sms_notice: Boolean!
   ): UserCategoryTopic
   userUnfollowCategoryTopic(
     user_id: Int!
-    category_acronym: String!
-    topic_acronym: String!
-  ): User
-  userUnfollowCategory(user_id: Int!, category_acronym: String!): String
+    category_id: Int!
+    topic_id: Int!
+  ): String
+  userUnfollowCategory(user_id: Int!, category_id: Int!): String
 }
 
 type Query {
   getUserById(user_id: Int!): User
   getUserByEmail(user_email: String!): User
-  getUserCategoryTopicByUserId(user_id: Int!): [UserCategoryTopicFull]
-  getCategoriesByUserId(user_id: Int!): [CategorySubscription]
+
+  getUserCategoryTopicByUserId(user_id: Int!): [UserCategoryTopic]
+  getCategoriesByUserId(user_id: Int!, language: String): [CategorySubscription]
   getCategoryTopicById(categoryTopic_id: Int!): CategoryTopic
-  getCategoryByAcronym(acronym: String!): Category
-  getTopicsOfCategoryByAcronym(category_acronym: String!): [Topic]
-  getTopicByAcronym(topic_acronym: String!): Topic
-  getAllCategories: [Category]
-  getAllTopics: [Topic]
+  getCategory(category_id: Int!): CategoryFull
+  getTopicsOfCategory(category_id: Int!): [TopicFull]
+  getTopic(topic_id: Int!): TopicFull
+
+  getAllCategoriesForLanguage(language: String!): [CategoryFull]
+  getAllTopicsForLanguage(language: String!): [TopicFull]
   getAllCategoryTopics: [CategoryTopic]
   testSQL: String
-  placeHolder: String
 }
 
 schema {
@@ -165,4 +178,9 @@ enum Province {
   QC
   SK
   YT
+}
+
+enum Language {
+  en
+  fr
 }

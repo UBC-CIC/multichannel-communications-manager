@@ -16,36 +16,45 @@ async function conditionallyCreateDB(connection) {
   let adminName = process.env.ADMIN_NAME;
   // let adminEmail = process.env.ADMIN_EMAIL;
   let createDBSQL = `
-    CREATE TABLE \`User\` (
+  CREATE TABLE \`User\` (
   \`user_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`email_address\` varchar(64) UNIQUE NOT NULL,
-  \`phone_address\` varchar(50) UNIQUE,
+  \`email_address\` text UNIQUE NOT NULL,
+  \`phone_address\` text UNIQUE,
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
   \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL,
+  \`language\` ENUM ('en', 'fr') NOT NULL
   \`email_notice\` boolean NOT NULL,
   \`sms_notice\` boolean NOT NULL
-  );
+);
 
 CREATE TABLE \`Category\` (
   \`category_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`acronym\` varchar(30) UNIQUE NOT NULL,
-  \`title\` varchar(50) NOT NULL,
-  \`title_fr\` varchar(50) NOT NULL,
-  \`description\` text,
-  \`description_fr\` text,
   \`picture_location\` text
 );
 
+CREATE TABLE \`CategoryInfo\` (
+  \`category_id\` int,
+  \`language\` ENUM ('en', 'fr') NOT NULL,
+  \`title\` varchar(100) NOT NULL,
+  \`description\` text,
+  PRIMARY KEY (\`category_id\`, \`language\`)
+);
+
 CREATE TABLE \`Topic\` (
-  \`topic_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`acronym\` varchar(30) UNIQUE NOT NULL,
-  \`acronym_fr\` varchar(30) UNIQUE NOT NULL
+  \`topic_id\` int PRIMARY KEY AUTO_INCREMENT
+);
+
+CREATE TABLE \`TopicInfo\` (
+  \`topic_id\` int,
+  \`language\` ENUM ('en', 'fr') NOT NULL,
+  \`name\` varchar(40) UNIQUE NOT NULL,
+  PRIMARY KEY (\`topic_id\`, \`language\`)
 );
 
 CREATE TABLE \`CategoryTopic\` (
   \`categoryTopic_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`category_acronym\` varchar(30) NOT NULL,
-  \`topic_acronym\` varchar(30) NOT NULL
+  \`category_id\` int NOT NULL,
+  \`topic_id\` int NOT NULL
 );
 
 CREATE TABLE \`UserCategoryTopic\` (
@@ -56,17 +65,19 @@ CREATE TABLE \`UserCategoryTopic\` (
   PRIMARY KEY (\`user_id\`, \`categoryTopic_id\`)
 );
 
+
 CREATE INDEX \`User_index_0\` ON \`User\` (\`email_address\`);
 
-CREATE INDEX \`Category_index_1\` ON \`Category\` (\`acronym\`);
+CREATE UNIQUE INDEX \`CategoryTopic_index_1\` ON \`CategoryTopic\` (\`category_id\`, \`topic_id\`);
 
-CREATE INDEX \`Topic_index_2\` ON \`Topic\` (\`acronym\`);
 
-CREATE UNIQUE INDEX \`CategoryTopic_index_3\` ON \`CategoryTopic\` (\`category_acronym\`, \`topic_acronym\`);
+ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`category_id\`) REFERENCES \`Category\` (\`category_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`category_acronym\`) REFERENCES \`Category\` (\`acronym\`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE \`CategoryInfo\` ADD FOREIGN KEY (\`category_id\`) REFERENCES \`Category\` (\`category_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`topic_acronym\`) REFERENCES \`Topic\` (\`acronym\`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`topic_id\`) REFERENCES \`Topic\` (\`topic_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE \`TopicInfo\` ADD FOREIGN KEY (\`topic_id\`) REFERENCES \`Topic\` (\`topic_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`user_id\`) REFERENCES \`User\` (\`user_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -87,7 +98,7 @@ ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`categoryTopic_id\`) REFEREN
 
   // result = await executeSQL(
   //   connection,
-  //   "INSERT INTO `User` (email_address) VALUES ('" + adminEmail + "');"
+  //   "INSERT INTO \`User\` (email_address) VALUES ('" + adminEmail + "');"
   // );
 
   return result;
@@ -98,7 +109,7 @@ function executeSQL(connection, sql_statement) {
   return new Promise((resolve, reject) => {
     console.log("Executing SQL:", sql_statement);
     connection.query({ sql: sql_statement, timeout: 60000 }, (err, data) => {
-      // if error, gets saved in \\`err\\`, else response from DB saved in \\`data\\`
+      // if error, gets saved in \\\`err\\\`, else response from DB saved in \\\`data\\\`
       if (err) {
         return reject(err);
       }
