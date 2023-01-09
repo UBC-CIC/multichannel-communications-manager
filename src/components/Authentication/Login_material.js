@@ -97,6 +97,11 @@ function Login(props) {
     useState([]);
   const [userPhone, setUserPhone] = useState("");
   const [invalidInputError, setInvalidInputError] = useState(false);
+  const [language, setLanguage] = useState(
+    navigator.language === "fr" || navigator.language.startsWith("fr")
+      ? "fr"
+      : "en"
+  );
 
   const provinceOptions = [
     I18n.get("bc"),
@@ -376,6 +381,7 @@ function Login(props) {
               province: prov,
               email_notice: email_selected,
               sms_notice: sms_selected,
+              language: language,
             };
             await API.graphql(graphqlOperation(createUser, userData));
             handleNextStep();

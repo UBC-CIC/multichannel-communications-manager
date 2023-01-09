@@ -47,7 +47,7 @@ type UserCategoryTopic {
 }
 
 type CategorySubscription {
-  id: Int!
+  category_id: Int!
   language: Language!
   title: String!
   description: String
@@ -153,7 +153,7 @@ type Query {
   ): [CategorySubscription]
   getCategoryTopicById(categoryTopic_id: Int!): CategoryTopic
   getCategory(category_id: Int!, language: Language!): CategoryFull
-  getTopicsOfCategory(category_id: Int!, language: Language): [TopicFull]
+  getTopicsOfCategory(category_id: Int!, language: Language!): [TopicFull]
   getTopic(topic_id: Int!, language: Language!): TopicFull
 
   getAllCategoriesForLanguage(language: Language!): [CategoryFull]

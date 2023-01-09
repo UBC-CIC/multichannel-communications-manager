@@ -841,9 +841,10 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select c.acronym, c.title, c.description, c.picture_location, uct.email_notice, uct.sms_notice from `Category` c, `UserCategoryTopic` uct, `CategoryTopic` ct where uct.user_id = :user_id and ct.category_id = c.acronym and ct.categoryTopic_id = uct.categoryTopic_id;",
+        "sql": "select c.category_id, ci.language, ci.title, ci.description, c.picture_location, uct.email_notice, uct.sms_notice from `Category` c, `CategoryInfo` ci, `UserCategoryTopic` uct, `CategoryTopic` ct where ci.category_id = ct.category_id and uct.user_id = :user_id and ct.category_id = c.category_id and ct.categoryTopic_id = uct.categoryTopic_id and ci.language=:language",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
+        ":language": "$context.arguments.language"
         }
         }
         }
@@ -930,10 +931,10 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select t.topic_id, t.language, t.name from TopicInfo t, CategoryTopic ct where ct.category_id = :1 and t.topic_id = ct.topic_id and t.topic_language = :2;",
+        "sql": "select t.topic_id, t.language, t.name from TopicInfo t, CategoryTopic ct where ct.category_id = :1 and t.topic_id = ct.topic_id and t.language = :2;",
         "SQLVariableMapping": {
         ":1": $context.arguments.category_id,
-        ":2": $context.arguments.language
+        ":2": "$context.arguments.language"
         }
         }
         }

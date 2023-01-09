@@ -41,9 +41,9 @@ export const getUserCategoryTopicByUserId = /* GraphQL */ `
   }
 `;
 export const getCategoriesByUserId = /* GraphQL */ `
-  query GetCategoriesByUserId($user_id: Int!, $language: Language) {
+  query GetCategoriesByUserId($user_id: Int!, $language: Language!) {
     getCategoriesByUserId(user_id: $user_id, language: $language) {
-      id
+      category_id
       language
       title
       description
@@ -74,7 +74,7 @@ export const getCategory = /* GraphQL */ `
   }
 `;
 export const getTopicsOfCategory = /* GraphQL */ `
-  query GetTopicsOfCategory($category_id: Int!, $language: Language) {
+  query GetTopicsOfCategory($category_id: Int!, $language: Language!) {
     getTopicsOfCategory(category_id: $category_id, language: $language) {
       topic_id
       language
