@@ -16,7 +16,7 @@ import {
 import { Add, Edit } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { API, graphqlOperation, Storage } from "aws-amplify";
-import { getTopicsOfCategoryByAcronym } from "../graphql/queries";
+import { getTopicsOfCategory } from "../graphql/queries";
 import {
   createTopic,
   addTopicToCategory,
@@ -40,11 +40,11 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
 
   async function getSubtopics() {
     let queriedTopics = await API.graphql(
-      graphqlOperation(getTopicsOfCategoryByAcronym, {
+      graphqlOperation(getTopicsOfCategory, {
         category_acronym: selectedTopic.acronym,
       })
     );
-    let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
+    let onlyTopics = queriedTopics.data.getTopicsOfCategory;
     let topics = onlyTopics;
     // .map((a) => a.acronym);
     setSubtopics(topics);

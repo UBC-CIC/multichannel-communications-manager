@@ -15,14 +15,15 @@ import {
   MenuItem,
   FormControl,
 } from "@mui/material";
-import { Upload, Close } from "@mui/icons-material";
+import { Upload, Close, RssFeed } from "@mui/icons-material";
 import { API, graphqlOperation, I18n, Storage } from "aws-amplify";
 import {
   createCategory,
   createTopic,
   addTopicToCategory,
+  addCategoryDisplayLanguage,
 } from "../../graphql/mutations";
-import { getAllTopics } from "../../graphql/queries";
+import { getAllTopicsForLanguage } from "../../graphql/queries";
 
 const AddTopicDialog = ({ open, handleClose, reload }) => {
   const [inputFields, setInputFields] = useState([]);
@@ -40,8 +41,10 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
 
   useEffect(() => {
     async function getTopics() {
-      const topicsQuery = await API.graphql(graphqlOperation(getAllTopics));
-      const topics = topicsQuery.data.getAllTopics;
+      const topicsQuery = await API.graphql(
+        graphqlOperation(getAllTopicsForLanguage)
+      );
+      const topics = topicsQuery.data.getAllTopicsForLanguage;
       if (topics !== null) {
         const topicsAcronym = topics.map((a) => a.acronym);
         setAllTopics(topicsAcronym);
@@ -97,11 +100,8 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
           .catch((e) => console.log(e));
       }
       let createdTopic = {
-        acronym: acronym,
-        title: title,
-        title_fr: titleFr,
-        description: description,
-        description_fr: descriptionFr,
+        english_title: title,
+        english_description: description,
         picture_location: s3Key,
       };
       try {
@@ -123,6 +123,9 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
                 })
               );
             }
+            // todo
+            // add the French display translations
+            // await API.graphql(graphqlOperation(addCategoryDisplayLanguage, {category_id: res.}));
             clearFields();
             reload();
           }

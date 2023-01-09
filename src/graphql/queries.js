@@ -102,6 +102,15 @@ export const getAllCategoriesForLanguage = /* GraphQL */ `
     }
   }
 `;
+export const getAllTopicsForLanguage = /* GraphQL */ `
+  query GetAllTopicsForLanguage($language: Language!) {
+    getAllTopicsForLanguage(language: $language) {
+      topic_id
+      language
+      name
+    }
+  }
+`;
 export const getAllCategoryTopics = /* GraphQL */ `
   query GetAllCategoryTopics {
     getAllCategoryTopics {

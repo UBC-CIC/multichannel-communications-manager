@@ -16,7 +16,7 @@ import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
 import { API, graphqlOperation, Storage, I18n } from "aws-amplify";
-import { getAllCategories } from "../graphql/queries";
+import { getAllCategoriesForLanguage } from "../graphql/queries";
 import { styled } from "@mui/material/styles";
 import AdminTopicCard from "../components/AdminTopicCard";
 import AddTopicDialog from "../components/Dialog/AddTopicDialog";
@@ -54,8 +54,10 @@ const Admin = () => {
 
   async function queriedData() {
     setImage([]);
-    let categories = await API.graphql(graphqlOperation(getAllCategories));
-    let allCategories = categories.data.getAllCategories;
+    let categories = await API.graphql(
+      graphqlOperation(getAllCategoriesForLanguage)
+    );
+    let allCategories = categories.data.getAllCategoriesForLanguage;
     if (allCategories !== null) {
       setTopics(allCategories);
       setTopicsTemp(allCategories);

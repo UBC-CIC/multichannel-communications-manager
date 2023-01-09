@@ -18,10 +18,10 @@ import {
 import { imageListItemClasses } from "@mui/material/ImageListItem";
 import { Auth, API, graphqlOperation, Storage, I18n } from "aws-amplify";
 import {
-  getAllCategories,
+  getAllCategoriesForLanguage,
   getUserCategoryTopicByUserId,
   getUserByEmail,
-  getTopicsOfCategoryByAcronym,
+  getTopicsOfCategory,
   getCategoriesByUserId,
 } from "../../graphql/queries";
 import {
@@ -80,8 +80,10 @@ const ViewTopics = () => {
   }
 
   async function queriedData() {
-    let categories = await API.graphql(graphqlOperation(getAllCategories));
-    let allCategories = categories.data.getAllCategories;
+    let categories = await API.graphql(
+      graphqlOperation(getAllCategoriesForLanguage)
+    );
+    let allCategories = categories.data.getAllCategoriesForLanguage;
     setTopics(allCategories);
     getCategoryImages(allCategories);
     getTopics(allCategories);
@@ -91,11 +93,11 @@ const ViewTopics = () => {
   async function getTopics(allCategories) {
     for (let i = 0; i < allCategories.length; i++) {
       let queriedTopics = await API.graphql(
-        graphqlOperation(getTopicsOfCategoryByAcronym, {
+        graphqlOperation(getTopicsOfCategory, {
           category_acronym: allCategories[i].acronym,
         })
       );
-      let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
+      let onlyTopics = queriedTopics.data.getTopicsOfCategory;
       let topics = onlyTopics;
       // .map((a) => a.acronym);
       setSubtopics((subtopics) => [...subtopics, topics]);

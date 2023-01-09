@@ -157,7 +157,7 @@ type Query {
   getTopic(topic_id: Int!, language: Language!): TopicFull
 
   getAllCategoriesForLanguage(language: Language!): [CategoryFull]
-  # getAllTopicsForLanguage(language: language!): [TopicFull]
+  getAllTopicsForLanguage(language: Language!): [TopicFull]
   getAllCategoryTopics: [CategoryTopic]
   testSQL: String
 }

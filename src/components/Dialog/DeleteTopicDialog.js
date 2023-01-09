@@ -16,7 +16,7 @@ import {
 import { Close } from "@mui/icons-material";
 import { API, graphqlOperation, I18n } from "aws-amplify";
 import { deleteCategory, deleteTopic } from "../../graphql/mutations";
-import { getAllTopics } from "../../graphql/queries";
+import { getAllTopicsForLanguage } from "../../graphql/queries";
 import { useState, useEffect } from "react";
 import ConfirmDeleteTopicDialog from "./ConfirmDeleteTopicDialog";
 
@@ -31,8 +31,10 @@ const DeleteTopicDialog = ({ open, handleClose, topics, reload }) => {
 
   useEffect(() => {
     async function getTopics() {
-      const topicsQuery = await API.graphql(graphqlOperation(getAllTopics));
-      const topics = topicsQuery.data.getAllTopics;
+      const topicsQuery = await API.graphql(
+        graphqlOperation(getAllTopicsForLanguage)
+      );
+      const topics = topicsQuery.data.getAllTopicsForLanguage;
       setAllTopics(topics);
     }
     getTopics();

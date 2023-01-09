@@ -16,10 +16,7 @@ import {
 import React, { useState, useEffect } from "react";
 import { Auth, API, graphqlOperation, Storage, I18n } from "aws-amplify";
 import "./TopicCard.css";
-import {
-  getTopicsOfCategoryByAcronym,
-  getUserByEmail,
-} from "../graphql/queries";
+import { getTopicsOfCategory, getUserByEmail } from "../graphql/queries";
 
 const TopicCard = ({
   selectedTopic,
@@ -37,18 +34,23 @@ const TopicCard = ({
   const [userID, setUserID] = useState("");
   const [image, setImage] = useState("");
   const [alert, setAlert] = useState(false);
+  const [language, setLanguage] = useState(
+    navigator.language === "fr" || navigator.language.startsWith("fr-")
+      ? "fr"
+      : "en"
+  );
 
   async function queriedSubtopics() {
     let queriedTopics = await API.graphql(
-      graphqlOperation(getTopicsOfCategoryByAcronym, {
-        category_acronym: selectedTopic.acronym,
+      graphqlOperation(getTopicsOfCategory, {
+        category_id: selectedTopic.category_id,
+        language: language,
       })
     );
-    let onlyTopics = queriedTopics.data.getTopicsOfCategoryByAcronym;
+    let onlyTopics = queriedTopics.data.getTopicsOfCategory;
     let topics = onlyTopics;
-    // .map((a) => a.acronym);
     setSubtopics(topics);
-    console.log("subtopics", subtopics);
+    console.log("subtopics on load", subtopics);
   }
 
   useEffect(() => {
@@ -89,16 +91,16 @@ const TopicCard = ({
           prev.filter(
             (s) =>
               !(
-                s.category_acronym === selectedTopic.acronym &&
-                s.topic_acronym === alteredSubtopic[x]
+                s.category_id === selectedTopic.category_id &&
+                s.topic_id === alteredSubtopic[x].topic_id
               )
           )
         );
       } else {
         let userSubscribeData = {
           user_id: userID,
-          category_acronym: selectedTopic.acronym,
-          topic_acronym: alteredSubtopic[x],
+          category_id: selectedTopic.category_id,
+          topic_id: alteredSubtopic[x].topic_id,
           email_notice: selectedNotifications.email,
           sms_notice: selectedNotifications.text,
         };
@@ -110,15 +112,26 @@ const TopicCard = ({
 
   // get the topics and whether they've been selected/deselected
   const handleChange = (e, subtopic) => {
+    console.log("in handleChange");
     setAlteredSubtopic((prev) => [...prev, subtopic]);
+    console.log("alteredSubtopic", alteredSubtopic);
     if (e.target.checked) {
+      console.log("in checked");
       setBoxCheck((prev) => [...prev, true]);
-      setSelectedSubtopics((prev) => [...prev, `${title}/${subtopic}`]);
+      console.log("boxcheck", boxChecked);
+
+      setSelectedSubtopics((prev) => [...prev, `${title}/${subtopic.name}`]);
+      console.log("selectedSubTopics", selectedSubTopics);
     } else if (!e.target.checked) {
+      console.log("in not checked");
+
       setBoxCheck((prev) => [...prev, false]);
+      console.log("boxcheck", boxChecked);
+
       setSelectedSubtopics((prev) =>
-        prev.filter((s) => s !== `${title}/${subtopic}`)
+        prev.filter((s) => s !== `${title}/${subtopic.name}`)
       );
+      console.log("selectedSubTopics", selectedSubTopics);
     }
   };
 
@@ -173,15 +186,10 @@ const TopicCard = ({
                 key={index}
                 control={<Checkbox />}
                 checked={selectedSubTopics.includes(
-                  `${title}/${subtopic.acronym}`
+                  `${title}/${subtopic.name}`
                 )}
-                label={
-                  navigator.language === "fr" ||
-                  navigator.language.startsWith("fr-")
-                    ? subtopic.acronym_fr
-                    : subtopic.acronym
-                }
-                onChange={(e) => handleChange(e, subtopic.acronym)}
+                label={subtopic.name}
+                onChange={(e) => handleChange(e, subtopic)}
               />
             ))}
           </FormGroup>

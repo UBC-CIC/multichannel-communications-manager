@@ -17,7 +17,7 @@ import ImageListItem, {
 import { styled } from "@mui/material/styles";
 import { API, graphqlOperation, Storage, I18n } from "aws-amplify";
 import { userFollowCategoryTopic } from "../../graphql/mutations";
-import { getAllCategories } from "../../graphql/queries";
+import { getAllCategoriesForLanguage } from "../../graphql/queries";
 import "./Login.css";
 import theme from "../../themes";
 import TopicCard from "../TopicCard";
@@ -59,11 +59,18 @@ const SelectTopics = ({ handleNextStep }) => {
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
+  const [language, setLanguage] = useState(
+    navigator.language === "fr" || navigator.language.startsWith("fr-")
+      ? "fr"
+      : "en"
+  );
   const topicsPerPage = 3;
 
   async function queriedData() {
-    let categories = await API.graphql(graphqlOperation(getAllCategories));
-    let allCategories = categories.data.getAllCategories;
+    let categories = await API.graphql(
+      graphqlOperation(getAllCategoriesForLanguage, { language: language })
+    );
+    let allCategories = categories.data.getAllCategoriesForLanguage;
     setTopics(allCategories);
     for (let i = 0; i < allCategories.length; i++) {
       let imageURL = await Storage.get(allCategories[i].picture_location);
@@ -129,6 +136,9 @@ const SelectTopics = ({ handleNextStep }) => {
 
   async function nextClicked() {
     const allSelectedTopicsTemp = allSelectedTopics;
+    console.log("allSelectedTopics", allSelectedTopics);
+    console.log("allSelectedTopicsTemp", allSelectedTopicsTemp);
+
     for (var i = 0; i < allSelectedTopicsTemp.length; i++) {
       await API.graphql(
         graphqlOperation(userFollowCategoryTopic, allSelectedTopicsTemp[i])
@@ -143,7 +153,7 @@ const SelectTopics = ({ handleNextStep }) => {
     const allSelectedTopicsTemp = allSelectedTopics;
     if (
       allSelectedTopicsTemp.filter(
-        (s) => s.category_acronym === currentlySelectedTopic.acronym
+        (s) => s.category_id === currentlySelectedTopic.category_id
       ).length === 0
     ) {
       if (!saveEnabled) {
