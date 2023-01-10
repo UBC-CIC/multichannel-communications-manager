@@ -25,8 +25,7 @@ const TopicCard = ({
   setSelectedSubtopics,
   setAllSelectedTopics,
 }) => {
-  const { title, title_fr, description, description_fr, picture_location } =
-    selectedTopic;
+  const { title, description, picture_location } = selectedTopic;
   const [selectedNotifications, setSelectedNotifications] = useState({});
   const [boxChecked, setBoxCheck] = useState([]);
   const [alteredSubtopic, setAlteredSubtopic] = useState([]);
@@ -148,11 +147,7 @@ const TopicCard = ({
       )}
       <Card>
         <CardHeader
-          title={
-            navigator.language === "fr" || navigator.language.startsWith("fr-")
-              ? title_fr
-              : title
-          }
+          title={title}
           titleTypographyProps={{
             fontSize: "1.2rem",
             fontWeight: "400",
@@ -176,9 +171,7 @@ const TopicCard = ({
         )}
         <CardContent sx={{ p: "16px 16px 0px 16px" }}>
           <Typography variant="body2" color="text.secondary">
-            {navigator.language === "fr" || navigator.language.startsWith("fr-")
-              ? description_fr
-              : description}
+            {description}
           </Typography>
           <FormGroup sx={{ marginTop: 2, flexDirection: "row" }}>
             {subtopics.map((subtopic, index) => (

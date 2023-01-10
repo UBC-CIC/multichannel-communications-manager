@@ -71,6 +71,11 @@ const ViewTopics = () => {
   // bool
   const [userAlreadySubscribed, setUserAlreadySubscribed] = useState([]);
   const [user, setUser] = useState();
+  const [language, setLanguage] = useState(
+    navigator.language === "fr" || navigator.language.startsWith("fr-")
+      ? "fr"
+      : "en"
+  );
 
   async function getCategoryImages(categories) {
     for (let i = 0; i < categories.length; i++) {
@@ -80,8 +85,9 @@ const ViewTopics = () => {
   }
 
   async function queriedData() {
+    console.log("in querieddata");
     let categories = await API.graphql(
-      graphqlOperation(getAllCategoriesForLanguage)
+      graphqlOperation(getAllCategoriesForLanguage, { language: language })
     );
     let allCategories = categories.data.getAllCategoriesForLanguage;
     setTopics(allCategories);
@@ -94,13 +100,14 @@ const ViewTopics = () => {
     for (let i = 0; i < allCategories.length; i++) {
       let queriedTopics = await API.graphql(
         graphqlOperation(getTopicsOfCategory, {
-          category_acronym: allCategories[i].acronym,
+          category_id: allCategories[i].category_id,
+          language: language,
         })
       );
       let onlyTopics = queriedTopics.data.getTopicsOfCategory;
-      let topics = onlyTopics;
-      // .map((a) => a.acronym);
-      setSubtopics((subtopics) => [...subtopics, topics]);
+
+      // let topics = onlyTopics.map((a) => a.acronym);
+      setSubtopics((subtopics) => [...subtopics, onlyTopics]);
     }
   }
 
@@ -115,11 +122,12 @@ const ViewTopics = () => {
     let categories = await API.graphql(
       graphqlOperation(getCategoriesByUserId, {
         user_id: getUserId.data.getUserByEmail.user_id,
+        language: language,
       })
     );
     let noDuplicates = categories.data.getCategoriesByUserId.filter(
       (value, index, self) =>
-        index === self.findIndex((t) => t.acronym === value.acronym)
+        index === self.findIndex((t) => t.category_id === value.category_id)
     );
     setTopics(noDuplicates);
     getCategoryImages(noDuplicates);
@@ -148,13 +156,13 @@ const ViewTopics = () => {
 
     for (let x = 0; x < allCategories.length; x++) {
       let filteredUserSubscribedSubtopics = userSubscribedSubtopics.filter(
-        (s) => s.category_acronym === allCategories[x].acronym
+        (s) => s.category_id === allCategories[x].category_id
       );
       if (filteredUserSubscribedSubtopics.length !== 0) {
         for (let i = 0; i < filteredUserSubscribedSubtopics.length; i++) {
           setUserSelectedSubtopics((prev) => [
             ...prev,
-            filteredUserSubscribedSubtopics[i].topic_acronym,
+            filteredUserSubscribedSubtopics[i].topic_id,
           ]);
         }
         setUserAlreadySubscribed((prev) => [...prev, true]);
@@ -170,30 +178,39 @@ const ViewTopics = () => {
   }, []);
 
   const handleChange = (e, subtopic) => {
+    console.log("in handlechange");
     if (e.target.checked) {
-      setSelectedSubtopics((prev) => [...prev, `${subtopic}`]);
-      setSelectedSubtopicsCheckbox((prev) => [...prev, `${subtopic}`]);
+      console.log("checked");
+      setSelectedSubtopics((prev) => [...prev, subtopic]);
+      setSelectedSubtopicsCheckbox((prev) => {
+        console.log("prev", prev);
+        console.log("subtopic", subtopic);
+        console.log("[...prev, subtopic]", [...prev, subtopic]);
+
+        return [...prev, subtopic];
+      });
+      console.log("selectedSubTopicsCheckbox", selectedSubTopicsCheckbox);
     } else if (!e.target.checked) {
-      setSelectedSubtopics((prev) => prev.filter((s) => s !== `${subtopic}`));
+      console.log("not checked");
+      setSelectedSubtopics((prev) => prev.filter((s) => s !== subtopic));
       setSelectedSubtopicsCheckbox((prev) =>
-        prev.filter((s) => s !== `${subtopic}`)
+        prev.filter((s) => s !== subtopic)
       );
+      // console.log("selectedSubTopicsCheckbox", selectedSubTopicsCheckbox);
     }
   };
 
   const handleAlreadySubscribedChange = (e, subtopic) => {
     if (e.target.checked) {
-      setUserSelectedSubtopics((prev) => [...prev, `${subtopic}`]);
-      setUserSelectedSubtopicsTemp((prev) => [...prev, `${subtopic}`]);
-      setUserUnfollow((prev) => prev.filter((s) => s !== `${subtopic}`));
+      setUserSelectedSubtopics((prev) => [...prev, subtopic]);
+      setUserSelectedSubtopicsTemp((prev) => [...prev, subtopic]);
+      setUserUnfollow((prev) => prev.filter((s) => s !== subtopic));
     } else if (!e.target.checked) {
-      setUserSelectedSubtopics((prev) =>
-        prev.filter((s) => s !== `${subtopic}`)
-      );
+      setUserSelectedSubtopics((prev) => prev.filter((s) => s !== subtopic));
       setUserSelectedSubtopicsTemp((prev) =>
-        prev.filter((s) => s !== `${subtopic}`)
+        prev.filter((s) => s !== subtopic)
       );
-      setUserUnfollow((prev) => [...prev, `${subtopic}`]);
+      setUserUnfollow((prev) => [...prev, subtopic]);
     }
   };
 
@@ -207,10 +224,10 @@ const ViewTopics = () => {
       let subtopicsToUnfollow = [];
       // get the user subscribed topics for this category
       let userSubscribedDataForThisCategory = userSubscribed.filter(
-        (s) => s.category_acronym === topics[index].acronym
+        (s) => s.category_id === topics[index].category_id
       );
       let onlySubtopics = userSubscribedDataForThisCategory.map(
-        (a) => a.topic_acronym
+        (a) => a.topic_id
       );
       subtopicsToUnfollow = userUnfollow.filter((s) =>
         onlySubtopics.includes(s)
@@ -225,20 +242,21 @@ const ViewTopics = () => {
         await API.graphql(
           graphqlOperation(userUnfollowCategory, {
             user_id: userID,
-            category_acronym: topics[index].acronym,
+            category_id: topics[index].category_id,
           })
         );
       } else {
         // subscribe to the new topics the user has selected
         if (newUserSelectedSubtopics.length !== 0) {
-          let topicsToRemove = newUserSelectedSubtopics;
+          let topicsToRemove = newUserSelectedSubtopics.map((s) =>
+            s.toString()
+          );
           for (let x = 0; x < newUserSelectedSubtopics.length; x++) {
-            console.log(newUserSelectedSubtopics[x]);
             await API.graphql(
               graphqlOperation(userFollowCategoryTopic, {
                 user_id: userID,
-                category_acronym: topics[index].acronym,
-                topic_acronym: newUserSelectedSubtopics[x],
+                category_id: topics[index].category_id,
+                topic_id: newUserSelectedSubtopics[x],
                 email_notice: user.email_notice,
                 sms_notice: user.sms_notice,
               })
@@ -246,38 +264,39 @@ const ViewTopics = () => {
           }
           for (let m = 0; m < topicsToRemove.length; m++) {
             setUserSelectedSubtopicsTemp((prev) =>
-              prev.filter((s) => !s.includes(topicsToRemove))
+              prev.filter((s) => !s.toString().includes(topicsToRemove))
             );
           }
         }
         // unsubscribe from the topics the user has deselected
         if (subtopicsToUnfollow.length !== 0) {
-          let topicsToRemove = subtopicsToUnfollow;
+          let topicsToRemove = subtopicsToUnfollow.map((s) => s.toString());
           for (let n = 0; n < subtopicsToUnfollow.length; n++) {
             console.log(subtopicsToUnfollow[n]);
             await API.graphql(
               graphqlOperation(userUnfollowCategoryTopic, {
                 user_id: userID,
-                category_acronym: topics[index].acronym,
-                topic_acronym: subtopicsToUnfollow[n],
+                category_id: topics[index].category_id,
+                topic_id: subtopicsToUnfollow[n],
               })
             );
           }
           for (let m = 0; m < topicsToRemove.length; m++) {
             setUserUnfollow((prev) =>
-              prev.filter((s) => !s.includes(topicsToRemove))
+              prev.filter((s) => !s.toString().includes(topicsToRemove))
             );
           }
         }
       }
       getUserSubscriptions(topics);
     } else {
-      let topicsToRemove = selectedSubTopics;
+      let topicsToRemove = selectedSubTopics.map((s) => s.toString());
+      console.log("selectedSubTopics", selectedSubTopics);
       for (let i = 0; i < selectedSubTopics.length; i++) {
         let userFollowData = {
           user_id: userID,
-          category_acronym: topics[index].acronym,
-          topic_acronym: selectedSubTopics[i],
+          category_id: topics[index].category_id,
+          topic_id: selectedSubTopics[i],
           email_notice: user.email_notice,
           sms_notice: user.sms_notice,
         };
@@ -287,7 +306,7 @@ const ViewTopics = () => {
       }
       for (let m = 0; m < topicsToRemove.length; m++) {
         setSelectedSubtopics((prev) =>
-          prev.filter((s) => !s.includes(topicsToRemove))
+          prev.filter((s) => !s.toString().includes(topicsToRemove))
         );
       }
     }
@@ -321,12 +340,7 @@ const ViewTopics = () => {
           }}
         >
           <CardHeader
-            title={
-              navigator.language === "fr" ||
-              navigator.language.startsWith("fr-")
-                ? topic.title_fr
-                : topic.title
-            }
+            title={topic.title}
             titleTypographyProps={{
               fontSize: "1.2rem",
               fontWeight: "400",
@@ -345,10 +359,7 @@ const ViewTopics = () => {
           )}
           <CardContent sx={{ p: "16px 16px 0px 16px" }}>
             <Typography variant="body2" color="text.secondary">
-              {navigator.language === "fr" ||
-              navigator.language.startsWith("fr-")
-                ? topic.description_fr
-                : topic.description}
+              {topic.description}
             </Typography>
             {userAlreadySubscribed[index] ? (
               <FormGroup sx={{ marginTop: 2, flexDirection: "row" }}>
@@ -356,15 +367,10 @@ const ViewTopics = () => {
                   <FormControlLabel
                     key={index}
                     control={<Checkbox />}
-                    checked={userSelectedSubTopics.includes(subtopic.acronym)}
-                    label={
-                      navigator.language === "fr" ||
-                      navigator.language.startsWith("fr-")
-                        ? subtopic.acronym_fr
-                        : subtopic.acronym
-                    }
+                    checked={userSelectedSubTopics.includes(subtopic.topic_id)}
+                    label={subtopic.name}
                     onChange={(e) =>
-                      handleAlreadySubscribedChange(e, subtopic.acronym)
+                      handleAlreadySubscribedChange(e, subtopic.topic_id)
                     }
                   />
                 ))}
@@ -376,15 +382,10 @@ const ViewTopics = () => {
                     key={index}
                     control={<Checkbox />}
                     checked={selectedSubTopicsCheckbox.includes(
-                      subtopic.acronym
+                      subtopic.topic_id
                     )}
-                    label={
-                      navigator.language === "fr" ||
-                      navigator.language.startsWith("fr-")
-                        ? subtopic.acronym_fr
-                        : subtopic.acronym
-                    }
-                    onChange={(e) => handleChange(e, subtopic.acronym)}
+                    label={subtopic.name}
+                    onChange={(e) => handleChange(e, subtopic.topic_id)}
                   />
                 ))}
               </FormGroup>
