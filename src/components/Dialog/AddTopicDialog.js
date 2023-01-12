@@ -32,22 +32,26 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
   const [selectedTopics, setSelectedTopics] = useState([]);
   const [title, setTitle] = useState("");
   const [titleFr, setTitleFr] = useState("");
-  const [acronym, setAcronym] = useState("");
   const [description, setDescription] = useState("");
   const [descriptionFr, setDescriptionFr] = useState("");
   const [topicExistsError, setTopicsExistError] = useState(false);
   const [uploadFile, setUploadFile] = useState();
   const [selectedUploadFile, setSelectedUploadFile] = useState("");
+  const [language, setLanguage] = useState(
+    navigator.language === "fr" || navigator.language.startsWith("fr")
+      ? "fr"
+      : "en"
+  );
 
   useEffect(() => {
     async function getTopics() {
       const topicsQuery = await API.graphql(
-        graphqlOperation(getAllTopicsForLanguage)
+        graphqlOperation(getAllTopicsForLanguage, { language: language })
       );
       const topics = topicsQuery.data.getAllTopicsForLanguage;
       if (topics !== null) {
-        const topicsAcronym = topics.map((a) => a.acronym);
-        setAllTopics(topicsAcronym);
+        const topicsName = topics.map((a) => a.name);
+        setAllTopics(topicsName);
       }
     }
     getTopics();
@@ -57,7 +61,6 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
     setInputFields([]);
     setSelectedTopics([]);
     setTitle("");
-    setAcronym("");
     setDescription("");
     setTopicsExistError(false);
     handleClose();
@@ -197,7 +200,7 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
                 onChange={(e) => setTitle(e.target.value)}
               />
             </Box>
-            <Box width={"20%"}>
+            {/* <Box width={"20%"}>
               <TextField
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ maxLength: 29 }}
@@ -206,7 +209,7 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
                 label={I18n.get("acronym")}
                 onChange={(e) => setAcronym(e.target.value)}
               />
-            </Box>
+            </Box> */}
             <Button
               size="small"
               component="label"
@@ -257,6 +260,33 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
               value={selectedTopics}
               onChange={handleSelectedTopics}
               input={<OutlinedInput label="Select an existing topic" />}
+              // todo
+              renderValue={(selected) => (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                  {selected.map((value) => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </Box>
+              )}
+            >
+              {allTopics === null ? (
+                <></>
+              ) : (
+                allTopics.map((topic) => (
+                  <MenuItem key={topic} value={topic}>
+                    {topic}
+                  </MenuItem>
+                ))
+              )}
+            </Select>
+          </FormControl>
+          <FormControl>
+            <InputLabel>Add a language</InputLabel>
+            <Select
+              multiple
+              value={selectedTopics}
+              onChange={handleSelectedTopics}
+              input={<OutlinedInput label="Add a Language" />}
               renderValue={(selected) => (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                   {selected.map((value) => (
@@ -319,11 +349,11 @@ const InputRow = ({
     <Box>
       <TextField
         size="small"
-        name="acronym"
+        name="name"
         InputLabelProps={{ shrink: true }}
         label="Topic Name"
         onChange={(event) => handleChange(event, index)}
-        value={item.acronym}
+        value={item.name}
         error={error}
         helperText={helperText}
       />

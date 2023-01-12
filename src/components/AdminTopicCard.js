@@ -27,8 +27,7 @@ import EditTopicDialog from "./Dialog/EditTopicDialog";
 import { I18n } from "aws-amplify";
 
 const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
-  const { title, title_fr, description, description_fr, picture_location } =
-    selectedTopic;
+  const { title, description, picture_location } = selectedTopic;
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedSubTopics, setSelectedSubtopics] = useState([]);
   const [isRotated, setIsRotated] = useState(false);
@@ -37,11 +36,17 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
   const [subtopics, setSubtopics] = useState([]);
   const [newSubtopic, setNewSubtopic] = useState("");
   const [image, setImage] = useState("");
+  const [language, setLanguage] = useState(
+    navigator.language === "fr" || navigator.language.startsWith("fr")
+      ? "fr"
+      : "en"
+  );
 
   async function getSubtopics() {
     let queriedTopics = await API.graphql(
       graphqlOperation(getTopicsOfCategory, {
-        category_acronym: selectedTopic.acronym,
+        category_id: selectedTopic.category_id,
+        language: language,
       })
     );
     let onlyTopics = queriedTopics.data.getTopicsOfCategory;
@@ -122,12 +127,7 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
       <>
         <Card>
           <CardHeader
-            title={
-              navigator.language === "fr" ||
-              navigator.language.startsWith("fr-")
-                ? title_fr
-                : title
-            }
+            title={title}
             titleTypographyProps={{
               fontSize: "1.2rem",
               fontWeight: "400",
@@ -151,10 +151,7 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
           )}
           <CardContent sx={{ p: "16px 16px 0px 16px" }}>
             <Typography variant="body2" color="text.secondary">
-              {navigator.language === "fr" ||
-              navigator.language.startsWith("fr-")
-                ? description_fr
-                : description}
+              {description}
             </Typography>
           </CardContent>
           <CardActions
@@ -202,12 +199,7 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
         >
           <Box width={"100%"}>
             <CardHeader
-              title={
-                navigator.language === "fr" ||
-                navigator.language.startsWith("fr-")
-                  ? title_fr
-                  : title
-              }
+              title={title}
               titleTypographyProps={{
                 fontSize: "1.2rem",
                 fontWeight: "400",
@@ -234,9 +226,9 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
               <FormControlLabel
                 key={index}
                 control={<Checkbox />}
-                checked={selectedSubTopics.includes(subtopic.acronym)}
-                label={subtopic}
-                onChange={(e) => handleChange(e, subtopic)}
+                checked={selectedSubTopics.includes(subtopic.topic_id)}
+                label={subtopic.name}
+                onChange={(e) => handleChange(e, subtopic.topic_id)}
               />
             ))}
           </FormGroup>

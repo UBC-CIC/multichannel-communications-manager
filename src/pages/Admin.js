@@ -51,11 +51,16 @@ const Admin = () => {
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
   const topicsPerPage = 10;
+  const [language, setLanguage] = useState(
+    navigator.language === "fr" || navigator.language.startsWith("fr")
+      ? "fr"
+      : "en"
+  );
 
   async function queriedData() {
     setImage([]);
     let categories = await API.graphql(
-      graphqlOperation(getAllCategoriesForLanguage)
+      graphqlOperation(getAllCategoriesForLanguage, { language: language })
     );
     let allCategories = categories.data.getAllCategoriesForLanguage;
     if (allCategories !== null) {
@@ -125,15 +130,7 @@ const Admin = () => {
             onClick={() => setCurrentlySelectedTopic(topic)}
           >
             {topic.picture_location !== null ? (
-              <img
-                src={image[index]}
-                alt={
-                  navigator.language === "fr" ||
-                  navigator.language.startsWith("fr-")
-                    ? topic.title_fr
-                    : topic.title
-                }
-              />
+              <img src={image[index]} alt={topic.title} />
             ) : (
               <Box
                 sx={{
@@ -144,15 +141,7 @@ const Admin = () => {
                 }}
               ></Box>
             )}
-            <StyledImageListItemBar
-              title={
-                navigator.language === "fr" ||
-                navigator.language.startsWith("fr-")
-                  ? topic.title_fr
-                  : topic.title
-              }
-              position="below"
-            />
+            <StyledImageListItemBar title={topic.title} position="below" />
           </StyledImageListItem>
         ))
         .slice((page - 1) * topicsPerPage, page * topicsPerPage)

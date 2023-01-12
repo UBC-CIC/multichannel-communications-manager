@@ -123,7 +123,7 @@ function Navbar(props) {
               noWrap
               sx={{ fontWeight: 200 }}
             >
-              ISED
+              {I18n.get("title")}
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center" }}>

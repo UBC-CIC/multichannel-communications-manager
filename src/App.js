@@ -74,7 +74,7 @@ function App(props) {
                 type={"image"}
                 themeColor={"standard"}
                 animateTitle={false}
-                title={"ISED"}
+                title={I18n.get("title")}
                 darkMode={true}
                 disableSignUp={true}
               />

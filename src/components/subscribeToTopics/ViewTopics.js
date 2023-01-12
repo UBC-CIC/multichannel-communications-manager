@@ -174,6 +174,8 @@ const ViewTopics = () => {
 
   useEffect(() => {
     queriedData();
+    console.log("177");
+    setSelectedSubtopicsCheckbox([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

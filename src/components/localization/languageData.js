@@ -1,6 +1,7 @@
 export const languageData = {
   en: {
     // pre-signin/pre-signup
+    title: "Manage Your Subscriptions",
     welcome: "Welcome!",
     signIn: "Sign In",
     signUp: "Sign Up",
@@ -119,6 +120,7 @@ export const languageData = {
   },
   fr: {
     // pre-signin/pre-signup
+    title: "Gérer vos abonnements",
     welcome: "Bienvenue",
     signIn: "S'identifier",
     signUp: "S'inscrire",

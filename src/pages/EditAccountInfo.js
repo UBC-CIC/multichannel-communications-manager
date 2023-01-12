@@ -435,7 +435,7 @@ const EditAccountInfo = () => {
           <TextField
             fullWidth
             size="small"
-            label={"Email"}
+            label={I18n.get("email")}
             InputLabelProps={{ shrink: true }}
             name={"email_address"}
             type="email"
@@ -471,7 +471,7 @@ const EditAccountInfo = () => {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Province"
+                label={I18n.get("province")}
                 InputLabelProps={{ shrink: true }}
               />
             )}
@@ -481,7 +481,7 @@ const EditAccountInfo = () => {
           <TextField
             fullWidth
             size="small"
-            label={"Postal Code"}
+            label={I18n.get("postalCode")}
             value={userData.postal_code}
             InputLabelProps={{ shrink: true }}
             name={"postal_code"}
