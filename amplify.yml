@@ -1,4 +1,7 @@
 version: 1
+env:
+  variables:
+    _LIVE_UPDATES: [{"name":"Amplify CLI","pkg":"@aws-amplify/cli","type":"npm","version":"10.0.0"}]
 backend:
   phases:
     build:
