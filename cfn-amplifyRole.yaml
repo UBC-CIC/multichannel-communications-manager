@@ -27,8 +27,8 @@ Resources:
                   - ssm:*
                   - ssm:AddTagsToResource
                   - iam:ListPolicies
-                  - iam:CreatePolicies
-                  - iam:ReadPolicies
+                  - iam:CreatePolicy
+                  - iam:GetPolicy
                   - iam:ListRoles
                   - iam:AttachRolePolicy
                 Resource: '*'
