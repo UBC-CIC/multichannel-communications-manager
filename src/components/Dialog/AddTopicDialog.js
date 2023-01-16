@@ -45,14 +45,18 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
   );
 
   useEffect(() => {
+    console.log("in start useeffect");
     async function getTopics() {
+      console.log("in gettopics");
       const topicsQuery = await API.graphql(
         graphqlOperation(getAllTopicsForLanguage, { language: language })
       );
       const topics = topicsQuery.data.getAllTopicsForLanguage;
+      console.log("topics", topics);
       if (topics !== null) {
         const topicsName = topics.map((a) => a.name);
         setAllTopics(topicsName);
+        console.log("alltopics", allTopics);
       }
     }
     getTopics();
@@ -87,7 +91,7 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
     setNewTopic(event.target.value);
     setTopicsExistError(false);
     const values = [...inputFields];
-    values[index][event.target.name].nameEn = event.target.value;
+    values[index][event.target.name] = event.target.value;
     setInputFields(values);
   };
 
@@ -97,11 +101,12 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
     console.log("in handlechangefr");
 
     const values = [...inputFields];
-    values[index][event.target.name].nameFr = event.target.value;
+    values[index][event.target.name] = event.target.value;
     setInputFields(values);
   };
 
   const handleSave = async () => {
+    // todo
     if (allTopics.includes(newTopic)) {
       setTopicsExistError(true);
     } else {
@@ -121,38 +126,64 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
       };
       try {
         // create the category in the database
-        await API.graphql(graphqlOperation(createCategory, createdTopic)).then(
-          async (res) => {
-            // create all the new topics
-            for (let i = 0; i < inputFields.length; i++) {
-              const response = await API.graphql(
-                graphqlOperation(createTopic, inputFields[i].nameEn)
-              );
-              await API.graphql(
-                graphqlOperation(addTopicDisplayLanguage, inputFields[i].name)
-              );
-              console.log(response);
-            }
-            let newSubtopics = inputFields.map((a) => a.nameEn);
-            let allSubtopics = newSubtopics.concat(selectedTopics);
-            // add all the topics to the category
-            for (let i = 0; i < allSubtopics.length; i++) {
-              await API.graphql(
-                graphqlOperation(addTopicToCategory, {
-                  category_acronym: createdTopic.acronym,
-                  topic_acronym: allSubtopics[i],
-                })
-              );
-            }
-            // todo
-            // add the French display translations
-            // await API.graphql(graphqlOperation(addCategoryDisplayLanguage, {category_id: res.}));
-            clearFields();
-            reload();
-          }
+        const res = await API.graphql(
+          graphqlOperation(createCategory, createdTopic)
         );
+        console.log("createCategory response", res);
+        const categoryId = res.data.createCategory.category_id;
+        // create all the new topics
+        for (let i = 0; i < inputFields.length; i++) {
+          const response = await API.graphql(
+            graphqlOperation(createTopic, {
+              english_name: inputFields[i].nameEn,
+            })
+          );
+          console.log("createTopic response", response);
+          let r = await API.graphql(
+            graphqlOperation(addTopicDisplayLanguage, {
+              topic_id: response.data.createTopic.topic_id,
+              language: "fr",
+              name: inputFields[i].nameFr,
+            })
+          );
+          console.log("addTopicDisplayLanguage response", r);
+          let r2 = await API.graphql(
+            graphqlOperation(addTopicToCategory, {
+              category_id: categoryId,
+              topic_id: response.data.createTopic.topic_id,
+            })
+          );
+          console.log("addTopicToCategory response", r2);
+        }
+        let newSubtopics = inputFields.map((a) => a.nameEn);
+        let allSubtopics = newSubtopics.concat(selectedTopics);
+        // add all the topics to the category
+        // for (let i = 0; i < allSubtopics.length; i++) {
+        //   await API.graphql(
+        //     graphqlOperation(addTopicToCategory, {
+        //       category_id: categoryId,
+        //       topic_id: allSubtopics[i],
+        //     })
+        //   );
+        // }
+        // todo
+        // add the French display translations
+        // await API.graphql(graphqlOperation(addCategoryDisplayLanguage, {category_id: res.}));
+        clearFields();
+        reload();
+
+        // add French translations in the database
+        let r3 = await API.graphql(
+          graphqlOperation(addCategoryDisplayLanguage, {
+            category_id: categoryId,
+            language: "fr",
+            title: titleFr,
+            description: descriptionFr,
+          })
+        );
+        console.log("addCategoryDisplayLanguage response", r3);
       } catch (e) {
-        console.log(e);
+        console.log("e", e);
       }
     }
   };
@@ -251,7 +282,7 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
             label={I18n.get("descriptionEn")}
             multiline
             rows={5}
-            onChange={(e) => setDescriptionFr(e.target.value)}
+            onChange={(e) => setDescription(e.target.value)}
           />
           <Box width={"40%"}>
             <TextField
@@ -269,7 +300,7 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
             label={I18n.get("descriptionFr")}
             multiline
             rows={5}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => setDescriptionFr(e.target.value)}
           />
           <FormControl>
             <InputLabel>{I18n.get("selectTopic")}</InputLabel>
@@ -288,7 +319,7 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
               )}
             >
               {allTopics === null ? (
-                <></>
+                <>hull</>
               ) : (
                 allTopics.map((topic) => (
                   <MenuItem key={topic} value={topic}>
@@ -343,7 +374,7 @@ const InputRow = ({
     <Box>
       <TextField
         size="small"
-        name="name"
+        name="nameEn"
         InputLabelProps={{ shrink: true }}
         // todo
         label="Topic Name in English"
@@ -354,7 +385,7 @@ const InputRow = ({
       />
       <TextField
         size="small"
-        name="name"
+        name="nameFr"
         InputLabelProps={{ shrink: true }}
         label="Topic Name in French"
         onChange={(event) => handleChangeFr(event, index)}

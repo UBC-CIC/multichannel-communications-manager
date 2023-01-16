@@ -28,11 +28,16 @@ const DeleteTopicDialog = ({ open, handleClose, topics, reload }) => {
   const [type, setType] = useState("");
   const [openConfirmDeleteTopicDialog, setOpenConfirmDeleteTopicDialog] =
     useState(false);
+  const [language, setLanguage] = useState(
+    navigator.language === "fr" || navigator.language.startsWith("fr")
+      ? "fr"
+      : "en"
+  );
 
   useEffect(() => {
     async function getTopics() {
       const topicsQuery = await API.graphql(
-        graphqlOperation(getAllTopicsForLanguage)
+        graphqlOperation(getAllTopicsForLanguage, { language: language })
       );
       const topics = topicsQuery.data.getAllTopicsForLanguage;
       setAllTopics(topics);

@@ -1034,6 +1034,35 @@ Resources:
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
       MaxBatchSize: 0
+  
+  getAllTopicsForLanguageResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaResolverAppSyncDataSource
+    Properties:
+      TypeName: Query
+      FieldName: getAllTopicsForLanguage
+      RequestMappingTemplate: |
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "select * from `TopicInfo` where `TopicInfo`.language=:1",
+        "SQLVariableMapping": {
+        ":1": "$context.arguments.language"
+        }
+        }
+        }
+
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        $util.toJson($context.result.sqlResult)
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
 
   getAllCategoryTopicsResolver:
     Type: AWS::AppSync::Resolver
