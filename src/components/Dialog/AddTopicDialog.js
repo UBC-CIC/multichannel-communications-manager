@@ -26,7 +26,7 @@ import {
 } from "../../graphql/mutations";
 import { getAllTopicsForLanguage } from "../../graphql/queries";
 
-const AddTopicDialog = ({ open, handleClose, reload }) => {
+const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   const [inputFields, setInputFields] = useState([]);
   const [allTopics, setAllTopics] = useState([]);
   const [newTopic, setNewTopic] = useState("");
@@ -38,11 +38,11 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
   const [topicExistsError, setTopicsExistError] = useState(false);
   const [uploadFile, setUploadFile] = useState();
   const [selectedUploadFile, setSelectedUploadFile] = useState("");
-  const [language, setLanguage] = useState(
-    navigator.language === "fr" || navigator.language.startsWith("fr")
-      ? "fr"
-      : "en"
-  );
+  // const [language, setLanguage] = useState(
+  //   navigator.language === "fr" || navigator.language.startsWith("fr")
+  //     ? "fr"
+  //     : "en"
+  // );
 
   useEffect(() => {
     console.log("in start useeffect");

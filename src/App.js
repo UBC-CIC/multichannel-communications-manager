@@ -101,7 +101,7 @@ function App(props) {
                 setLanguage={setLanguage}
               />
               <main style={{ flexGrow: 1, padding: "50px" }}>
-                <Admin />
+                <Admin language={language} />
               </main>
             </BrowserRouter>
           )}

@@ -20,7 +20,7 @@ import { getAllTopicsForLanguage } from "../../graphql/queries";
 import { useState, useEffect } from "react";
 import ConfirmDeleteTopicDialog from "./ConfirmDeleteTopicDialog";
 
-const DeleteTopicDialog = ({ open, handleClose, topics, reload }) => {
+const DeleteTopicDialog = ({ open, handleClose, topics, reload, language }) => {
   const [value, setValue] = useState(0);
   const [checked, setChecked] = useState([]);
   const [checkedSubtopic, setCheckedSubtopic] = useState([]);
@@ -28,11 +28,11 @@ const DeleteTopicDialog = ({ open, handleClose, topics, reload }) => {
   const [type, setType] = useState("");
   const [openConfirmDeleteTopicDialog, setOpenConfirmDeleteTopicDialog] =
     useState(false);
-  const [language, setLanguage] = useState(
-    navigator.language === "fr" || navigator.language.startsWith("fr")
-      ? "fr"
-      : "en"
-  );
+  // const [language, setLanguage] = useState(
+  //   navigator.language === "fr" || navigator.language.startsWith("fr")
+  //     ? "fr"
+  //     : "en"
+  // );
 
   useEffect(() => {
     async function getTopics() {

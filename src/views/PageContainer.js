@@ -88,7 +88,11 @@ function PageContainer(props) {
         <main style={{ flexGrow: 1, padding: "50px" }}>
           {/* Routes are added here if you need multiple page views*/}
           <Routes>
-            <Route exact path={"/"} element={<SubscribeToTopics />} />
+            <Route
+              exact
+              path={"/"}
+              element={<SubscribeToTopics language={language} />}
+            />
             <Route
               exact
               path={"/edit-account-information"}

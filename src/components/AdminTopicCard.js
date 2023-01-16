@@ -26,7 +26,7 @@ import "./TopicCard.css";
 import EditTopicDialog from "./Dialog/EditTopicDialog";
 import { I18n } from "aws-amplify";
 
-const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
+const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
   const { title, description, picture_location } = selectedTopic;
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedSubTopics, setSelectedSubtopics] = useState([]);
@@ -36,11 +36,11 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic }) => {
   const [subtopics, setSubtopics] = useState([]);
   const [newSubtopic, setNewSubtopic] = useState("");
   const [image, setImage] = useState("");
-  const [language, setLanguage] = useState(
-    navigator.language === "fr" || navigator.language.startsWith("fr")
-      ? "fr"
-      : "en"
-  );
+  // const [language, setLanguage] = useState(
+  //   navigator.language === "fr" || navigator.language.startsWith("fr")
+  //     ? "fr"
+  //     : "en"
+  // );
 
   async function getSubtopics() {
     let queriedTopics = await API.graphql(

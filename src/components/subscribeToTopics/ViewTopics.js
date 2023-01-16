@@ -30,7 +30,8 @@ import {
   userUnfollowCategory,
 } from "../../graphql/mutations";
 
-const ViewTopics = () => {
+const ViewTopics = ({ language }) => {
+  // const [topicsLanguage, setTopicsLanguage] = useState(language);
   const [alert, setAlert] = useState(false);
   // all topics on the page
   // category_id
@@ -71,11 +72,11 @@ const ViewTopics = () => {
   // bool
   const [userAlreadySubscribed, setUserAlreadySubscribed] = useState([]);
   const [user, setUser] = useState();
-  const [language, setLanguage] = useState(
-    navigator.language === "fr" || navigator.language.startsWith("fr-")
-      ? "fr"
-      : "en"
-  );
+  // const [language, setLanguage] = useState(
+  //   navigator.language === "fr" || navigator.language.startsWith("fr-")
+  //     ? "fr"
+  //     : "en"
+  // );
 
   async function getCategoryImages(categories) {
     for (let i = 0; i < categories.length; i++) {
@@ -85,7 +86,6 @@ const ViewTopics = () => {
   }
 
   async function queriedData() {
-    console.log("in querieddata");
     let categories = await API.graphql(
       graphqlOperation(getAllCategoriesForLanguage, { language: language })
     );
@@ -178,6 +178,10 @@ const ViewTopics = () => {
     setSelectedSubtopicsCheckbox([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // useEffect(() => {
+  //   setTopicsLanguage(language);
+  // }, [language]);
 
   const handleChange = (e, subtopic) => {
     console.log("in handlechange");
