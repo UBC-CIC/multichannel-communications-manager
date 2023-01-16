@@ -66,11 +66,12 @@ CREATE TABLE \`UserCategoryTopic\` (
   PRIMARY KEY (\`user_id\`, \`categoryTopic_id\`)
 );
 
-
+// todo: add unique constraint on language + id
 CREATE INDEX \`User_index_0\` ON \`User\` (\`email_address\`);
 
 CREATE UNIQUE INDEX \`CategoryTopic_index_1\` ON \`CategoryTopic\` (\`category_id\`, \`topic_id\`);
 
+CREATE UNIQUE INDEX \`TopicInfo_index_1\` ON \`TopicInfo\` (\`language\`, \`name\`);
 
 ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`category_id\`) REFERENCES \`Category\` (\`category_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 

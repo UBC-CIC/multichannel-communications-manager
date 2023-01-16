@@ -178,6 +178,7 @@ const Admin = (props) => {
           <AdminTopicCard
             selectedTopic={currentlySelectedTopic}
             setSelectedTopic={setCurrentlySelectedTopic}
+            language={language}
           />
         </Box>
       ) : (
@@ -221,6 +222,7 @@ const Admin = (props) => {
               open={openNewTopicDialog}
               handleClose={() => setOpenNewTopicDialog(false)}
               reload={queriedData}
+              language={language}
             />
             <DeleteTopicDialog
               open={openDeleteTopicDialog}

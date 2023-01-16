@@ -1325,7 +1325,7 @@ Resources:
         ":title": "$context.arguments.title",
         ":description": $description
         },
-        "responseSQL": "select * from `Category` where category_id=:id;"
+        "responseSQL": "select * from `CategoryInfo` where category_id=:id;"
         }
         }
       ResponseMappingTemplate: |

@@ -55,7 +55,9 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
       console.log("topics", topics);
       if (topics !== null) {
         const topicsName = topics.map((a) => a.name);
-        setAllTopics(topicsName);
+        // setAllTopics(topicsName);
+        setAllTopics(topics);
+
         console.log("alltopics", allTopics);
       }
     }
@@ -155,20 +157,18 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
           );
           console.log("addTopicToCategory response", r2);
         }
-        let newSubtopics = inputFields.map((a) => a.nameEn);
-        let allSubtopics = newSubtopics.concat(selectedTopics);
-        // add all the topics to the category
-        // for (let i = 0; i < allSubtopics.length; i++) {
-        //   await API.graphql(
-        //     graphqlOperation(addTopicToCategory, {
-        //       category_id: categoryId,
-        //       topic_id: allSubtopics[i],
-        //     })
-        //   );
-        // }
-        // todo
-        // add the French display translations
-        // await API.graphql(graphqlOperation(addCategoryDisplayLanguage, {category_id: res.}));
+        // let newSubtopics = inputFields;
+        // .map((a) => a.nameEn);
+        // let allSubtopics = newSubtopics.concat(selectedTopics);
+        // add all the selected topics to the category
+        for (let i = 0; i < selectedTopics.length; i++) {
+          await API.graphql(
+            graphqlOperation(addTopicToCategory, {
+              category_id: categoryId,
+              topic_id: selectedTopics[i].topic_id,
+            })
+          );
+        }
         clearFields();
         reload();
 
@@ -189,6 +189,7 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   };
 
   const handleSelectedTopics = (event) => {
+    console.log("event", event);
     const {
       target: { value },
     } = event;
@@ -306,7 +307,7 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
             <InputLabel>{I18n.get("selectTopic")}</InputLabel>
             <Select
               multiple
-              value={selectedTopics}
+              value={selectedTopics.map((t) => t.name)}
               onChange={handleSelectedTopics}
               input={<OutlinedInput label="Select an existing topic" />}
               // todo
@@ -319,11 +320,11 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
               )}
             >
               {allTopics === null ? (
-                <>hull</>
+                <></>
               ) : (
                 allTopics.map((topic) => (
-                  <MenuItem key={topic} value={topic}>
-                    {topic}
+                  <MenuItem key={topic.name} value={topic}>
+                    {topic.name}
                   </MenuItem>
                 ))
               )}
