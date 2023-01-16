@@ -19,7 +19,7 @@ import EditAccountInfo from "../pages/EditAccountInfo";
 import { I18n } from "aws-amplify";
 
 function PageContainer(props) {
-  const { menuEnabled, updateMenuState } = props;
+  const { menuEnabled, updateMenuState, language, setLanguage } = props;
   const navigate = useNavigate();
 
   /*
@@ -66,7 +66,11 @@ function PageContainer(props) {
     <Grid container direction="column">
       {/* Navbar component, set side menu button parameter -->
         button updates redux state to show/hide left sidebar */}
-      <Navbar showSideMenuButton={true} />
+      <Navbar
+        showSideMenuButton={true}
+        language={language}
+        setLanguage={setLanguage}
+      />
       {/* App content example below with sidebar */}
       <Grid item xs={12}>
         {/* Side menu component */}

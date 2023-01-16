@@ -26,18 +26,25 @@ function App(props) {
       ? "fr"
       : "en"
   );
-  I18n.setLanguage(language);
-  console.log("current navigator language: ", navigator.language);
+  // I18n.setLanguage(language);
+  // console.log("current navigator language: ", navigator.language);
 
   const [currentLoginState, updateCurrentLoginState] = useState(loginState);
 
   useEffect(() => {
+    // I18n.setLanguage(language);
     setAuthListener();
   }, []);
 
   useEffect(() => {
     updateCurrentLoginState(loginState);
   }, [loginState]);
+
+  // useEffect(() => {
+  //   // console.log("in useeffect");
+  //   // console.log("I18n.setLanguage(language)", language);
+  //   I18n.setLanguage(language);
+  // }, [language]);
 
   async function setAuthListener() {
     Hub.listen("auth", (data) => {
@@ -75,18 +82,24 @@ function App(props) {
                 themeColor={"standard"}
                 animateTitle={false}
                 title={I18n.get("title")}
+                language={language}
+                setLanguage={setLanguage}
                 darkMode={true}
                 disableSignUp={true}
               />
             )}
           {currentLoginState === "signedIn" && (
             <BrowserRouter>
-              <PageContainer />
+              <PageContainer language={language} setLanguage={setLanguage} />
             </BrowserRouter>
           )}
           {currentLoginState === "Admin" && (
             <BrowserRouter>
-              <Navbar showSideMenuButton={false} />
+              <Navbar
+                showSideMenuButton={false}
+                language={language}
+                setLanguage={setLanguage}
+              />
               <main style={{ flexGrow: 1, padding: "50px" }}>
                 <Admin />
               </main>

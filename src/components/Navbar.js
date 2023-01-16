@@ -12,6 +12,7 @@ import {
   Backdrop,
   Menu,
   MenuItem,
+  Button,
 } from "@mui/material";
 import { ExitToApp } from "@mui/icons-material";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -27,6 +28,8 @@ function Navbar(props) {
     loginState,
     menuEnabled,
     showSideMenuButton,
+    language,
+    setLanguage,
   } = props;
   const navigate = useNavigate();
 
@@ -91,6 +94,14 @@ function Navbar(props) {
     await Auth.signOut();
   }
 
+  function handleLanguageChange() {
+    I18n.setLanguage(language === "fr" ? "en" : "fr");
+
+    setLanguage((prev) => {
+      return prev === "fr" ? "en" : "fr";
+    });
+  }
+
   return (
     <Grid item xs={12}>
       <AppBar
@@ -127,6 +138,12 @@ function Navbar(props) {
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Button
+              onClick={handleLanguageChange}
+              sx={{ backgroundColor: "white" }}
+            >
+              {language === "fr" ? "English" : "French"}
+            </Button>
             <div>
               <IconButton
                 edge="end"

@@ -280,32 +280,6 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
               )}
             </Select>
           </FormControl>
-          <FormControl>
-            <InputLabel>Add a language</InputLabel>
-            <Select
-              multiple
-              value={selectedTopics}
-              onChange={handleSelectedTopics}
-              input={<OutlinedInput label="Add a Language" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                  {selected.map((value) => (
-                    <Chip key={value} label={value} />
-                  ))}
-                </Box>
-              )}
-            >
-              {allTopics === null ? (
-                <></>
-              ) : (
-                allTopics.map((topic) => (
-                  <MenuItem key={topic} value={topic}>
-                    {topic}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-          </FormControl>
           {inputFields.map((item, index) => (
             <div key={index}>
               <InputRow

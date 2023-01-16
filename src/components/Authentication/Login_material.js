@@ -74,6 +74,8 @@ function Login(props) {
     animateTitle,
     type,
     title,
+    language,
+    setLanguage,
     darkMode,
     themeColor,
   } = props;
@@ -97,11 +99,11 @@ function Login(props) {
     useState([]);
   const [userPhone, setUserPhone] = useState("");
   const [invalidInputError, setInvalidInputError] = useState(false);
-  const [language, setLanguage] = useState(
-    navigator.language === "fr" || navigator.language.startsWith("fr")
-      ? "fr"
-      : "en"
-  );
+  // const [language, setLanguage] = useState(
+  //   navigator.language === "fr" || navigator.language.startsWith("fr")
+  //     ? "fr"
+  //     : "en"
+  // );
 
   const provinceOptions = [
     I18n.get("bc"),
@@ -214,6 +216,14 @@ function Login(props) {
 
   function intToHex(nr) {
     return nr.toString(16).padStart(2, "0");
+  }
+
+  function handleLanguageChange() {
+    I18n.setLanguage(language === "fr" ? "en" : "fr");
+
+    setLanguage((prev) => {
+      return prev === "fr" ? "en" : "fr";
+    });
   }
 
   //function for user sign up
@@ -522,6 +532,12 @@ function Login(props) {
           sm={7}
           sx={{ justifyContent: "center", alignItems: "center" }}
         >
+          <div style={{ position: "absolute", top: "0", right: "0" }}>
+            <Button onClick={handleLanguageChange}>
+              {language === "fr" ? "English" : "French"}
+            </Button>
+          </div>
+          {/* second box */}
           <Grid
             container
             item
