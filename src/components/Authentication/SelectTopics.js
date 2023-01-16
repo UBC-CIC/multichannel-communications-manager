@@ -49,7 +49,7 @@ const StyledImageListItem = styled(ImageListItem)`
   }
 `;
 
-const SelectTopics = ({ handleNextStep }) => {
+const SelectTopics = ({ handleNextStep, language }) => {
   const [topics, setTopics] = useState([]);
   const [allSelectedTopics, setAllSelectedTopics] = useState([]);
   const [selectedSubtopics, setSelectedSubtopics] = useState([]);
@@ -59,11 +59,11 @@ const SelectTopics = ({ handleNextStep }) => {
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
-  const [language, setLanguage] = useState(
-    navigator.language === "fr" || navigator.language.startsWith("fr-")
-      ? "fr"
-      : "en"
-  );
+  // const [language, setLanguage] = useState(
+  //   navigator.language === "fr" || navigator.language.startsWith("fr-")
+  //     ? "fr"
+  //     : "en"
+  // );
   const topicsPerPage = 3;
 
   async function queriedData() {
@@ -87,7 +87,7 @@ const SelectTopics = ({ handleNextStep }) => {
 
   useEffect(() => {
     queriedData();
-  }, []);
+  }, [language]);
 
   const displayTopicOptions = () => {
     return (
@@ -208,6 +208,7 @@ const SelectTopics = ({ handleNextStep }) => {
             setSelectedSubtopics={setSelectedSubtopics}
             allSelectedTopics={allSelectedTopics}
             setAllSelectedTopics={setAllSelectedTopics}
+            language={language}
           />
         </Box>
       ) : (

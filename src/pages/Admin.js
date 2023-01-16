@@ -39,8 +39,8 @@ const StyledImageListItem = styled(ImageListItem)`
   }
 `;
 
-const Admin = (props) => {
-  const { language } = props;
+const Admin = ({ language }) => {
+  // const { language } = props;
   const [topics, setTopics] = useState([]);
   const [topicsTemp, setTopicsTemp] = useState([]);
   const [searchVal, setSearchVal] = useState("");
@@ -85,7 +85,12 @@ const Admin = (props) => {
   useEffect(() => {
     queriedData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [language]);
+
+  // useEffect(() => {
+  //   console.log("in useeffect");
+  //   setTopicDisplayLanguage(language);
+  // }, [language]);
 
   function search() {
     if (searchVal === "") {
@@ -229,6 +234,7 @@ const Admin = (props) => {
               handleClose={() => setOpenDeleteTopicDialog(false)}
               topics={topicsTemp}
               reload={queriedData}
+              language={language}
             />
           </Box>
           <Box sx={{ border: 1, borderColor: "grey.400", borderRadius: "6px" }}>

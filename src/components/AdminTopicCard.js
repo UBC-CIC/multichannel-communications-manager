@@ -27,6 +27,7 @@ import EditTopicDialog from "./Dialog/EditTopicDialog";
 import { I18n } from "aws-amplify";
 
 const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
+  const [topicDisplayLanguage, setTopicDisplayLanguage] = useState(language);
   const { title, description, picture_location } = selectedTopic;
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedSubTopics, setSelectedSubtopics] = useState([]);
@@ -63,6 +64,10 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
     }
     getCategoryImage();
   }, []);
+
+  useEffect(() => {
+    setTopicDisplayLanguage(language);
+  }, [language]);
 
   //updates setSelectedSubtopics every time subtopics are selected/unselected by user
   const handleChange = (e, subtopic) => {

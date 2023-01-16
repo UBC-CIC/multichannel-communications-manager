@@ -45,7 +45,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   // );
 
   useEffect(() => {
-    console.log("in start useeffect");
     async function getTopics() {
       console.log("in gettopics");
       const topicsQuery = await API.graphql(
@@ -62,7 +61,7 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
       }
     }
     getTopics();
-  }, []);
+  }, [language]);
 
   const clearFields = () => {
     setInputFields([]);

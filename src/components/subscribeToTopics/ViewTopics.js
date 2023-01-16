@@ -97,6 +97,7 @@ const ViewTopics = ({ language }) => {
   }
 
   async function getTopics(allCategories) {
+    setSubtopics([]);
     for (let i = 0; i < allCategories.length; i++) {
       let queriedTopics = await API.graphql(
         graphqlOperation(getTopicsOfCategory, {
@@ -104,10 +105,14 @@ const ViewTopics = ({ language }) => {
           language: language,
         })
       );
+      console.log("queriedTopics", queriedTopics);
       let onlyTopics = queriedTopics.data.getTopicsOfCategory;
 
-      // let topics = onlyTopics.map((a) => a.acronym);
+      // let topics = onlyTopics.map((a) => a.acronym
+      // setSubtopics((subtopics) => [...subtopics, onlyTopics]);
       setSubtopics((subtopics) => [...subtopics, onlyTopics]);
+
+      console.log("subtopics", subtopics);
     }
   }
 
@@ -177,7 +182,7 @@ const ViewTopics = ({ language }) => {
     console.log("177");
     setSelectedSubtopicsCheckbox([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [language]);
 
   // useEffect(() => {
   //   setTopicsLanguage(language);

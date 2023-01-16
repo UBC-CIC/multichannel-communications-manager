@@ -559,7 +559,7 @@ function Login(props) {
                 >
                   {activeStep === 0
                     ? I18n.get("welcome")
-                    : activeStep === 1 && "Verification"}
+                    : activeStep === 1 && I18n.get("verification")}
                 </Typography>
                 <span className={"login-wrapper-action-header"}>
                   {loginState === "signIn" ? (
@@ -794,7 +794,10 @@ function Login(props) {
             )}
             {/* Select Topics of Interest Step*/}
             {activeStep === 2 && (
-              <SelectTopics handleNextStep={handleNextStep} />
+              <SelectTopics
+                handleNextStep={handleNextStep}
+                language={language}
+              />
             )}
 
             {/* Redirect to Homepage Step*/}

@@ -79,7 +79,7 @@ const TopicCard = ({
     getCategoryImage();
     retrieveUser();
     setSaveEnabled(false);
-  }, []);
+  }, [language]);
 
   const handleSaved = () => {
     setSaveEnabled(true);

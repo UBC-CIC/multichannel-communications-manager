@@ -43,7 +43,7 @@ const DeleteTopicDialog = ({ open, handleClose, topics, reload, language }) => {
       setAllTopics(topics);
     }
     getTopics();
-  }, []);
+  }, [language]);
 
   const closeDialog = () => {
     setChecked([]);
@@ -142,6 +142,7 @@ const DeleteTopicDialog = ({ open, handleClose, topics, reload, language }) => {
         <DialogContent dividers>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs centered value={value} onChange={handleUpdate}>
+              {/* todo */}
               <Tab label="Categories" />
               <Tab label="Topics" />
             </Tabs>
@@ -173,7 +174,7 @@ const DeleteTopicDialog = ({ open, handleClose, topics, reload, language }) => {
           <TabPanel value={value} index={1}>
             <List>
               {allTopics === null ? (
-                <span>{I18n.get("nocurrentCategories")}</span>
+                <span>{I18n.get("nocurrentTopics")}</span>
               ) : (
                 allTopics.map((value, index) => {
                   return (
@@ -187,7 +188,7 @@ const DeleteTopicDialog = ({ open, handleClose, topics, reload, language }) => {
                         />
                       }
                     >
-                      <ListItemText primary={value.acronym} />
+                      <ListItemText primary={value.name} />
                     </ListItem>
                   );
                 })

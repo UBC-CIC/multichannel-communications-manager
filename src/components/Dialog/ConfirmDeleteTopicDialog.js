@@ -25,11 +25,11 @@ const ConfirmDeleteTopicDialog = ({
       <DialogContent sx={{ mt: "1em" }}>
         {type === "category" ? (
           <Typography variant="body2" sx={{ fontColor: "#484848" }}>
-            {I18n.get("deleconfirmDeleteCategory")}
+            {I18n.get("confirmDeleteCategory")}
           </Typography>
         ) : (
           <Typography variant="body2" sx={{ fontColor: "#484848" }}>
-            {I18n.get("deleconfirmDeleteTopic")}
+            {I18n.get("confirmDeleteTopic")}
           </Typography>
         )}
         <Box
