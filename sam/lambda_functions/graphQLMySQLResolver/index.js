@@ -47,7 +47,8 @@ CREATE TABLE \`Topic\` (
 CREATE TABLE \`TopicInfo\` (
   \`topic_id\` int,
   \`language\` ENUM ('en', 'fr') NOT NULL,
-  \`name\` varchar(40) UNIQUE NOT NULL,
+  \`name\` varchar(40) NOT NULL,
+  // todo
   PRIMARY KEY (\`topic_id\`, \`language\`)
 );
 

@@ -22,6 +22,7 @@ import {
   createTopic,
   addTopicToCategory,
   addCategoryDisplayLanguage,
+  addTopicDisplayLanguage,
 } from "../../graphql/mutations";
 import { getAllTopicsForLanguage } from "../../graphql/queries";
 
@@ -69,7 +70,7 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
   };
 
   const handleAddSubtopic = () => {
-    setInputFields([...inputFields, { acronym: "" }]);
+    setInputFields([...inputFields, { nameEn: "", nameFr: "" }]);
   };
 
   const handleRemoveSubtopic = (index) => {
@@ -81,11 +82,22 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
     setTopicsExistError(false);
   };
 
-  const handleChange = (event, index) => {
+  const handleChangeEn = (event, index) => {
+    console.log("in handlechangeen");
     setNewTopic(event.target.value);
     setTopicsExistError(false);
     const values = [...inputFields];
-    values[index][event.target.name] = event.target.value;
+    values[index][event.target.name].nameEn = event.target.value;
+    setInputFields(values);
+  };
+
+  const handleChangeFr = (event, index) => {
+    // setNewTopic(event.target.value);
+    // setTopicsExistError(false);
+    console.log("in handlechangefr");
+
+    const values = [...inputFields];
+    values[index][event.target.name].nameFr = event.target.value;
     setInputFields(values);
   };
 
@@ -113,9 +125,15 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
           async (res) => {
             // create all the new topics
             for (let i = 0; i < inputFields.length; i++) {
-              await API.graphql(graphqlOperation(createTopic, inputFields[i]));
+              const response = await API.graphql(
+                graphqlOperation(createTopic, inputFields[i].nameEn)
+              );
+              await API.graphql(
+                graphqlOperation(addTopicDisplayLanguage, inputFields[i].name)
+              );
+              console.log(response);
             }
-            let newSubtopics = inputFields.map((a) => a.acronym);
+            let newSubtopics = inputFields.map((a) => a.nameEn);
             let allSubtopics = newSubtopics.concat(selectedTopics);
             // add all the topics to the category
             for (let i = 0; i < allSubtopics.length; i++) {
@@ -286,7 +304,8 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
                 inputFields={inputFields}
                 index={index}
                 item={item}
-                handleChange={handleChange}
+                handleChangeEn={handleChangeEn}
+                handleChangeFr={handleChangeFr}
                 handleRemove={handleRemoveSubtopic}
                 error={topicExistsError}
                 helperText={!!topicExistsError && "This topic already exists."}
@@ -314,7 +333,8 @@ const AddTopicDialog = ({ open, handleClose, reload }) => {
 const InputRow = ({
   index,
   item,
-  handleChange,
+  handleChangeEn,
+  handleChangeFr,
   handleRemove,
   error,
   helperText,
@@ -325,9 +345,20 @@ const InputRow = ({
         size="small"
         name="name"
         InputLabelProps={{ shrink: true }}
-        label="Topic Name"
-        onChange={(event) => handleChange(event, index)}
-        value={item.name}
+        // todo
+        label="Topic Name in English"
+        onChange={(event) => handleChangeEn(event, index)}
+        value={item.nameEn}
+        error={error}
+        helperText={helperText}
+      />
+      <TextField
+        size="small"
+        name="name"
+        InputLabelProps={{ shrink: true }}
+        label="Topic Name in French"
+        onChange={(event) => handleChangeFr(event, index)}
+        value={item.nameFr}
         error={error}
         helperText={helperText}
       />
