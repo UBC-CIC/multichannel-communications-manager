@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,7 +11,8 @@ import {
 } from "@mui/material";
 import { Close, Upload } from "@mui/icons-material";
 import { API, graphqlOperation, I18n, Storage } from "aws-amplify";
-import { updateCategory } from "../../graphql/mutations";
+import { updateCategoryInfo, updateCategory } from "../../graphql/mutations";
+import { getCategory } from "../../graphql/queries";
 
 const EditTopicDialog = ({
   open,
@@ -19,35 +20,63 @@ const EditTopicDialog = ({
   selectedTopic,
   setSelectedTopic,
 }) => {
-  const [newTitle, setNewTitle] = useState(selectedTopic.title);
-  const [newDescription, setNewDescription] = useState(
+  const [newTitleEn, setNewTitleEn] = useState(selectedTopic.title);
+  const [newTitleFr, setNewTitleFr] = useState("");
+
+  const [newDescriptionEn, setNewDescriptionEn] = useState(
     selectedTopic.description
   );
+  const [newDescriptionFr, setNewDescriptionFr] = useState("");
   const [uploadFile, setUploadFile] = useState();
   const [selectedUploadFile, setSelectedUploadFile] = useState("");
 
   const handleSave = async () => {
     let s3Key = "";
+    console.log("35");
     if (document.getElementById("uploadFile").value === "") {
       s3Key = null;
+      console.log("37");
     } else {
+      console.log("38");
       await Storage.put(uploadFile.name, uploadFile).then(
         (resp) => (s3Key = resp.key)
       );
+      console.log("41");
     }
-    let updatedCategory = {
-      category_id: selectedTopic.category_id,
-      acronym: selectedTopic.acronym,
-      title: newTitle,
-      description: newDescription,
-      picture_location: s3Key,
-    };
-    await API.graphql(graphqlOperation(updateCategory, updatedCategory))
-      .then(() => {
-        setSelectedTopic(updatedCategory);
-        handleClose();
-      })
-      .catch((e) => console.log(e));
+    try {
+      console.log("43");
+      await API.graphql(
+        // update english content
+        graphqlOperation(updateCategoryInfo, {
+          category_id: selectedTopic.category_id,
+          language: "en",
+          title: newTitleEn,
+          description: newDescriptionEn,
+        })
+      );
+      console.log("53");
+      await API.graphql(
+        // update french content
+        graphqlOperation(updateCategoryInfo, {
+          category_id: selectedTopic.category_id,
+          language: "fr",
+          title: newTitleFr,
+          description: newDescriptionFr,
+        })
+      );
+      console.log("63");
+      await API.graphql(
+        // update img
+        graphqlOperation(updateCategory, {
+          category_id: selectedTopic.category_id,
+          picture_location: s3Key,
+        })
+      );
+      console.log("s3 key", s3Key);
+      handleClose();
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   async function handleUploadFileChange(e) {
@@ -55,6 +84,32 @@ const EditTopicDialog = ({
     setSelectedUploadFile(chosenUploadFile.name);
     setUploadFile(chosenUploadFile);
   }
+
+  useEffect(() => {
+    async function setCategoryInfo() {
+      console.log("in getCategoryInfo");
+      let datafr = await API.graphql(
+        graphqlOperation(getCategory, {
+          category_id: selectedTopic.category_id,
+          language: "fr",
+        })
+      );
+      setNewTitleFr(datafr.data.getCategory.title);
+      setNewDescriptionFr(datafr.data.getCategory.description);
+
+      let dataen = await API.graphql(
+        graphqlOperation(getCategory, {
+          category_id: selectedTopic.category_id,
+          language: "en",
+        })
+      );
+      setNewTitleEn(dataen.data.getCategory.title);
+      setNewDescriptionEn(dataen.data.getCategory.description);
+      console.log("newDescriptionEn", newDescriptionEn);
+      console.log("dataen", dataen);
+    }
+    setCategoryInfo();
+  }, []);
 
   return (
     <Dialog
@@ -94,18 +149,35 @@ const EditTopicDialog = ({
             InputLabelProps={{ shrink: true }}
             size="small"
             type="text"
-            label={I18n.get("title")}
-            onChange={(e) => setNewTitle(e.target.value)}
-            value={newTitle}
+            label={I18n.get("titleEn")}
+            onChange={(e) => setNewTitleEn(e.target.value)}
+            value={newTitleEn}
           />
           <TextField
             type="text"
             InputLabelProps={{ shrink: true }}
-            label={I18n.get("description")}
+            label={I18n.get("descriptionEn")}
             multiline
             rows={5}
-            onChange={(e) => setNewDescription(e.target.value)}
-            value={newDescription}
+            onChange={(e) => setNewDescriptionEn(e.target.value)}
+            value={newDescriptionEn}
+          />
+          <TextField
+            InputLabelProps={{ shrink: true }}
+            size="small"
+            type="text"
+            label={I18n.get("titleFr")}
+            onChange={(e) => setNewTitleFr(e.target.value)}
+            value={newTitleFr}
+          />
+          <TextField
+            type="text"
+            InputLabelProps={{ shrink: true }}
+            label={I18n.get("descriptionFr")}
+            multiline
+            rows={5}
+            onChange={(e) => setNewDescriptionFr(e.target.value)}
+            value={newDescriptionFr}
           />
           <Button
             size="small"
@@ -113,7 +185,7 @@ const EditTopicDialog = ({
             variant="outlined"
             startIcon={<Upload />}
           >
-            {selectedUploadFile ? selectedUploadFile : "Upload Image"}
+            {selectedUploadFile ? selectedUploadFile : I18n.get("uploadImg")}
             <input
               type="file"
               id="uploadFile"

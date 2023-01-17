@@ -142,7 +142,7 @@ function Navbar(props) {
               onClick={handleLanguageChange}
               sx={{ backgroundColor: "white" }}
             >
-              {language === "fr" ? "English" : "French"}
+              {language === "fr" ? "English" : "Français"}
             </Button>
             <div>
               <IconButton

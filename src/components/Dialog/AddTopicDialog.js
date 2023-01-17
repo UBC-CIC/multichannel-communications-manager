@@ -377,7 +377,7 @@ const InputRow = ({
         name="nameEn"
         InputLabelProps={{ shrink: true }}
         // todo
-        label="Topic Name in English"
+        label={I18n.get("topicEn")}
         onChange={(event) => handleChangeEn(event, index)}
         value={item.nameEn}
         error={error}
@@ -387,7 +387,7 @@ const InputRow = ({
         size="small"
         name="nameFr"
         InputLabelProps={{ shrink: true }}
-        label="Topic Name in French"
+        label={I18n.get("topicFr")}
         onChange={(event) => handleChangeFr(event, index)}
         value={item.nameFr}
         error={error}

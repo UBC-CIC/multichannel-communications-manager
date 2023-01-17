@@ -143,8 +143,8 @@ const DeleteTopicDialog = ({ open, handleClose, topics, reload, language }) => {
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs centered value={value} onChange={handleUpdate}>
               {/* todo */}
-              <Tab label="Categories" />
-              <Tab label="Topics" />
+              <Tab label={I18n.get("categories")} />
+              <Tab label={I18n.get("topics")} />
             </Tabs>
           </Box>
           <TabPanel value={value} index={0}>

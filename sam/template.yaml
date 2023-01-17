@@ -1338,8 +1338,7 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
-  # TODO
-  updateCategoryResolver:
+  UpdateCategoryResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
     - LambdaResolverAppSyncDataSource
@@ -1347,51 +1346,6 @@ Resources:
       TypeName: Mutation
       FieldName: updateCategory
       RequestMappingTemplate: |
-        #if( $context.arguments.acronym )
-          #if( $context.arguments.title || $context.arguments.title_fr || $context.arguments.description || $context.arguments.description_fr || $context.arguments.picture_location)
-            #set( $acronym = "acronym=:acronym," )
-          #else
-            #set( $acronym = "acronym=:acronym" )
-          #end
-        #else
-          #set( $acronym = "" )
-        #end
-        #if( $context.arguments.title )
-          #if( $context.arguments.title_fr || $context.arguments.description || $context.arguments.description_fr || $context.arguments.picture_location)
-            #set( $title = "title=:title," )
-          #else
-            #set( $title = "title=:title" )
-          #end
-        #else
-          #set( $title = "" )
-        #end
-        #if( $context.arguments.title_fr )
-          #if( $context.arguments.description || $context.arguments.description_fr || $context.arguments.picture_location)
-            #set( $titleinfr = "title_fr=:fr_title," )
-          #else
-            #set( $titleinfr = "title_fr=:fr_title" )
-          #end
-        #else
-          #set( $titleinfr = "" )
-        #end
-        #if( $context.arguments.description )
-          #if($context.arguments.description_fr || $context.arguments.picture_location)
-            #set( $description = "description=:description," )
-          #else
-            #set( $description = "description=:description" )
-          #end        
-        #else
-          #set( $description = "" )
-        #end
-        #if( $context.arguments.description_fr )
-          #if($context.arguments.picture_location)
-            #set( $descriptioninfr = "description_fr=:fr_description," )
-          #else
-            #set( $descriptioninfr = "description_fr=:fr_description" )
-          #end        
-        #else
-          #set( $descriptioninfr = "" )
-        #end
         #if( $context.arguments.picture_location )
           #set( $picture_location = "picture_location=:picture_location" )
         #else
@@ -1402,19 +1356,63 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `Category` SET $acronym $title $titleinfr $description $descriptioninfr $picture_location WHERE `Category`.category_id = :category_id;",
+        "sql": "UPDATE `Category` SET $picture_location WHERE `CategoryInfo`.category_id = :category_id;",
         "SQLVariableMapping": {
         ":category_id": $context.arguments.category_id,
-        ":acronym": "$context.arguments.acronym",
-        ":title": "$context.arguments.title",
-        ":fr_title": "$context.arguments.title_fr",
-        ":description": "$context.arguments.description",
-        ":fr_description": "$context.arguments.description_fr",
-        ":picture_location": "$context.arguments.picture_location"
+        ":picture_location": "$context.arguments.picture_location",
         },
         "responseSQL": "select * from `Category` where category_id=:category_id;"
         }
         }
+
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        $util.toJson($context.result.sqlResult[0])
+      ApiId: !GetAtt GraphQLApiIdParameter.Value
+      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
+      Kind: UNIT
+      MaxBatchSize: 0
+
+  updateCategoryInfoResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn:
+    - LambdaResolverAppSyncDataSource
+    Properties:
+      TypeName: Mutation
+      FieldName: updateCategoryInfo
+      RequestMappingTemplate: |
+        #if( $context.arguments.title )
+          #if( $context.arguments.description)
+            #set( $title = "title=:title," )
+          #else
+            #set( $title = "title=:title" )
+          #end
+        #else
+          #set( $title = "" )
+        #end
+        #if( $context.arguments.description )
+          #set( $description = "description=:description" )
+        #else
+          #set( $description = "" )
+        #end
+
+        {
+        "version": "2018-05-29",
+        "operation": "Invoke",
+        "payload": {
+        "sql": "UPDATE `CategoryInfo` SET $title $description WHERE `CategoryInfo`.category_id = :category_id and `CategoryInfo`.language = :language;",
+        "SQLVariableMapping": {
+        ":category_id": $context.arguments.category_id,
+        ":language": "$context.arguments.language",
+        ":title": "$context.arguments.title",
+        ":description": "$context.arguments.description",
+        },
+        "responseSQL": "select * from `CategoryInfo` where category_id=:category_id;"
+        }
+        }
+
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)

@@ -79,6 +79,11 @@ export const languageData = {
     missingValue: "No value entered.",
     topicExistsErr: "Topic already exists.",
     viewTopics: "View Topics",
+    categories: "Categories",
+    topics: "Topics",
+    topicEn: "Topic name in English",
+    topicFr: "Topic name in French",
+
     // user profile edit
     emailUpdateSuccess: "Your email has been successfully updated.",
     confirmLeavePage: "Leaving Page?",
@@ -199,6 +204,11 @@ export const languageData = {
     missingValue: "Aucune valeur saisie.",
     topicExistsErr: "Le sujet existe déjà.",
     viewTopics: "Afficher les sujets",
+    categories: "Catégories",
+    topics: "Les sujets",
+    topicEn: "Nom du sujet en anglais",
+    topicFr: "Nom du sujet en français",
+
     // user profile edit
     emailUpdateSuccess: "Your email has been successfully updated.",
     confirmLeavePage: "Leaving Page?",

@@ -100,12 +100,12 @@ type Mutation {
     title: String!
     description: String
   ): CategoryFull
-  updateCategory(
+  updateCategory(category_id: Int!, picture_location: String): Category
+  updateCategoryInfo(
     category_id: Int!
-    language: String!
+    language: Language!
     title: String
-    description: String
-    picture_location: String
+    description: String # picture_location: String
   ): Category
   # TODO: delete or archive?
   deleteCategory(category_id: Int!): String

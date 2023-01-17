@@ -106,19 +106,28 @@ export const addCategoryDisplayLanguage = /* GraphQL */ `
   }
 `;
 export const updateCategory = /* GraphQL */ `
-  mutation UpdateCategory(
+  mutation UpdateCategory($category_id: Int!, $picture_location: String) {
+    updateCategory(
+      category_id: $category_id
+      picture_location: $picture_location
+    ) {
+      category_id
+      picture_location
+    }
+  }
+`;
+export const updateCategoryInfo = /* GraphQL */ `
+  mutation UpdateCategoryInfo(
     $category_id: Int!
-    $language: String!
+    $language: Language!
     $title: String
     $description: String
-    $picture_location: String
   ) {
-    updateCategory(
+    updateCategoryInfo(
       category_id: $category_id
       language: $language
       title: $title
       description: $description
-      picture_location: $picture_location
     ) {
       category_id
       picture_location
