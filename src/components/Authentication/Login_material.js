@@ -534,7 +534,7 @@ function Login(props) {
         >
           <div style={{ position: "absolute", top: "0", right: "0" }}>
             <Button onClick={handleLanguageChange}>
-              {language === "fr" ? "English" : "French"}
+              {language === "fr" ? "English" : "Français"}
             </Button>
           </div>
           {/* second box */}

@@ -21,6 +21,7 @@ import {
   createTopic,
   addTopicToCategory,
   deleteCategoryTopic,
+  addTopicDisplayLanguage,
 } from "../graphql/mutations";
 import "./TopicCard.css";
 import EditTopicDialog from "./Dialog/EditTopicDialog";
@@ -32,10 +33,14 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedSubTopics, setSelectedSubtopics] = useState([]);
   const [isRotated, setIsRotated] = useState(false);
-  const [invalidInputError, setInvalidInputError] = useState(false);
-  const [invalidInputErrorMsg, setInvalidInputErrorMsg] = useState("");
+  const [invalidInputErrorEn, setInvalidInputErrorEn] = useState(false);
+  const [invalidInputErrorMsgEn, setInvalidInputErrorMsgEn] = useState("");
+  const [invalidInputErrorFr, setInvalidInputErrorFr] = useState(false);
+  const [invalidInputErrorMsgFr, setInvalidInputErrorMsgFr] = useState("");
   const [subtopics, setSubtopics] = useState([]);
-  const [newSubtopic, setNewSubtopic] = useState("");
+  const [newSubtopicEn, setNewSubtopicEn] = useState("");
+  const [newSubtopicFr, setNewSubtopicFr] = useState("");
+
   const [image, setImage] = useState("");
   // const [language, setLanguage] = useState(
   //   navigator.language === "fr" || navigator.language.startsWith("fr")
@@ -65,16 +70,18 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
     getCategoryImage();
   }, []);
 
-  useEffect(() => {
-    setTopicDisplayLanguage(language);
-  }, [language]);
+  // useEffect(() => {
+  //   setTopicDisplayLanguage(language);
+  // }, [language]);
 
   //updates setSelectedSubtopics every time subtopics are selected/unselected by user
   const handleChange = (e, subtopic) => {
     if (e.target.checked) {
-      setSelectedSubtopics((prev) => [...prev, subtopic]);
+      setSelectedSubtopics((prev) => [...prev, subtopic.topic_id]);
     } else if (!e.target.checked) {
-      setSelectedSubtopics((prev) => prev.filter((s) => s !== subtopic));
+      setSelectedSubtopics((prev) =>
+        prev.filter((s) => s !== subtopic.topic_id)
+      );
     }
   };
 
@@ -82,29 +89,48 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
     for (let i = 0; i < selectedSubTopics.length; i++) {
       await API.graphql(
         graphqlOperation(deleteCategoryTopic, {
-          category_acronym: selectedTopic.acronym,
-          topic_acronym: selectedSubTopics[i],
+          category_id: selectedTopic.category_id,
+          topic_id: selectedSubTopics[i],
         })
       );
-      setSubtopics((prev) => prev.filter((s) => !(s === selectedSubTopics[i])));
+      setSubtopics((prev) =>
+        prev.filter((s) => !(s.topic_id === selectedSubTopics[i]))
+      );
     }
   };
 
   const addTopic = async () => {
-    if (newSubtopic === "") {
-      setInvalidInputError(true);
-      setInvalidInputErrorMsg(I18n.get("missingValue"));
+    if (newSubtopicEn === "" || newSubtopicFr === "") {
+      console.log("100");
+      if (newSubtopicEn === "") {
+        setInvalidInputErrorEn(true);
+        setInvalidInputErrorMsgEn(I18n.get("missingValue"));
+      }
+      if (newSubtopicFr === "") {
+        setInvalidInputErrorFr(true);
+        setInvalidInputErrorMsgFr(I18n.get("missingValue"));
+      }
     } else {
+      console.log("110");
       // Create the topic and add it to the selected category
-      await API.graphql(graphqlOperation(createTopic, { acronym: newSubtopic }))
-        .then(async () => {
+      await API.graphql(
+        graphqlOperation(createTopic, { english_name: newSubtopicEn })
+      )
+        .then(async (res) => {
           await API.graphql(
-            graphqlOperation(addTopicToCategory, {
-              category_acronym: selectedTopic.acronym,
-              topic_acronym: newSubtopic,
+            graphqlOperation(addTopicDisplayLanguage, {
+              topic_id: res.data.createTopic.topic_id,
+              language: "fr",
+              name: newSubtopicFr,
             })
           );
-          setSubtopics([...subtopics, newSubtopic]);
+          await API.graphql(
+            graphqlOperation(addTopicToCategory, {
+              category_id: selectedTopic.category_id,
+              topic_id: res.data.createTopic.topic_id,
+            })
+          );
+          setSubtopics([...subtopics, { name: newSubtopicEn }]);
         })
         .catch((e) => {
           const errorMsg = e.errors[0].message;
@@ -113,17 +139,23 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
               "ER_DUP_ENTRY: Duplicate entry 'Jobs' for key 'acronym'"
             )
           ) {
-            setInvalidInputError(true);
-            setInvalidInputErrorMsg(I18n.get("topicExistsErr"));
+            setInvalidInputErrorEn(true);
+            setInvalidInputErrorMsgEn(I18n.get("topicExistsErr"));
           }
         });
     }
   };
 
+  const handleNewTopicEn = (e) => {
+    setInvalidInputErrorEn(false);
+    setInvalidInputErrorMsgEn("");
+    setNewSubtopicEn(e.target.value);
+  };
+
   const handleNewTopic = (e) => {
-    setInvalidInputError(false);
-    setInvalidInputErrorMsg("");
-    setNewSubtopic(e.target.value);
+    setInvalidInputErrorFr(false);
+    setInvalidInputErrorMsgFr("");
+    setNewSubtopicFr(e.target.value);
   };
 
   //renders front of the card displaying category information
@@ -214,10 +246,18 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
           <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
             <TextField
               size="small"
-              label={newSubtopic === "" ? I18n.get("add") : ""}
+              label={newSubtopicEn === "" ? I18n.get("addEn") : ""}
               InputLabelProps={{ shrink: false }}
-              error={invalidInputError}
-              helperText={invalidInputErrorMsg}
+              error={invalidInputErrorEn}
+              helperText={invalidInputErrorMsgEn}
+              onChange={handleNewTopicEn}
+            />
+            <TextField
+              size="small"
+              label={newSubtopicFr === "" ? I18n.get("addFr") : ""}
+              InputLabelProps={{ shrink: false }}
+              error={invalidInputErrorFr}
+              helperText={invalidInputErrorMsgFr}
               onChange={handleNewTopic}
             />
             <IconButton onClick={addTopic}>
@@ -233,7 +273,7 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
                 control={<Checkbox />}
                 checked={selectedSubTopics.includes(subtopic.topic_id)}
                 label={subtopic.name}
-                onChange={(e) => handleChange(e, subtopic.topic_id)}
+                onChange={(e) => handleChange(e, subtopic)}
               />
             ))}
           </FormGroup>

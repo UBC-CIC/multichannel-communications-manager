@@ -67,7 +67,9 @@ export const languageData = {
     descriptionFr: "Description in French",
     uploadImg: "Upload Image",
     search: "Search...",
-    add: "Add ...",
+    // add: "Add ...",
+    addEn: "Add Topic (name in English) ...",
+    addFr: "Add Topic (name in French) ...",
     delete: "Delete",
     confirmProceed: "Are you sure you wish to proceed?",
     confirmDeleteCategory:
@@ -192,7 +194,9 @@ export const languageData = {
     descriptionFr: "Descriptif en français",
     uploadImg: "Télécharger l'image",
     search: "Chercher",
-    add: "Ajouter ...",
+    // add: "Ajouter ...",
+    addEn: "Ajouter un sujet (nom en anglais)...",
+    addFr: "Ajouter un sujet (nom en français) ...",
     delete: "Effacer",
     confirmProceed: "Êtes-vous sûr de vouloir continuer?",
     confirmDeleteCategory:

@@ -1018,7 +1018,7 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "select * from `CategoryInfo` where `CategoryInfo`.language=:1",
+        "sql": "select * from `CategoryInfo`, `Category` where `CategoryInfo`.language=:1 and `Category`.category_id=`CategoryInfo`.category_id",
         "SQLVariableMapping": {
         ":1": "$context.arguments.language"
         }
@@ -1356,7 +1356,7 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `Category` SET $picture_location WHERE `CategoryInfo`.category_id = :category_id;",
+        "sql": "UPDATE `Category` SET $picture_location WHERE `Category`.category_id = :category_id;",
         "SQLVariableMapping": {
         ":category_id": $context.arguments.category_id,
         ":picture_location": "$context.arguments.picture_location",

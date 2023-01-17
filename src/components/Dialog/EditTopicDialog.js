@@ -65,13 +65,16 @@ const EditTopicDialog = ({
         })
       );
       console.log("63");
-      await API.graphql(
-        // update img
-        graphqlOperation(updateCategory, {
-          category_id: selectedTopic.category_id,
-          picture_location: s3Key,
-        })
-      );
+      // todo
+      if (s3Key) {
+        await API.graphql(
+          // update img
+          graphqlOperation(updateCategory, {
+            category_id: selectedTopic.category_id,
+            picture_location: s3Key,
+          })
+        );
+      }
       console.log("s3 key", s3Key);
       handleClose();
     } catch (e) {
