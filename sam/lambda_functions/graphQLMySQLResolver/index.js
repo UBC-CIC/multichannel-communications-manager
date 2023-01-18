@@ -299,14 +299,33 @@ exports.handler = async (event) => {
           switch (pinpointAction.action) {
             case "insert":
             case "update":
-              result.pinpointResult = await handler.updateTopicChannel(
-                event.SQLVariableMapping[":user_id"],
-                event.SQLVariableMapping[":category_acronym"] +
-                  "-" +
-                  event.SQLVariableMapping[":topic_acronym"],
-                event.SQLVariableMapping[":email_notice"],
-                event.SQLVariableMapping[":sms_notice"]
-              );
+              // let data = await executeGraphQL(`
+              //   query MyQuery {
+              //     getCategory(category_id: ${event.SQLVariableMapping[":category_id"]}, language: 'en') {
+              //       title
+              //     }
+              //   }
+              // `);
+              // let categoryTitle = data.getCategory.title;
+              // data = await executeGraphQL(`
+              //   query MyQuery {
+              //     getTopic(language: en, topic_id: ${event.SQLVariableMapping[":topic_id"]}) {
+              //       name
+              //     }
+              //   }
+              // `);
+              let updatedSubscription = result.sqlResult;
+              console.log("updatedSubscription", updatedSubscription);
+              if (updatedSubscription) {
+                let categoryTitle = updatedSubscription[0].title;
+                let topicName = updatedSubscription[0].name;
+                result.pinpointResult = await handler.updateTopicChannel(
+                  event.SQLVariableMapping[":user_id"],
+                  categoryTitle + "-" + topicName,
+                  event.SQLVariableMapping[":email_notice"],
+                  event.SQLVariableMapping[":sms_notice"]
+                );
+              }
               break;
             case "delete":
               result.pinpointResult = await handler.updateTopicChannel(

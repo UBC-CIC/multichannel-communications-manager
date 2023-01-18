@@ -1664,9 +1664,10 @@ Resources:
         ":topic_id": $context.arguments.topic_id
         },
         "pinpoint": {"type": "usersubscription", "action": "insert"},
-        "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_id=:category_id and `CategoryTopic`.topic_id=:topic_id;"
+        "responseSQL": "select * from `CategoryInfo` c, `TopicInfo` t, `UserCategoryTopic` uct where uct.user_id = :user_id and c.category_id = :category_id and t.topic_id = :topic_id and c.language='en' and t.language='en';"
         }
         }
+
       ResponseMappingTemplate: |
         #if($ctx.error)
           $util.error($ctx.error.message, $ctx.error.type)
@@ -1712,7 +1713,7 @@ Resources:
         ":topic_id": $context.arguments.topic_id
         },
         "pinpoint": {"type": "usersubscription", "action": "update"},
-        "responseSQL": "select * from `UserCategoryTopic`, `CategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id = `CategoryTopic`.categoryTopic_id and `CategoryTopic`.category_id=:category_id and `CategoryTopic`.topic_id=:topic_id;"
+        "responseSQL": "select * from `CategoryInfo` c, `TopicInfo` t, `UserCategoryTopic` uct where uct.user_id = :user_id and c.category_id = :category_id and t.topic_id = :topic_id and c.language='en' and t.language='en';"
         }
         }
       ResponseMappingTemplate: |

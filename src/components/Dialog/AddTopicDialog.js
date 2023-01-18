@@ -74,11 +74,13 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   }, [language]);
 
   const clearFields = () => {
+    console.log("in clearfields");
     setInputFields([]);
     setSelectedTopics([]);
     setTitle("");
     setDescription("");
     setTopicsExistError(false);
+    setTopicsNullError(false);
     setInvalidInputErrorEn(false);
     setInvalidInputErrorFr(false);
     handleClose();
@@ -97,12 +99,14 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
       setInputFields(values);
     }
     setTopicsExistError(false);
+    setTopicsNullError(false);
   };
 
   const handleChangeEn = (event, index) => {
     console.log("in handlechangeen");
     setNewTopic(event.target.value);
     setTopicsExistError(false);
+    setTopicsNullError(false);
     const values = [...inputFields];
     values[index][event.target.name] = event.target.value;
     setInputFields(values);
@@ -145,6 +149,7 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
       setInvalidInputErrorEn(false);
       setInvalidInputErrorFr(false);
       setTopicsExistError(false);
+      setTopicsNullError(false);
       let s3Key = "";
       if (document.getElementById("uploadFile").value === "") {
         s3Key = null;
@@ -158,6 +163,7 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
         english_description: description,
         picture_location: s3Key,
       };
+      console.log("createTopic", createdTopic);
       try {
         // create the category in the database
         const res = await API.graphql(
