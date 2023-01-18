@@ -1,6 +1,6 @@
 {
   "api": {
-    "ised": {
+    "communicationsmanager": {
       "service": "AppSync",
       "providerPlugin": "awscloudformation",
       "dependsOn": [],
@@ -26,7 +26,7 @@
       "dependsOn": [
         {
           "category": "auth",
-          "resourceName": "isedf0082716f0082716",
+          "resourceName": "communicationsmanagerf0082716f0082716",
           "attributes": [
             "UserPoolId",
             "AppClientIDWeb",
@@ -36,13 +36,13 @@
         }
       ]
     },
-    "isedf0082716f0082716": {
+    "communicationsmanagerf0082716f0082716": {
       "service": "Cognito",
       "providerPlugin": "awscloudformation",
       "dependsOn": [
         {
           "category": "function",
-          "resourceName": "isedf0082716f0082716CreateAuthChallenge",
+          "resourceName": "communicationsmanagerf0082716f0082716CreateAuthChallenge",
           "triggerProvider": "Cognito",
           "attributes": [
             "Arn",
@@ -51,7 +51,7 @@
         },
         {
           "category": "function",
-          "resourceName": "isedf0082716f0082716DefineAuthChallenge",
+          "resourceName": "communicationsmanagerf0082716f0082716DefineAuthChallenge",
           "triggerProvider": "Cognito",
           "attributes": [
             "Arn",
@@ -60,7 +60,7 @@
         },
         {
           "category": "function",
-          "resourceName": "isedf0082716f0082716VerifyAuthChallengeResponse",
+          "resourceName": "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse",
           "triggerProvider": "Cognito",
           "attributes": [
             "Arn",
@@ -92,18 +92,18 @@
     }
   },
   "function": {
-    "isedf0082716f0082716CreateAuthChallenge": {
+    "communicationsmanagerf0082716f0082716CreateAuthChallenge": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda",
       "dependsOn": []
     },
-    "isedf0082716f0082716DefineAuthChallenge": {
+    "communicationsmanagerf0082716f0082716DefineAuthChallenge": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
-    "isedf0082716f0082716VerifyAuthChallengeResponse": {
+    "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
@@ -116,7 +116,7 @@
       "dependsOn": [
         {
           "category": "auth",
-          "resourceName": "isedf0082716f0082716",
+          "resourceName": "communicationsmanagerf0082716f0082716",
           "attributes": [
             "UserPoolId"
           ]
@@ -138,7 +138,7 @@
       "dependsOn": [
         {
           "category": "api",
-          "resourceName": "ised",
+          "resourceName": "communicationsmanager",
           "attributes": [
             "GraphQLAPIKeyOutput",
             "GraphQLAPIIdOutput",
@@ -147,7 +147,7 @@
         },
         {
           "category": "auth",
-          "resourceName": "isedf0082716f0082716",
+          "resourceName": "communicationsmanagerf0082716f0082716",
           "attributes": [
             "IdentityPoolId",
             "IdentityPoolName",

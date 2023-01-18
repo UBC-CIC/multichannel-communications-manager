@@ -3,8 +3,8 @@ Resources:
   AmplifyRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: amplifyconsole-ised-backend-role
-      Description: IAM Role to deploy amplify ISED Project
+      RoleName: amplifyconsole-communicationsmanager-backend-role
+      Description: IAM Role to deploy amplify communicationsmanager Project
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:

@@ -1,6 +1,6 @@
 projects:
-  ised:
-    schemaPath: amplify/backend/api/ised/build/schema.graphql
+  communicationsmanager:
+    schemaPath: amplify/backend/api/communicationsmanager/build/schema.graphql
     includes:
       - src/graphql/**/*.js
     excludes:

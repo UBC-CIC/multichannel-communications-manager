@@ -3,15 +3,15 @@
   "modules": [
     "boilerplate-create-challenge"
   ],
-  "parentResource": "isedf0082716f0082716",
-  "functionName": "isedf0082716f0082716CreateAuthChallenge",
-  "resourceName": "isedf0082716f0082716CreateAuthChallenge",
+  "parentResource": "communicationsmanagerf0082716f0082716",
+  "functionName": "communicationsmanagerf0082716f0082716CreateAuthChallenge",
+  "resourceName": "communicationsmanagerf0082716f0082716CreateAuthChallenge",
   "parentStack": "auth",
   "triggerEnvs": "[]",
   "triggerDir": "C:\\snapshot\\repo\\build\\node_modules\\@aws-amplify\\amplify-category-auth\\provider-utils\\awscloudformation\\triggers\\CreateAuthChallenge",
   "triggerTemplate": "CreateAuthChallenge.json.ejs",
   "triggerEventPath": "CreateAuthChallenge.event.json",
-  "roleName": "isedf0082716f0082716CreateAuthChallenge",
+  "roleName": "communicationsmanagerf0082716f0082716CreateAuthChallenge",
   "skipEdit": true,
   "enableCors": false,
   "permissions": {}

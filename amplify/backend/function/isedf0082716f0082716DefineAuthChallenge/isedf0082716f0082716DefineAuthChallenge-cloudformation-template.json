@@ -63,12 +63,12 @@
         "FunctionName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "isedf0082716f0082716DefineAuthChallenge",
+            "communicationsmanagerf0082716f0082716DefineAuthChallenge",
             {
               "Fn::Join": [
                 "",
                 [
-                  "isedf0082716f0082716DefineAuthChallenge",
+                  "communicationsmanagerf0082716f0082716DefineAuthChallenge",
                   "-",
                   {
                     "Ref": "env"
@@ -115,12 +115,12 @@
         "RoleName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "isedf0082716f0082716DefineAuthChallenge",
+            "communicationsmanagerf0082716f0082716DefineAuthChallenge",
             {
               "Fn::Join": [
                 "",
                 [
-                  "isedf0082716f0082716DefineAuthChallenge",
+                  "communicationsmanagerf0082716f0082716DefineAuthChallenge",
                   "-",
                   {
                     "Ref": "env"
