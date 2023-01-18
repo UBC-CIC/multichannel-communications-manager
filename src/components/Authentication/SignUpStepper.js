@@ -6,12 +6,13 @@ import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { Grid } from "@mui/material";
+import { I18n } from "aws-amplify";
 
 const SignUpStepper = ({ activeStep }) => {
   const steps = [
-    "General Information",
-    "Verification",
-    "Categories of Interest",
+    I18n.get("generalInfo"),
+    I18n.get("verification"),
+    I18n.get("selectCategories"),
   ];
 
   const theme = useTheme();
@@ -37,7 +38,7 @@ const SignUpStepper = ({ activeStep }) => {
           mb: "2em",
         }}
       >
-        Set Up User Profile
+        {I18n.get("setUpProfile")}
       </Typography>
       <Stepper
         activeStep={activeStep}

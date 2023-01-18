@@ -9,6 +9,7 @@ export const getUserById = /* GraphQL */ `
       phone_address
       postal_code
       province
+      language
       email_notice
       sms_notice
     }
@@ -22,6 +23,7 @@ export const getUserByEmail = /* GraphQL */ `
       phone_address
       postal_code
       province
+      language
       email_notice
       sms_notice
     }
@@ -31,17 +33,18 @@ export const getUserCategoryTopicByUserId = /* GraphQL */ `
   query GetUserCategoryTopicByUserId($user_id: Int!) {
     getUserCategoryTopicByUserId(user_id: $user_id) {
       user_id
-      category_acronym
-      topic_acronym
+      category_id
+      topic_id
       email_notice
       sms_notice
     }
   }
 `;
 export const getCategoriesByUserId = /* GraphQL */ `
-  query GetCategoriesByUserId($user_id: Int!) {
-    getCategoriesByUserId(user_id: $user_id) {
-      acronym
+  query GetCategoriesByUserId($user_id: Int!, $language: Language!) {
+    getCategoriesByUserId(user_id: $user_id, language: $language) {
+      category_id
+      language
       title
       description
       email_notice
@@ -54,54 +57,57 @@ export const getCategoryTopicById = /* GraphQL */ `
   query GetCategoryTopicById($categoryTopic_id: Int!) {
     getCategoryTopicById(categoryTopic_id: $categoryTopic_id) {
       categoryTopic_id
-      category_acronym
-      topic_acronym
+      category_id
+      topic_id
     }
   }
 `;
-export const getCategoryByAcronym = /* GraphQL */ `
-  query GetCategoryByAcronym($acronym: String!) {
-    getCategoryByAcronym(acronym: $acronym) {
+export const getCategory = /* GraphQL */ `
+  query GetCategory($category_id: Int!, $language: Language!) {
+    getCategory(category_id: $category_id, language: $language) {
       category_id
-      acronym
+      language
       title
       description
       picture_location
     }
   }
 `;
-export const getTopicsOfCategoryByAcronym = /* GraphQL */ `
-  query GetTopicsOfCategoryByAcronym($category_acronym: String!) {
-    getTopicsOfCategoryByAcronym(category_acronym: $category_acronym) {
+export const getTopicsOfCategory = /* GraphQL */ `
+  query GetTopicsOfCategory($category_id: Int!, $language: Language!) {
+    getTopicsOfCategory(category_id: $category_id, language: $language) {
       topic_id
-      acronym
+      language
+      name
     }
   }
 `;
-export const getTopicByAcronym = /* GraphQL */ `
-  query GetTopicByAcronym($topic_acronym: String!) {
-    getTopicByAcronym(topic_acronym: $topic_acronym) {
+export const getTopic = /* GraphQL */ `
+  query GetTopic($topic_id: Int!, $language: Language!) {
+    getTopic(topic_id: $topic_id, language: $language) {
       topic_id
-      acronym
+      language
+      name
     }
   }
 `;
-export const getAllCategories = /* GraphQL */ `
-  query GetAllCategories {
-    getAllCategories {
+export const getAllCategoriesForLanguage = /* GraphQL */ `
+  query GetAllCategoriesForLanguage($language: Language!) {
+    getAllCategoriesForLanguage(language: $language) {
       category_id
-      acronym
+      language
       title
       description
       picture_location
     }
   }
 `;
-export const getAllTopics = /* GraphQL */ `
-  query GetAllTopics {
-    getAllTopics {
+export const getAllTopicsForLanguage = /* GraphQL */ `
+  query GetAllTopicsForLanguage($language: Language!) {
+    getAllTopicsForLanguage(language: $language) {
       topic_id
-      acronym
+      language
+      name
     }
   }
 `;
@@ -109,8 +115,8 @@ export const getAllCategoryTopics = /* GraphQL */ `
   query GetAllCategoryTopics {
     getAllCategoryTopics {
       categoryTopic_id
-      category_acronym
-      topic_acronym
+      category_id
+      topic_id
     }
   }
 `;

@@ -8,15 +8,15 @@ import {
   Pagination,
   TextField,
   IconButton,
-  InputAdornment
+  InputAdornment,
 } from "@mui/material";
 import { Add, Search, Delete } from "@mui/icons-material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
-import { API, graphqlOperation, Storage } from "aws-amplify"
-import { getAllCategories } from "../graphql/queries";
+import { API, graphqlOperation, Storage, I18n } from "aws-amplify";
+import { getAllCategoriesForLanguage } from "../graphql/queries";
 import { styled } from "@mui/material/styles";
 import AdminTopicCard from "../components/AdminTopicCard";
 import AddTopicDialog from "../components/Dialog/AddTopicDialog";
@@ -39,34 +39,42 @@ const StyledImageListItem = styled(ImageListItem)`
   }
 `;
 
-const Admin = () => {
-  const [topics, setTopics] = useState([])
-  const [topicsTemp, setTopicsTemp] = useState([])
+const Admin = ({ language }) => {
+  // const { language } = props;
+  const [topics, setTopics] = useState([]);
+  const [topicsTemp, setTopicsTemp] = useState([]);
   const [searchVal, setSearchVal] = useState("");
-  const [openNewTopicDialog, setOpenNewTopicDialog] = useState(false)
-  const [openDeleteTopicDialog, setOpenDeleteTopicDialog] = useState(false)
+  const [openNewTopicDialog, setOpenNewTopicDialog] = useState(false);
+  const [openDeleteTopicDialog, setOpenDeleteTopicDialog] = useState(false);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
   const [image, setImage] = useState([]);
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
   const topicsPerPage = 10;
+  // const [language, setLanguage] = useState(
+  //   navigator.language === "fr" || navigator.language.startsWith("fr")
+  //     ? "fr"
+  //     : "en"
+  // );
 
   async function queriedData() {
-    setImage([])
-    let categories = await API.graphql(graphqlOperation(getAllCategories))
-    let allCategories = categories.data.getAllCategories
+    setImage([]);
+    let categories = await API.graphql(
+      graphqlOperation(getAllCategoriesForLanguage, { language: language })
+    );
+    let allCategories = categories.data.getAllCategoriesForLanguage;
     if (allCategories !== null) {
-      setTopics(allCategories)
-      setTopicsTemp(allCategories)
+      setTopics(allCategories);
+      setTopicsTemp(allCategories);
       // Get the images for all the categories
       for (let i = 0; i < allCategories.length; i++) {
-        let imageURL = await Storage.get(allCategories[i].picture_location)
-        setImage((prev) => [...prev, imageURL])
-      }   
-      
+        let imageURL = await Storage.get(allCategories[i].picture_location);
+        setImage((prev) => [...prev, imageURL]);
+      }
+
       const topicsPageCount =
-      allCategories &&
+        allCategories &&
         (allCategories.length % 10 === 0
           ? Math.round(allCategories.length / 10)
           : Math.floor(allCategories.length / 10 + 1));
@@ -75,30 +83,37 @@ const Admin = () => {
   }
 
   useEffect(() => {
-    queriedData()
+    queriedData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [language]);
+
+  // useEffect(() => {
+  //   console.log("in useeffect");
+  //   setTopicDisplayLanguage(language);
+  // }, [language]);
 
   function search() {
     if (searchVal === "") {
       return;
     } else {
-      let searchValLowerCase = searchVal.toLowerCase()
-      let filteredTopics = topicsTemp.filter((s) => s.title.toLowerCase().includes(searchValLowerCase))
-      setTopicsTemp(filteredTopics)
+      let searchValLowerCase = searchVal.toLowerCase();
+      let filteredTopics = topicsTemp.filter((s) =>
+        s.title.toLowerCase().includes(searchValLowerCase)
+      );
+      setTopicsTemp(filteredTopics);
     }
   }
-  
+
   function onChange(e) {
-    setSearchVal(e.target.value)
+    setSearchVal(e.target.value);
     if (e.target.value === "") {
-      setTopicsTemp(topics)
+      setTopicsTemp(topics);
     }
   }
 
   function onKeyDownSearch(e) {
     if (e.keyCode === 13) {
-      search()
+      search();
     }
   }
 
@@ -120,8 +135,9 @@ const Admin = () => {
             }}
             onClick={() => setCurrentlySelectedTopic(topic)}
           >
-            {topic.picture_location !== null ? 
-              <img src={image[index]} alt={topic.title} /> :
+            {topic.picture_location !== null ? (
+              <img src={image[index]} alt={topic.title} />
+            ) : (
               <Box
                 sx={{
                   backgroundColor: "#738DED",
@@ -129,7 +145,8 @@ const Admin = () => {
                   height: "100px",
                   borderRadius: "7px",
                 }}
-              ></Box>}
+              ></Box>
+            )}
             <StyledImageListItemBar title={topic.title} position="below" />
           </StyledImageListItem>
         ))
@@ -147,15 +164,18 @@ const Admin = () => {
       }}
     >
       <Typography variant="h3" sx={{ mb: "1em" }}>
-        Welcome!
-      </Typography>    
+        {I18n.get("welcome")}
+      </Typography>
       {currentlySelectedTopic ? (
         <Box>
           <IconButton
             color="primary"
             aria-label="back to topic options"
             component="label"
-            onClick={() => {queriedData(); setCurrentlySelectedTopic()}}
+            onClick={() => {
+              queriedData();
+              setCurrentlySelectedTopic();
+            }}
             sx={{ mb: "0.5em" }}
           >
             <ArrowBackIcon />
@@ -163,14 +183,15 @@ const Admin = () => {
           <AdminTopicCard
             selectedTopic={currentlySelectedTopic}
             setSelectedTopic={setCurrentlySelectedTopic}
+            language={language}
           />
         </Box>
       ) : (
         <>
-          <Box sx={{display: 'flex', flexDirection: 'row'}}>
+          <Box sx={{ display: "flex", flexDirection: "row" }}>
             <TextField
               fullWidth
-              placeholder="Search..."
+              placeholder={I18n.get("search")}
               size="small"
               InputProps={{
                 endAdornment: (
@@ -179,42 +200,44 @@ const Admin = () => {
                       <Search />
                     </IconButton>
                   </InputAdornment>
-                )
+                ),
               }}
               onChange={onChange}
               onKeyDown={onKeyDownSearch}
             />
-              <IconButton
-                color="primary"
-                aria-label="back to topic options"
-                component="label"
-                onClick={() => setOpenNewTopicDialog(true)}
-                sx={{ width: 'fit-content', mb: "0.5em" }}
-              >
-                <Add />
-              </IconButton>
-              <IconButton
-                color="primary"
-                aria-label="back to topic options"
-                component="label"
-                onClick={() => setOpenDeleteTopicDialog(true)}
-                sx={{ width: 'fit-content', mb: "0.5em" }}
-              >
-                <Delete />
-              </IconButton>
-              <AddTopicDialog 
-                open={openNewTopicDialog}
-                handleClose={() => setOpenNewTopicDialog(false)}
-                reload={queriedData}
-                />
-              <DeleteTopicDialog 
-                open={openDeleteTopicDialog}
-                handleClose={() => setOpenDeleteTopicDialog(false)}
-                topics={topicsTemp}
-                reload={queriedData}
-                />
-            </Box>
-          <Box sx={{border: 1, borderColor: "grey.400", borderRadius: '6px' }}>
+            <IconButton
+              color="primary"
+              aria-label="back to topic options"
+              component="label"
+              onClick={() => setOpenNewTopicDialog(true)}
+              sx={{ width: "fit-content", mb: "0.5em" }}
+            >
+              <Add />
+            </IconButton>
+            <IconButton
+              color="primary"
+              aria-label="back to topic options"
+              component="label"
+              onClick={() => setOpenDeleteTopicDialog(true)}
+              sx={{ width: "fit-content", mb: "0.5em" }}
+            >
+              <Delete />
+            </IconButton>
+            <AddTopicDialog
+              open={openNewTopicDialog}
+              handleClose={() => setOpenNewTopicDialog(false)}
+              reload={queriedData}
+              language={language}
+            />
+            <DeleteTopicDialog
+              open={openDeleteTopicDialog}
+              handleClose={() => setOpenDeleteTopicDialog(false)}
+              topics={topicsTemp}
+              reload={queriedData}
+              language={language}
+            />
+          </Box>
+          <Box sx={{ border: 1, borderColor: "grey.400", borderRadius: "6px" }}>
             <Box
               sx={{
                 display: "grid",
@@ -222,7 +245,7 @@ const Admin = () => {
                 gridTemplateColumns: {
                   xs: "repeat(2, 2fr)",
                   sm: "repeat(3, 2fr)",
-                  md: "repeat(5, 2fr)"
+                  md: "repeat(5, 2fr)",
                 },
                 rowGap: 1,
                 [`& .${imageListItemClasses.root}`]: {
@@ -240,7 +263,7 @@ const Admin = () => {
                 alignItems: "center",
                 flexDirection: "column",
                 mt: "1em",
-                mb: "2em"
+                mb: "2em",
               }}
             >
               <Stack spacing={2}>

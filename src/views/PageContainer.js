@@ -12,16 +12,14 @@ import {
   Toolbar,
   Box,
 } from "@mui/material";
-import {
-  NotificationsNone,
-  Person,
-} from "@mui/icons-material";
+import { NotificationsNone, Person } from "@mui/icons-material";
 import Navbar from "../components/Navbar";
 import SubscribeToTopics from "../pages/SubscribeToTopics";
 import EditAccountInfo from "../pages/EditAccountInfo";
+import { I18n } from "aws-amplify";
 
 function PageContainer(props) {
-  const { menuEnabled, updateMenuState } = props;
+  const { menuEnabled, updateMenuState, language, setLanguage } = props;
   const navigate = useNavigate();
 
   /*
@@ -48,7 +46,7 @@ function PageContainer(props) {
           <ListItemIcon>
             <NotificationsNone />
           </ListItemIcon>
-          <ListItemText primary={"Subscribe to Topics"} />
+          <ListItemText primary={I18n.get("subscribeTab")} />
         </ListItem>
         <ListItem
           button
@@ -58,7 +56,7 @@ function PageContainer(props) {
           <ListItemIcon>
             <Person />
           </ListItemIcon>
-          <ListItemText primary={"Edit Account Information"} />
+          <ListItemText primary={I18n.get("editAccountTab")} />
         </ListItem>
       </List>
     </Box>
@@ -68,7 +66,11 @@ function PageContainer(props) {
     <Grid container direction="column">
       {/* Navbar component, set side menu button parameter -->
         button updates redux state to show/hide left sidebar */}
-      <Navbar showSideMenuButton={true} />
+      <Navbar
+        showSideMenuButton={true}
+        language={language}
+        setLanguage={setLanguage}
+      />
       {/* App content example below with sidebar */}
       <Grid item xs={12}>
         {/* Side menu component */}
@@ -86,7 +88,11 @@ function PageContainer(props) {
         <main style={{ flexGrow: 1, padding: "50px" }}>
           {/* Routes are added here if you need multiple page views*/}
           <Routes>
-            <Route exact path={"/"} element={<SubscribeToTopics />} />
+            <Route
+              exact
+              path={"/"}
+              element={<SubscribeToTopics language={language} />}
+            />
             <Route
               exact
               path={"/edit-account-information"}

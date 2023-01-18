@@ -16,33 +16,46 @@ async function conditionallyCreateDB(connection) {
   let adminName = process.env.ADMIN_NAME;
   // let adminEmail = process.env.ADMIN_EMAIL;
   let createDBSQL = `
-    CREATE TABLE \`User\` (
+  CREATE TABLE \`User\` (
   \`user_id\` int PRIMARY KEY AUTO_INCREMENT,
   \`email_address\` varchar(64) UNIQUE NOT NULL,
-  \`phone_address\` varchar(50) UNIQUE,
+  \`phone_address\` varchar(20) UNIQUE,
   \`postal_code\` varchar(10) COMMENT 'has to be a valid postal code',
   \`province\` ENUM ('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT') NOT NULL,
+  \`language\` ENUM ('en', 'fr') NOT NULL,
   \`email_notice\` boolean NOT NULL,
   \`sms_notice\` boolean NOT NULL
-  );
+);
 
 CREATE TABLE \`Category\` (
   \`category_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`acronym\` varchar(30) UNIQUE NOT NULL,
-  \`title\` varchar(50) NOT NULL,
-  \`description\` text,
   \`picture_location\` text
 );
 
+CREATE TABLE \`CategoryInfo\` (
+  \`category_id\` int,
+  \`language\` ENUM ('en', 'fr') NOT NULL,
+  \`title\` varchar(100) NOT NULL,
+  \`description\` text,
+  PRIMARY KEY (\`category_id\`, \`language\`)
+);
+
 CREATE TABLE \`Topic\` (
-  \`topic_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`acronym\` varchar(30) UNIQUE NOT NULL
+  \`topic_id\` int PRIMARY KEY AUTO_INCREMENT
+);
+
+CREATE TABLE \`TopicInfo\` (
+  \`topic_id\` int,
+  \`language\` ENUM ('en', 'fr') NOT NULL,
+  \`name\` varchar(40) NOT NULL,
+  // todo
+  PRIMARY KEY (\`topic_id\`, \`language\`)
 );
 
 CREATE TABLE \`CategoryTopic\` (
   \`categoryTopic_id\` int PRIMARY KEY AUTO_INCREMENT,
-  \`category_acronym\` varchar(30) NOT NULL,
-  \`topic_acronym\` varchar(30) NOT NULL
+  \`category_id\` int NOT NULL,
+  \`topic_id\` int NOT NULL
 );
 
 CREATE TABLE \`UserCategoryTopic\` (
@@ -53,17 +66,20 @@ CREATE TABLE \`UserCategoryTopic\` (
   PRIMARY KEY (\`user_id\`, \`categoryTopic_id\`)
 );
 
+// todo: add unique constraint on language + id
 CREATE INDEX \`User_index_0\` ON \`User\` (\`email_address\`);
 
-CREATE INDEX \`Category_index_1\` ON \`Category\` (\`acronym\`);
+CREATE UNIQUE INDEX \`CategoryTopic_index_1\` ON \`CategoryTopic\` (\`category_id\`, \`topic_id\`);
 
-CREATE INDEX \`Topic_index_2\` ON \`Topic\` (\`acronym\`);
+CREATE UNIQUE INDEX \`TopicInfo_index_1\` ON \`TopicInfo\` (\`language\`, \`name\`);
 
-CREATE UNIQUE INDEX \`CategoryTopic_index_3\` ON \`CategoryTopic\` (\`category_acronym\`, \`topic_acronym\`);
+ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`category_id\`) REFERENCES \`Category\` (\`category_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`category_acronym\`) REFERENCES \`Category\` (\`acronym\`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE \`CategoryInfo\` ADD FOREIGN KEY (\`category_id\`) REFERENCES \`Category\` (\`category_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`topic_acronym\`) REFERENCES \`Topic\` (\`acronym\`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`topic_id\`) REFERENCES \`Topic\` (\`topic_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE \`TopicInfo\` ADD FOREIGN KEY (\`topic_id\`) REFERENCES \`Topic\` (\`topic_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`user_id\`) REFERENCES \`User\` (\`user_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -84,7 +100,7 @@ ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`categoryTopic_id\`) REFEREN
 
   // result = await executeSQL(
   //   connection,
-  //   "INSERT INTO `User` (email_address) VALUES ('" + adminEmail + "');"
+  //   "INSERT INTO \`User\` (email_address) VALUES ('" + adminEmail + "');"
   // );
 
   return result;
@@ -95,7 +111,7 @@ function executeSQL(connection, sql_statement) {
   return new Promise((resolve, reject) => {
     console.log("Executing SQL:", sql_statement);
     connection.query({ sql: sql_statement, timeout: 60000 }, (err, data) => {
-      // if error, gets saved in \\`err\\`, else response from DB saved in \\`data\\`
+      // if error, gets saved in \\\`err\\\`, else response from DB saved in \\\`data\\\`
       if (err) {
         return reject(err);
       }
@@ -120,6 +136,8 @@ function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
       // if in the GraphQL request, a user does not pass in the value of a variable required in the statement, set the variable to null
       escapedValue = null;
     }
+    console.log("key: ", key);
+    console.log("escapedVal: ", escapedValue);
     sql = sql.replace(key, escapedValue);
   });
 
@@ -144,28 +162,6 @@ exports.handler = async (event) => {
   } catch (e) {
     console.log("e:", e);
   }
-  // , function (err, data) {
-  // console.log("139");
-  // if (err) {
-  //   console.log("err:");
-  //   console.log(err, err.stack);
-  // } // an error occurred
-  // else {
-  //   console.log("data:", data);
-  // }
-  // successful response
-  /*
-  data = {
-  ARN: "arn:aws:secretsmanager:us-west-2:123456789012:secret:MyTestDatabaseSecret-a1b2c3", 
-  CreatedDate: <Date Representation>, 
-  Name: "MyTestDatabaseSecret", 
-  SecretString: "{\n  \"username\":\"david\",\n  \"password\":\"EXAMPLE-PASSWORD\"\n}\n", 
-  VersionId: "EXAMPLE1-90ab-cdef-fedc-ba987SECRET1", 
-  VersionStages: [
-      "AWSPREVIOUS"
-  ]
-  }
-  */
 
   let connection;
   console.log("secret: ", secret);
@@ -303,14 +299,33 @@ exports.handler = async (event) => {
           switch (pinpointAction.action) {
             case "insert":
             case "update":
-              result.pinpointResult = await handler.updateTopicChannel(
-                event.SQLVariableMapping[":user_id"],
-                event.SQLVariableMapping[":category_acronym"] +
-                  "-" +
-                  event.SQLVariableMapping[":topic_acronym"],
-                event.SQLVariableMapping[":email_notice"],
-                event.SQLVariableMapping[":sms_notice"]
-              );
+              // let data = await executeGraphQL(`
+              //   query MyQuery {
+              //     getCategory(category_id: ${event.SQLVariableMapping[":category_id"]}, language: 'en') {
+              //       title
+              //     }
+              //   }
+              // `);
+              // let categoryTitle = data.getCategory.title;
+              // data = await executeGraphQL(`
+              //   query MyQuery {
+              //     getTopic(language: en, topic_id: ${event.SQLVariableMapping[":topic_id"]}) {
+              //       name
+              //     }
+              //   }
+              // `);
+              let updatedSubscription = result.sqlResult;
+              console.log("updatedSubscription", updatedSubscription);
+              if (updatedSubscription) {
+                let categoryTitle = updatedSubscription[0].title;
+                let topicName = updatedSubscription[0].name;
+                result.pinpointResult = await handler.updateTopicChannel(
+                  event.SQLVariableMapping[":user_id"],
+                  categoryTitle + "-" + topicName,
+                  event.SQLVariableMapping[":email_notice"],
+                  event.SQLVariableMapping[":sms_notice"]
+                );
+              }
               break;
             case "delete":
               result.pinpointResult = await handler.updateTopicChannel(

@@ -15,9 +15,9 @@ import ImageListItem, {
   imageListItemClasses,
 } from "@mui/material/ImageListItem";
 import { styled } from "@mui/material/styles";
-import { API, graphqlOperation, Storage } from "aws-amplify";
+import { API, graphqlOperation, Storage, I18n } from "aws-amplify";
 import { userFollowCategoryTopic } from "../../graphql/mutations";
-import { getAllCategories } from "../../graphql/queries";
+import { getAllCategoriesForLanguage } from "../../graphql/queries";
 import "./Login.css";
 import theme from "../../themes";
 import TopicCard from "../TopicCard";
@@ -49,26 +49,33 @@ const StyledImageListItem = styled(ImageListItem)`
   }
 `;
 
-const SelectTopics = ({ handleNextStep }) => {
+const SelectTopics = ({ handleNextStep, language }) => {
   const [topics, setTopics] = useState([]);
   const [allSelectedTopics, setAllSelectedTopics] = useState([]);
   const [selectedSubtopics, setSelectedSubtopics] = useState([]);
   const [saveEnabled, setSaveEnabled] = useState(false);
   const [currentlySelectedTopic, setCurrentlySelectedTopic] = useState();
-  const [image, setImage] = useState([])
+  const [image, setImage] = useState([]);
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
+  // const [language, setLanguage] = useState(
+  //   navigator.language === "fr" || navigator.language.startsWith("fr-")
+  //     ? "fr"
+  //     : "en"
+  // );
   const topicsPerPage = 3;
 
   async function queriedData() {
-    let categories = await API.graphql(graphqlOperation(getAllCategories));
-    let allCategories = categories.data.getAllCategories;
+    let categories = await API.graphql(
+      graphqlOperation(getAllCategoriesForLanguage, { language: language })
+    );
+    let allCategories = categories.data.getAllCategoriesForLanguage;
     setTopics(allCategories);
     for (let i = 0; i < allCategories.length; i++) {
-      let imageURL = await Storage.get(allCategories[i].picture_location)
-      setImage((prev) => [...prev, imageURL])
-    }    
+      let imageURL = await Storage.get(allCategories[i].picture_location);
+      setImage((prev) => [...prev, imageURL]);
+    }
 
     const topicsPageCount =
       allCategories &&
@@ -80,7 +87,7 @@ const SelectTopics = ({ handleNextStep }) => {
 
   useEffect(() => {
     queriedData();
-  }, []);
+  }, [language]);
 
   const displayTopicOptions = () => {
     return (
@@ -100,17 +107,27 @@ const SelectTopics = ({ handleNextStep }) => {
             }}
             onClick={() => setCurrentlySelectedTopic(topic)}
           >
-            {topic.picture_location !== null ? 
-              <img src={image[index]} alt={topic.title} /> :
+            {topic.picture_location !== null ? (
+              <img src={image[index]} alt={topic.title} />
+            ) : (
               <Box
-              sx={{
-                backgroundColor: "#738DED",
-                width: "100px",
-                height: "100px",
-                borderRadius: "7px",
-              }}
-            ></Box>}
-            <StyledImageListItemBar title={topic.title} position="below" />
+                sx={{
+                  backgroundColor: "#738DED",
+                  width: "100px",
+                  height: "100px",
+                  borderRadius: "7px",
+                }}
+              ></Box>
+            )}
+            <StyledImageListItemBar
+              title={
+                navigator.language === "fr" ||
+                navigator.language.startsWith("fr-")
+                  ? topic.title_fr
+                  : topic.title
+              }
+              position="below"
+            />
           </StyledImageListItem>
         ))
         .slice((page - 1) * topicsPerPage, page * topicsPerPage)
@@ -119,10 +136,13 @@ const SelectTopics = ({ handleNextStep }) => {
 
   async function nextClicked() {
     const allSelectedTopicsTemp = allSelectedTopics;
+    console.log("allSelectedTopics", allSelectedTopics);
+    console.log("allSelectedTopicsTemp", allSelectedTopicsTemp);
+
     for (var i = 0; i < allSelectedTopicsTemp.length; i++) {
       await API.graphql(
         graphqlOperation(userFollowCategoryTopic, allSelectedTopicsTemp[i])
-      ).catch(e=>console.log(e))
+      ).catch((e) => console.log(e));
     }
     handleNextStep();
   }
@@ -133,7 +153,7 @@ const SelectTopics = ({ handleNextStep }) => {
     const allSelectedTopicsTemp = allSelectedTopics;
     if (
       allSelectedTopicsTemp.filter(
-        (s) => s.category_acronym === currentlySelectedTopic.acronym
+        (s) => s.category_id === currentlySelectedTopic.category_id
       ).length === 0
     ) {
       if (!saveEnabled) {
@@ -165,11 +185,10 @@ const SelectTopics = ({ handleNextStep }) => {
       }}
     >
       <Typography sx={{ my: "0.5em" }} className={"login-wrapper-top-header"}>
-        Select Categories of Interest
+        {I18n.get("selectCategoriesTitle")}
       </Typography>
       <Typography variant="body2">
-        Select categories of interest that you would like to receive notifications
-        from. Your notification preferences can be changed at any time.
+        {I18n.get("initialCategoriesSelect")}
       </Typography>
       {currentlySelectedTopic ? (
         <Box sx={{ mt: "1em" }}>
@@ -189,6 +208,7 @@ const SelectTopics = ({ handleNextStep }) => {
             setSelectedSubtopics={setSelectedSubtopics}
             allSelectedTopics={allSelectedTopics}
             setAllSelectedTopics={setAllSelectedTopics}
+            language={language}
           />
         </Box>
       ) : (
@@ -201,7 +221,9 @@ const SelectTopics = ({ handleNextStep }) => {
           >
             {selectedSubtopics.length > 0 && (
               <Box sx={{ display: "flex", mt: "2em", flexDirection: "column" }}>
-                <Typography variant="body2">Currently Selected:</Typography>
+                <Typography variant="body2">
+                  {I18n.get("currentSelection")}
+                </Typography>
                 <Box
                   sx={{
                     display: "flex",
@@ -260,7 +282,7 @@ const SelectTopics = ({ handleNextStep }) => {
             variant="contained"
             onClick={nextClicked}
           >
-            Next
+            {I18n.get("next")}
           </SubmitButton>
         </>
       )}
