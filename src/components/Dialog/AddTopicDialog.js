@@ -15,7 +15,12 @@ import {
   MenuItem,
   FormControl,
 } from "@mui/material";
-import { Upload, Close, RssFeed } from "@mui/icons-material";
+import {
+  Upload,
+  Close,
+  RssFeed,
+  ConnectingAirportsOutlined,
+} from "@mui/icons-material";
 import { API, graphqlOperation, I18n, Storage } from "aws-amplify";
 import {
   createCategory,
@@ -36,6 +41,11 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   const [description, setDescription] = useState("");
   const [descriptionFr, setDescriptionFr] = useState("");
   const [topicExistsError, setTopicsExistError] = useState(false);
+  const [topicNullError, setTopicsNullError] = useState(false);
+  const [invalidInputErrorEn, setInvalidInputErrorEn] = useState(false);
+  // const [invalidInputErrorMsgEn, setInvalidInputErrorMsgEn] = useState("");
+  const [invalidInputErrorFr, setInvalidInputErrorFr] = useState(false);
+  // const [invalidInputErrorMsgFr, setInvalidInputErrorMsgFr] = useState("");
   const [uploadFile, setUploadFile] = useState();
   const [selectedUploadFile, setSelectedUploadFile] = useState("");
   // const [language, setLanguage] = useState(
@@ -69,6 +79,8 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
     setTitle("");
     setDescription("");
     setTopicsExistError(false);
+    setInvalidInputErrorEn(false);
+    setInvalidInputErrorFr(false);
     handleClose();
     setUploadFile();
     setSelectedUploadFile("");
@@ -108,9 +120,30 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
 
   const handleSave = async () => {
     // todo
-    if (allTopics.includes(newTopic)) {
+    if (title === "" || titleFr === "") {
+      if (title === "") {
+        setInvalidInputErrorEn(true);
+        // setInvalidInputErrorMsgEn(I18n.get("missingValue"));
+      } else {
+        setInvalidInputErrorEn(false);
+        // setInvalidInputErrorMsgEn("");
+      }
+      if (titleFr === "") {
+        setInvalidInputErrorFr(true);
+        // setInvalidInputErrorMsgFr(I18n.get("missingValue"));
+      } else {
+        setInvalidInputErrorFr(false);
+        // setInvalidInputErrorMsgEn("");
+      }
+    } else if (allTopics.map((t) => t.name).includes(newTopic)) {
       setTopicsExistError(true);
-    } else {
+    }
+    // else if(){
+
+    // }
+    else {
+      setInvalidInputErrorEn(false);
+      setInvalidInputErrorFr(false);
       setTopicsExistError(false);
       let s3Key = "";
       if (document.getElementById("uploadFile").value === "") {
@@ -183,9 +216,19 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
         console.log("addCategoryDisplayLanguage response", r3);
       } catch (e) {
         console.log("e", e);
+        const errorMsg = e.errors[0].message;
+        if (errorMsg.includes("ER_DUP_ENTRY: Duplicate entry")) {
+          setTopicsExistError(true);
+        }
+        if (
+          errorMsg.includes("ER_BAD_NULL_ERROR: Column 'name' cannot be null")
+        ) {
+          setTopicsNullError(true);
+        }
       }
     }
   };
+  // };
 
   const handleSelectedTopics = (event) => {
     console.log("event", event);
@@ -247,6 +290,9 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
                 type="text"
                 label={I18n.get("titleEn")}
                 onChange={(e) => setTitle(e.target.value)}
+                error={invalidInputErrorEn}
+                // todo
+                helperText={!!invalidInputErrorEn && I18n.get("missingValue")}
               />
             </Box>
             {/* <Box width={"20%"}>
@@ -292,6 +338,9 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
               type="text"
               label={I18n.get("titleFr") + " *"}
               onChange={(e) => setTitleFr(e.target.value)}
+              error={invalidInputErrorFr}
+              // todo
+              helperText={!!invalidInputErrorFr && I18n.get("missingValue")}
             />
           </Box>
           <TextField
@@ -338,8 +387,15 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
                 handleChangeEn={handleChangeEn}
                 handleChangeFr={handleChangeFr}
                 handleRemove={handleRemoveSubtopic}
-                error={topicExistsError}
-                helperText={!!topicExistsError && "This topic already exists."}
+                error={topicExistsError || topicNullError}
+                // todo
+                helperText={
+                  !!topicExistsError
+                    ? "This topic already exists."
+                    : !!topicNullError
+                    ? "Must enter a name for the topic"
+                    : false
+                }
               />
             </div>
           ))}
@@ -359,7 +415,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
     </Dialog>
   );
 };
-
 // The textfield for all the new topics the user is adding
 const InputRow = ({
   index,
