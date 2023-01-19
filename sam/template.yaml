@@ -1764,7 +1764,8 @@ Resources:
         ":category_id": $context.arguments.category_id,
         ":topic_id": $context.arguments.topic_id
         },
-        "pinpoint": {"type": "usersubscription", "action": "delete"}
+        "pinpoint": {"type": "usersubscription", "action": "delete"},
+        "responseSQL": "select * from `CategoryInfo` c, `TopicInfo` t, `UserCategoryTopic` uct where uct.user_id = :user_id and c.category_id = :category_id and t.topic_id = :topic_id and c.language='en' and t.language='en';"
         }
         }
       ResponseMappingTemplate: |
@@ -1795,7 +1796,8 @@ Resources:
         ":user_id": $context.arguments.user_id,
         ":category_id": $context.arguments.category_id,
         },
-        "pinpoint": {"type": "usersubscription", "action": "delete"}
+        "pinpoint": {"type": "usersubscription", "action": "delete"},
+        "responseSQL": "select * from `CategoryInfo` c, `TopicInfo` t, `UserCategoryTopic` uct where uct.user_id = :user_id and c.category_id = :category_id and t.topic_id = :topic_id and c.language='en' and t.language='en';"
         }
         }
       ResponseMappingTemplate: |

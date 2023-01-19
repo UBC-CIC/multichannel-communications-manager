@@ -328,15 +328,18 @@ exports.handler = async (event) => {
               }
               break;
             case "delete":
-              result.pinpointResult = await handler.updateTopicChannel(
-                event.SQLVariableMapping[":user_id"],
-                event.SQLVariableMapping[":category_acronym"] +
-                  "-" +
-                  event.SQLVariableMapping[":topic_acronym"],
-                false,
-                false
-              );
-              result.pinpointResult = "success";
+              console.log("updatedSubscription", updatedSubscription);
+              if (updatedSubscription) {
+                let categoryTitle = updatedSubscription[0].title;
+                let topicName = updatedSubscription[0].name;
+                result.pinpointResult = await handler.updateTopicChannel(
+                  event.SQLVariableMapping[":user_id"],
+                  categoryTitle + "-" + topicName,
+                  false,
+                  false
+                );
+                result.pinpointResult = "success";
+              }
               break;
           }
           break;
