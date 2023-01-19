@@ -277,27 +277,27 @@ Resources:
       SubnetId: !Ref PrivateSubnet2
       RouteTableId: !Ref PrivateRouteTable
 
-  OpenSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: A security group that allows all traffic in and out
-      GroupName: open-security-group
-      SecurityGroupEgress: 
-        - IpProtocol: -1
-          FromPort: -1
-          ToPort: -1
-          CidrIp: 0.0.0.0/0
-      SecurityGroupIngress: 
-        - IpProtocol: -1
-          FromPort: -1
-          ToPort: -1
-          CidrIp: 0.0.0.0/0
-      VpcId: !Ref VPC
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
+  # OpenSecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties: 
+  #     GroupDescription: A security group that allows all traffic in and out
+  #     GroupName: open-security-group
+  #     SecurityGroupEgress: 
+  #       - IpProtocol: -1
+  #         FromPort: -1
+  #         ToPort: -1
+  #         CidrIp: 0.0.0.0/0
+  #     SecurityGroupIngress: 
+  #       - IpProtocol: -1
+  #         FromPort: -1
+  #         ToPort: -1
+  #         CidrIp: 0.0.0.0/0
+  #     VpcId: !Ref VPC
+  #     Tags:
+  #       - Key: "Project"
+  #         Value: !Ref 'ProjectName'
+  #       - Key: "EnvironmentName"
+  #         Value: !Ref 'EnvironmentName'
 
   ClosedSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -318,8 +318,8 @@ Resources:
   
   SGProxy:
     Type: AWS::EC2::SecurityGroup
-    DependsOn:
-      - ClosedSecurityGroup
+    # DependsOn:
+    #   - ClosedSecurityGroup
     Properties: 
       GroupDescription: A security group for RDS that allows all traffic in on port 3306
       GroupName: Proxy-security-group
@@ -328,12 +328,29 @@ Resources:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref OpenSecurityGroup
+          SourceSecurityGroupId: !Ref ClosedSecurityGroup
+          #  !Ref OpenSecurityGroup
       SecurityGroupEgress:
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
           CidrIp: 0.0.0.0/0
+
+  # RDSProxySecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     GroupDescription: Security group for RDS proxy, allows for ingress traffic 
+  #     SecurityGroupIngress:
+  #       - IpProtocol: tcp
+  #         FromPort: 3306
+  #         ToPort: 3306
+  #         CidrIp: 10.0.0.0/16
+  #     SecurityGroupEgress:
+  #       - IpProtocol: -1
+  #         FromPort: 0
+  #         ToPort: 65535
+  #         CidrIp: 10.0.0.0/16
 
   SGRds:
     Type: AWS::EC2::SecurityGroup
@@ -359,27 +376,28 @@ Resources:
           ToPort: -1
           CidrIp: 0.0.0.0/0
 
-  MySQLAuroraInboundSG:
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: A security group for RDS that allows all traffic in on port 3306
-      GroupName: MySQLAurora-security-group
-      SecurityGroupIngress:  # traffic in
-        - IpProtocol: tcp
-          FromPort: 3306
-          ToPort: 3306
-          CidrIp: 0.0.0.0/0
-      SecurityGroupEgress: 
-        - IpProtocol: -1
-          FromPort: -1
-          ToPort: -1
-          CidrIp: 0.0.0.0/0
-      VpcId: !Ref VPC
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
+  # MySQLAuroraInboundSG:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties: 
+  #     GroupDescription: A security group for RDS that allows traffic from the rds proxy, and all traffic out
+  #     GroupName: MySQLAurora-security-group
+  #     SecurityGroupIngress:  # traffic in
+  #       - IpProtocol: tcp
+  #         FromPort: 3306
+  #         ToPort: 3306
+  #         # SourceSecurityGroupId: !Ref SGProxy
+  #         # CidrIp: 0.0.0.0/0
+  #     SecurityGroupEgress: 
+  #       - IpProtocol: -1
+  #         FromPort: -1
+  #         ToPort: -1
+  #         CidrIp: 0.0.0.0/0
+  #     VpcId: !Ref VPC
+  #     Tags:
+  #       - Key: "Project"
+  #         Value: !Ref 'ProjectName'
+  #       - Key: "EnvironmentName"
+  #         Value: !Ref 'EnvironmentName'
     
 
 # RDS #########################################
@@ -433,7 +451,8 @@ Resources:
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
       VpcSecurityGroupIds:  
-        - !Ref MySQLAuroraInboundSG
+        # - !Ref MySQLAuroraInboundSG
+        - !Ref SGRds
 
   DBInstance:
     Type: AWS::RDS::DBInstance
@@ -664,8 +683,8 @@ Resources:
           LINK_TO_APP: !Ref LinkToHostingDomain
       VpcConfig:
         SecurityGroupIds:
-          # - !Ref ClosedSecurityGroup
-          - !Ref OpenSecurityGroup
+          - !Ref ClosedSecurityGroup
+          # - !Ref OpenSecurityGroup
         SubnetIds:
           - !Ref PrivateSubnet1
           - !Ref PrivateSubnet2
