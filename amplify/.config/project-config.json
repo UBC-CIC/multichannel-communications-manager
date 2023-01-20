@@ -2,7 +2,7 @@
   "providers": [
     "awscloudformation"
   ],
-  "projectName": "ised",
+  "projectName": "communicationsmanager",
   "version": "3.1",
   "frontend": "javascript",
   "javascript": {
