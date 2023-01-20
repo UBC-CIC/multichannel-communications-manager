@@ -316,8 +316,13 @@ function Login(props) {
         }
       }
     } catch (e) {
+      console.log("e", e);
       const errorMsg = e.message;
-      if (errorMsg.includes("No current user")) {
+      if (
+        errorMsg.includes("No current user")
+        // ||
+        // e.includes("The user is not authenticated")
+      ) {
         setVerificationError(true);
       }
     }

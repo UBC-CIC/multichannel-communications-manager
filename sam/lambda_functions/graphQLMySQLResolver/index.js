@@ -154,20 +154,20 @@ exports.handler = async (event) => {
   };
   let secret;
   let sm = new SecretsManager({ region: region });
-  console.log("137");
+  // console.log("137");
   try {
     secret = await sm.getSecretValue(params).promise();
     secret = JSON.parse(secret.SecretString);
-    console.log("secret:", secret);
+    // console.log("secret:", secret);
   } catch (e) {
     console.log("e:", e);
   }
 
   let connection;
-  console.log("secret: ", secret);
-  console.log("type of secret: ", typeof secret);
-  console.log("user:", secret.username);
-  console.log("password: ", secret.password);
+  // console.log("secret: ", secret);
+  // console.log("type of secret: ", typeof secret);
+  // console.log("user:", secret.username);
+  // console.log("password: ", secret.password);
   connection = mysql.createPool({
     host: process.env.RDSPROXY_ENDPOINT,
     // user: process.env.USERNAME,
@@ -176,7 +176,7 @@ exports.handler = async (event) => {
     password: secret.password,
     database: process.env.DBNAME,
   });
-  console.log("connection:", connection);
+  // console.log("connection:", connection);
 
   console.log("event: ", event);
   // called whenever a GraphQL event is received
@@ -210,7 +210,7 @@ exports.handler = async (event) => {
       connection
     );
     // execute the sql statement on our database
-    result.sqlResult = await executeSQL(connection, inputSQL);
+    result.firstSqlResult = await executeSQL(connection, inputSQL);
   }
 
   // for secondary SQL statement to execute, like a SELECT after an INSERT
@@ -296,6 +296,12 @@ exports.handler = async (event) => {
           }
           break;
         case "usersubscription":
+          let updatedSubscription = result.sqlResult;
+          console.log("updatedSubscription", updatedSubscription);
+          // if no row is changed in the db, don't change pinpoint
+          if (result.firstSqlResult.affectedRows === 0) {
+            break;
+          }
           switch (pinpointAction.action) {
             case "insert":
             case "update":
@@ -314,8 +320,6 @@ exports.handler = async (event) => {
               //     }
               //   }
               // `);
-              let updatedSubscription = result.sqlResult;
-              console.log("updatedSubscription", updatedSubscription);
               if (updatedSubscription) {
                 let categoryTitle = updatedSubscription[0].title;
                 let topicName = updatedSubscription[0].name;
@@ -328,7 +332,6 @@ exports.handler = async (event) => {
               }
               break;
             case "delete":
-              console.log("updatedSubscription", updatedSubscription);
               if (updatedSubscription) {
                 let categoryTitle = updatedSubscription[0].title;
                 let topicName = updatedSubscription[0].name;
