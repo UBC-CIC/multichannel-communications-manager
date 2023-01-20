@@ -1878,6 +1878,7 @@ Resources:
   GraphQLResolverRole:
     Type: AWS::IAM::Role
     Properties:
+    # todo
       RoleName: GraphQLResolverRole
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
@@ -1932,3 +1933,60 @@ Resources:
       - arn:aws:iam::aws:policy/AWSAppSyncInvokeFullAccess
       - arn:aws:iam::aws:policy/AmazonSESFullAccess
   
+  WAF:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: mcmWAF
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: mcm-waf
+      # Rules:
+      #   - Name: mcmWAFRule
+      #     Priority: 1
+      #     Statement:
+      #       RateBasedStatement:
+      #         Limit: 1000
+      #         AggregateKeyType: IP
+      #         ScopeDownStatement:
+      #           OrStatement:
+      #             Statements:
+      #               - ByteMatchStatement:
+      #                   FieldToMatch: URI
+      #                   PositionalConstraint: CONTAINS
+      #                   TargetString: graphql
+      #                   TextTransformation: NONE
+      Rules:
+        - Name: AWS-AWSManagedRulesCommonRuleSet
+          Priority: 1
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AWS-AWSManagedRulesCommonRuleSet
+        - Name: LimitRequests1000
+          Priority: 2
+          Action:
+            Block: {}
+          Statement:
+            RateBasedStatement:
+              Limit: 1000
+              AggregateKeyType: IP
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: LimitRequests1000
+
+  WAFAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !Sub "arn:aws:appsync:${AWS::Region}:${AWS::AccountId}:apis/${GraphQLApiIdParameter.Value}"
+      WebACLArn: !GetAtt WAF.Arn
