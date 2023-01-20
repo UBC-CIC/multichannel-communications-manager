@@ -1,6 +1,6 @@
 export type AmplifyDependentResourcesAttributes = {
     "api": {
-        "communicationsmanager": {
+        "mcm": {
             "GraphQLAPIKeyOutput": "string",
             "GraphQLAPIIdOutput": "string",
             "GraphQLAPIEndpointOutput": "string"
@@ -10,7 +10,7 @@ export type AmplifyDependentResourcesAttributes = {
         "userPoolGroups": {
             "AdminsGroupRole": "string"
         },
-        "communicationsmanagerf0082716f0082716": {
+        "mcmf0082716f0082716": {
             "IdentityPoolId": "string",
             "IdentityPoolName": "string",
             "UserPoolId": "string",
@@ -22,19 +22,19 @@ export type AmplifyDependentResourcesAttributes = {
         }
     },
     "function": {
-        "communicationsmanagerf0082716f0082716CreateAuthChallenge": {
+        "mcmf0082716f0082716CreateAuthChallenge": {
             "Name": "string",
             "Arn": "string",
             "LambdaExecutionRole": "string",
             "Region": "string"
         },
-        "communicationsmanagerf0082716f0082716DefineAuthChallenge": {
+        "mcmf0082716f0082716DefineAuthChallenge": {
             "Name": "string",
             "Arn": "string",
             "LambdaExecutionRole": "string",
             "Region": "string"
         },
-        "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse": {
+        "mcmf0082716f0082716VerifyAuthChallengeResponse": {
             "Name": "string",
             "Arn": "string",
             "LambdaExecutionRole": "string",

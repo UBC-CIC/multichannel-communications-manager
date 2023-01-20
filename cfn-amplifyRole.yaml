@@ -3,8 +3,8 @@ Resources:
   AmplifyRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: amplifyconsole-communicationsmanager-backend-role
-      Description: IAM Role to deploy amplify communicationsmanager Project
+      RoleName: amplifyconsole-mcm-backend-role
+      Description: IAM Role to deploy amplify mcm Project
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:

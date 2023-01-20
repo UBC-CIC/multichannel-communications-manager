@@ -2,6 +2,10 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "{\"createdOn\":\"Windows\",\"createdBy\":\"Amplify\",\"createdWith\":\"10.0.0\",\"stackType\":\"function-Lambda\",\"metadata\":{}}",
   "Parameters": {
+    "CHALLENGEANSWER": {
+      "Type": "String",
+      "Default": ""
+    },
     "modules": {
       "Type": "String",
       "Default": "",
@@ -63,12 +67,12 @@
         "FunctionName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "communicationsmanagerf0082716f0082716DefineAuthChallenge",
+            "mcmf0082716f0082716CreateAuthChallenge",
             {
               "Fn::Join": [
                 "",
                 [
-                  "communicationsmanagerf0082716f0082716DefineAuthChallenge",
+                  "mcmf0082716f0082716CreateAuthChallenge",
                   "-",
                   {
                     "Ref": "env"
@@ -88,6 +92,9 @@
             },
             "REGION": {
               "Ref": "AWS::Region"
+            },
+            "CHALLENGEANSWER": {
+              "Ref": "CHALLENGEANSWER"
             }
           }
         },
@@ -115,12 +122,12 @@
         "RoleName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "communicationsmanagerf0082716f0082716DefineAuthChallenge",
+            "mcmf0082716f0082716CreateAuthChallenge",
             {
               "Fn::Join": [
                 "",
                 [
-                  "communicationsmanagerf0082716f0082716DefineAuthChallenge",
+                  "mcmf0082716f0082716CreateAuthChallenge",
                   "-",
                   {
                     "Ref": "env"
@@ -190,6 +197,33 @@
           ]
         }
       }
+    },
+    "CustomLambdaExecutionPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "custom-lambda-execution-policy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Action": [
+                "ses:SendEmail",
+                "ssm:GetParameter"
+              ],
+              "Resource": [
+                "*"
+              ],
+              "Effect": "Allow"
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "LambdaExecutionRole"
+          }
+        ]
+      },
+      "DependsOn": "LambdaExecutionRole"
     }
   },
   "Outputs": {

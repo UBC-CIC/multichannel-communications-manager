@@ -1,7 +1,7 @@
 {
   "version": 1,
   "serviceConfiguration": {
-    "apiName": "communicationsmanager",
+    "apiName": "mcm",
     "serviceName": "AppSync",
     "defaultAuthType": {
       "mode": "API_KEY",

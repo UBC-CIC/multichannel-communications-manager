@@ -21,15 +21,15 @@ export class cdkStack extends cdk.Stack {
       amplifyResourceProps.category, 
       amplifyResourceProps.resourceName, 
       [
-        {category: 'api', resourceName: "communicationsmanager"},
-        {category: 'auth', resourceName: "communicationsmanagerf0082716f0082716" },
+        {category: 'api', resourceName: "mcm"},
+        {category: 'auth', resourceName: "mcmf0082716f0082716" },
         // {category: 'hosting', resourceName: "" },
       ]
     );
-    const GraphQLAPIIdOutput = cdk.Fn.ref(dependencies.api.communicationsmanager.GraphQLAPIIdOutput)
-    const GraphQLAPIEndpointOutput = cdk.Fn.ref(dependencies.api.communicationsmanager.GraphQLAPIEndpointOutput)
+    const GraphQLAPIIdOutput = cdk.Fn.ref(dependencies.api.mcm.GraphQLAPIIdOutput)
+    const GraphQLAPIEndpointOutput = cdk.Fn.ref(dependencies.api.mcm.GraphQLAPIEndpointOutput)
     // const BucketNameOutput = cdk.Fn.ref(dependencies.storage.s3commit2actstorage4f79922d.BucketName);
-    const UserPoolIdOutput = cdk.Fn.ref(dependencies.auth.communicationsmanagerf0082716f0082716.UserPoolId);
+    const UserPoolIdOutput = cdk.Fn.ref(dependencies.auth.mcmf0082716f0082716.UserPoolId);
     /* AWS CDK code goes here - learn more: https://docs.aws.amazon.com/cdk/latest/guide/home.html */
     new ssm.StringParameter(this, 'ParameterStoreGraphQLAPIId', {
       parameterName: 'GraphqlApiId',

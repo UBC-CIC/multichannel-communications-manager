@@ -3,15 +3,15 @@
   "modules": [
     "boilerplate-verify"
   ],
-  "parentResource": "communicationsmanagerf0082716f0082716",
-  "functionName": "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse",
-  "resourceName": "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse",
+  "parentResource": "mcmf0082716f0082716",
+  "functionName": "mcmf0082716f0082716VerifyAuthChallengeResponse",
+  "resourceName": "mcmf0082716f0082716VerifyAuthChallengeResponse",
   "parentStack": "auth",
   "triggerEnvs": "[]",
   "triggerDir": "C:\\snapshot\\repo\\build\\node_modules\\@aws-amplify\\amplify-category-auth\\provider-utils\\awscloudformation\\triggers\\VerifyAuthChallengeResponse",
   "triggerTemplate": "VerifyAuthChallengeResponse.json.ejs",
   "triggerEventPath": "VerifyAuthChallengeResponse.event.json",
-  "roleName": "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse",
+  "roleName": "mcmf0082716f0082716VerifyAuthChallengeResponse",
   "skipEdit": true,
   "enableCors": false
 }

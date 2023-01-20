@@ -1,10 +1,10 @@
 {
   "version": "1",
   "cognitoConfig": {
-    "identityPoolName": "communicationsmanagerf0082716_identitypool_f0082716",
+    "identityPoolName": "mcmf0082716_identitypool_f0082716",
     "allowUnauthenticatedIdentities": false,
-    "resourceNameTruncated": "communicationsmanagerf0082716",
-    "userPoolName": "communicationsmanagerf0082716_userpool_f0082716",
+    "resourceNameTruncated": "mcmf0082716",
+    "userPoolName": "mcmf0082716_userpool_f0082716",
     "autoVerifiedAttributes": [
       "email"
     ],
@@ -31,10 +31,10 @@
     "userpoolClientReadAttributes": [
       "email"
     ],
-    "userpoolClientLambdaRole": "communicationsmanagerf0f0082716_userpoolclient_lambda_role",
+    "userpoolClientLambdaRole": "mcmf0f0082716_userpoolclient_lambda_role",
     "userpoolClientSetAttributes": false,
     "sharedId": "f0082716",
-    "resourceName": "communicationsmanagerf0082716f0082716",
+    "resourceName": "mcmf0082716f0082716",
     "authSelections": "identityPoolAndUserPool",
     "useDefault": "manual",
     "thirdPartyAuth": false,
@@ -77,7 +77,7 @@
     "dependsOn": [
       {
         "category": "function",
-        "resourceName": "communicationsmanagerf0082716f0082716CreateAuthChallenge",
+        "resourceName": "mcmf0082716f0082716CreateAuthChallenge",
         "triggerProvider": "Cognito",
         "attributes": [
           "Arn",
@@ -86,7 +86,7 @@
       },
       {
         "category": "function",
-        "resourceName": "communicationsmanagerf0082716f0082716DefineAuthChallenge",
+        "resourceName": "mcmf0082716f0082716DefineAuthChallenge",
         "triggerProvider": "Cognito",
         "attributes": [
           "Arn",
@@ -95,7 +95,7 @@
       },
       {
         "category": "function",
-        "resourceName": "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse",
+        "resourceName": "mcmf0082716f0082716VerifyAuthChallengeResponse",
         "triggerProvider": "Cognito",
         "attributes": [
           "Arn",
@@ -104,7 +104,7 @@
       }
     ],
     "permissions": [],
-    "authTriggerConnections": "[\n  {\n    \"triggerType\": \"CreateAuthChallenge\",\n    \"lambdaFunctionName\": \"communicationsmanagerf0082716f0082716CreateAuthChallenge\"\n  },\n  {\n    \"triggerType\": \"DefineAuthChallenge\",\n    \"lambdaFunctionName\": \"communicationsmanagerf0082716f0082716DefineAuthChallenge\"\n  },\n  {\n    \"triggerType\": \"VerifyAuthChallengeResponse\",\n    \"lambdaFunctionName\": \"communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse\"\n  }\n]",
+    "authTriggerConnections": "[\n  {\n    \"triggerType\": \"CreateAuthChallenge\",\n    \"lambdaFunctionName\": \"mcmf0082716f0082716CreateAuthChallenge\"\n  },\n  {\n    \"triggerType\": \"DefineAuthChallenge\",\n    \"lambdaFunctionName\": \"mcmf0082716f0082716DefineAuthChallenge\"\n  },\n  {\n    \"triggerType\": \"VerifyAuthChallengeResponse\",\n    \"lambdaFunctionName\": \"mcmf0082716f0082716VerifyAuthChallengeResponse\"\n  }\n]",
     "authProviders": [],
     "parentStack": {
       "Ref": "AWS::StackId"

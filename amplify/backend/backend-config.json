@@ -1,6 +1,6 @@
 {
   "api": {
-    "communicationsmanager": {
+    "mcm": {
       "service": "AppSync",
       "providerPlugin": "awscloudformation",
       "dependsOn": [],
@@ -26,7 +26,7 @@
       "dependsOn": [
         {
           "category": "auth",
-          "resourceName": "communicationsmanagerf0082716f0082716",
+          "resourceName": "mcmf0082716f0082716",
           "attributes": [
             "UserPoolId",
             "AppClientIDWeb",
@@ -36,13 +36,13 @@
         }
       ]
     },
-    "communicationsmanagerf0082716f0082716": {
+    "mcmf0082716f0082716": {
       "service": "Cognito",
       "providerPlugin": "awscloudformation",
       "dependsOn": [
         {
           "category": "function",
-          "resourceName": "communicationsmanagerf0082716f0082716CreateAuthChallenge",
+          "resourceName": "mcmf0082716f0082716CreateAuthChallenge",
           "triggerProvider": "Cognito",
           "attributes": [
             "Arn",
@@ -51,7 +51,7 @@
         },
         {
           "category": "function",
-          "resourceName": "communicationsmanagerf0082716f0082716DefineAuthChallenge",
+          "resourceName": "mcmf0082716f0082716DefineAuthChallenge",
           "triggerProvider": "Cognito",
           "attributes": [
             "Arn",
@@ -60,7 +60,7 @@
         },
         {
           "category": "function",
-          "resourceName": "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse",
+          "resourceName": "mcmf0082716f0082716VerifyAuthChallengeResponse",
           "triggerProvider": "Cognito",
           "attributes": [
             "Arn",
@@ -92,18 +92,18 @@
     }
   },
   "function": {
-    "communicationsmanagerf0082716f0082716CreateAuthChallenge": {
+    "mcmf0082716f0082716CreateAuthChallenge": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda",
       "dependsOn": []
     },
-    "communicationsmanagerf0082716f0082716DefineAuthChallenge": {
+    "mcmf0082716f0082716DefineAuthChallenge": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
-    "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse": {
+    "mcmf0082716f0082716VerifyAuthChallengeResponse": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
@@ -116,7 +116,7 @@
       "dependsOn": [
         {
           "category": "auth",
-          "resourceName": "communicationsmanagerf0082716f0082716",
+          "resourceName": "mcmf0082716f0082716",
           "attributes": [
             "UserPoolId"
           ]
@@ -138,7 +138,7 @@
       "dependsOn": [
         {
           "category": "api",
-          "resourceName": "communicationsmanager",
+          "resourceName": "mcm",
           "attributes": [
             "GraphQLAPIKeyOutput",
             "GraphQLAPIIdOutput",
@@ -147,7 +147,7 @@
         },
         {
           "category": "auth",
-          "resourceName": "communicationsmanagerf0082716f0082716",
+          "resourceName": "mcmf0082716f0082716",
           "attributes": [
             "IdentityPoolId",
             "IdentityPoolName",

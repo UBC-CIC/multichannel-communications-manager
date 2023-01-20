@@ -2,10 +2,6 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "{\"createdOn\":\"Windows\",\"createdBy\":\"Amplify\",\"createdWith\":\"10.0.0\",\"stackType\":\"function-Lambda\",\"metadata\":{}}",
   "Parameters": {
-    "RECAPTCHASECRET": {
-      "Type": "String",
-      "Default": ""
-    },
     "modules": {
       "Type": "String",
       "Default": "",
@@ -67,12 +63,12 @@
         "FunctionName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse",
+            "mcmf0082716f0082716DefineAuthChallenge",
             {
               "Fn::Join": [
                 "",
                 [
-                  "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse",
+                  "mcmf0082716f0082716DefineAuthChallenge",
                   "-",
                   {
                     "Ref": "env"
@@ -92,9 +88,6 @@
             },
             "REGION": {
               "Ref": "AWS::Region"
-            },
-            "RECAPTCHASECRET": {
-              "Ref": "RECAPTCHASECRET"
             }
           }
         },
@@ -122,12 +115,12 @@
         "RoleName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse",
+            "mcmf0082716f0082716DefineAuthChallenge",
             {
               "Fn::Join": [
                 "",
                 [
-                  "communicationsmanagerf0082716f0082716VerifyAuthChallengeResponse",
+                  "mcmf0082716f0082716DefineAuthChallenge",
                   "-",
                   {
                     "Ref": "env"
