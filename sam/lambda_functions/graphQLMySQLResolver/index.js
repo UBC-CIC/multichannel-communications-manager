@@ -377,7 +377,7 @@ async function sendNotification(address, type) {
         },
         Subject: {
           Charset: "UTF-8",
-          Data: "ISED Subscription",
+          Data: `${ORGANIZATION_NAME} Subscription`,
         },
       },
       Source: SES_FROM_ADDRESS,
