@@ -85,6 +85,10 @@ Parameters:
   SenderEmail:
     Type: String
     Description: The email address from which end uers will receive emails
+  OrganizationName:
+    Type: String
+    Description: The name for the organization that will appear in the subscription message
+
 
 Resources:
   GraphQLApiIdParameter:
@@ -681,6 +685,7 @@ Resources:
           EMAIL_SENDER: !Ref SenderEmail
           PINPOINT_APPID: !Ref PinpointApp
           LINK_TO_APP: !Ref LinkToHostingDomain
+          ORGANIZATION_NAME: !Ref OrganizationName
       VpcConfig:
         SecurityGroupIds:
           - !Ref ClosedSecurityGroup

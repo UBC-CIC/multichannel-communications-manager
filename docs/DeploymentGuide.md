@@ -177,9 +177,9 @@ To use the account created with CloudFormation, first navigate to the link of th
 
 # Step 6: Register Admin Account
 
-Here, you'll learn how to register for an account on the web portal, then how to set any accounts to ISED Admin.
+Here, you'll learn how to register for an account on the web portal, then how to set any accounts to Admin.
 
-1. At the login page for the ISED website, click create an account. ![alt text](images/deployment/setup_admin_welcome.PNG)
+1. At the login page for the web portal, click create an account. ![alt text](images/deployment/setup_admin_welcome.PNG)
 2. Enter your profile information. When selecting notification preferences, only select EMAIL NOTIFICATIONS. Then, click NEXT. ![alt text](images/deployment/setup_admin_profile.PNG)
 3. A verification code will be sent to the email that you just entered. Enter it here, and then click VERIFY. ![alt text](images/deployment/setup_admin_verification.PNG)
 4. You have now registered an account in the app. Before you proceed with the web portal, you need to add yourself to Admins. Start by going to the [AWS online console](https://console.aws.amazon.com/console/home), enter `Cognito` in the search bar ![alt text](images/deployment/deployment-05.PNG)

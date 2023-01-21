@@ -5,6 +5,7 @@ const ses = new SES();
 const sns = new SNS();
 const SES_FROM_ADDRESS = process.env.EMAIL_SENDER;
 const LINK_TO_APP = process.env.LINK_TO_APP;
+const ORGANIZATION_NAME = process.env.ORGANIZATION_NAME;
 
 const mysql = require("mysql");
 let dbInit = false;
@@ -360,7 +361,7 @@ exports.handler = async (event) => {
 async function sendNotification(address, type) {
   let result = {};
   if (type === "email") {
-    let categoryTopicsHTML = `You are now subscribed to ISED! Click here to manage your notification preferences: ${LINK_TO_APP}`;
+    let categoryTopicsHTML = `You are now subscribed to ${ORGANIZATION_NAME}! Click here to manage your notification preferences: ${LINK_TO_APP}`;
     let params = {
       Destination: { ToAddresses: [address] },
       Message: {
@@ -385,7 +386,7 @@ async function sendNotification(address, type) {
     result.email = await ses.sendEmail(params).promise();
   } else if (type === "sms") {
     let params = {
-      Message: `You are now subscribed to ISED! Open the link to manage your notification preferences: ${LINK_TO_APP}`,
+      Message: `You are now subscribed to ${ORGANIZATION_NAME}! Open the link to manage your notification preferences: ${LINK_TO_APP}`,
       PhoneNumber: address,
     };
     result.sms = await sns.publish(params).promise();
