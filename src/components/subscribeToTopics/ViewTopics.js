@@ -266,25 +266,25 @@ const ViewTopics = ({ language }) => {
         }
       }
 
-      // unsubscribe from the topics the user has deselected
-      if (subtopicsToUnfollow.length !== 0) {
-        let topicsToRemove = subtopicsToUnfollow.map((s) => s.toString());
-        for (let n = 0; n < subtopicsToUnfollow.length; n++) {
-          await API.graphql(
-            graphqlOperation(userUnfollowCategoryTopic, {
-              user_id: userID,
-              category_id: topics[index].category_id,
-              topic_id: subtopicsToUnfollow[n],
-            })
-          );
-        }
-        for (let m = 0; m < topicsToRemove.length; m++) {
-          setUserUnfollow((prev) =>
-            prev.filter((s) => !s.toString().includes(topicsToRemove))
-          );
+        // unsubscribe from the topics the user has deselected
+        if (subtopicsToUnfollow.length !== 0) {
+          let topicsToRemove = subtopicsToUnfollow.map((s) => s.toString());
+          for (let n = 0; n < subtopicsToUnfollow.length; n++) {
+            await API.graphql(
+              graphqlOperation(userUnfollowCategoryTopic, {
+                user_id: userID,
+                category_id: topics[index].category_id,
+                topic_id: subtopicsToUnfollow[n],
+              })
+            );
+          }
+          for (let m = 0; m < topicsToRemove.length; m++) {
+            setUserUnfollow((prev) =>
+              prev.filter((s) => !s.toString().includes(topicsToRemove))
+            );
+          }
         }
       }
-
       getUserSubscriptions(topics);
     } else {
       let topicsToRemove = selectedSubTopics.map((s) => s.toString());

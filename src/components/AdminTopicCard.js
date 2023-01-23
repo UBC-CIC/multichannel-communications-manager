@@ -12,11 +12,20 @@ import {
   FormControlLabel,
   Checkbox,
   TextField,
+  Select,
+  OutlinedInput,
+  InputLabel,
+  Chip,
+  MenuItem,
+  FormControl,
 } from "@mui/material";
 import { Add, Edit } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { API, graphqlOperation, Storage } from "aws-amplify";
-import { getTopicsOfCategory } from "../graphql/queries";
+import {
+  getTopicsOfCategory,
+  getAllTopicsForLanguage,
+} from "../graphql/queries";
 import {
   createTopic,
   addTopicToCategory,
@@ -32,6 +41,9 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
   const { title, description, picture_location } = selectedTopic;
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedSubTopics, setSelectedSubtopics] = useState([]);
+  const [selectedTopics, setSelectedTopics] = useState([]);
+  const [allTopics, setAllTopics] = useState([]);
+
   const [isRotated, setIsRotated] = useState(false);
   const [invalidInputErrorEn, setInvalidInputErrorEn] = useState(false);
   const [invalidInputErrorMsgEn, setInvalidInputErrorMsgEn] = useState("");
@@ -67,6 +79,18 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
       let imageURL = await Storage.get(picture_location);
       setImage(imageURL);
     }
+    async function getTopics() {
+      const topicsQuery = await API.graphql(
+        graphqlOperation(getAllTopicsForLanguage, { language: language })
+      );
+      const topics = topicsQuery.data.getAllTopicsForLanguage;
+      if (topics !== null) {
+        const topicsName = topics.map((a) => a.name);
+        // setAllTopics(topicsName);
+        setAllTopics(topics);
+      }
+    }
+    getTopics();
     getCategoryImage();
   }, []);
 
@@ -85,6 +109,16 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
     }
   };
 
+  const handleSelectedTopics = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setSelectedTopics(
+      // On autofill we get a stringified value.
+      typeof value === "string" ? value.split(",") : value
+    );
+  };
+
   const handleDelete = async () => {
     for (let i = 0; i < selectedSubTopics.length; i++) {
       await API.graphql(
@@ -100,46 +134,66 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
   };
 
   const addTopic = async () => {
-    if (newSubtopicEn === "" || newSubtopicFr === "") {
-      if (newSubtopicEn === "") {
+    if (
+      (newSubtopicEn === "" || newSubtopicFr === "") &&
+      !(newSubtopicEn === "" && newSubtopicFr === "")
+    ) {
+      if (newSubtopicFr != "" && newSubtopicEn === "") {
         setInvalidInputErrorEn(true);
         setInvalidInputErrorMsgEn(I18n.get("missingValue"));
       }
-      if (newSubtopicFr === "") {
+      if (newSubtopicEn != "" && newSubtopicFr === "") {
         setInvalidInputErrorFr(true);
         setInvalidInputErrorMsgFr(I18n.get("missingValue"));
       }
     } else {
-      // Create the topic and add it to the selected category
-      await API.graphql(
-        graphqlOperation(createTopic, { english_name: newSubtopicEn })
-      )
-        .then(async (res) => {
-          await API.graphql(
-            graphqlOperation(addTopicDisplayLanguage, {
-              topic_id: res.data.createTopic.topic_id,
-              language: "fr",
-              name: newSubtopicFr,
-            })
-          );
-          await API.graphql(
+      try {
+        for (let i = 0; i < selectedTopics.length; i++) {
+          // if (selectedTopics[i].nameEn != "" && inputFields[i].nameFr != "") {
+          const response = await API.graphql(
             graphqlOperation(addTopicToCategory, {
               category_id: selectedTopic.category_id,
-              topic_id: res.data.createTopic.topic_id,
+              topic_id: selectedTopics[i].topic_id,
             })
           );
-          setSubtopics([...subtopics, { name: newSubtopicEn }]);
-        })
-        .catch((e) => {
-          console.log("e", e);
-          const errorMsg = e.errors[0].message;
-          if (errorMsg.includes("ER_DUP_ENTRY")) {
-            setInvalidInputErrorEn(true);
-            setInvalidInputErrorMsgEn(I18n.get("topicExistsErr"));
-            setInvalidInputErrorFr(true);
-            setInvalidInputErrorMsgFr(I18n.get("topicExistsErr"));
-          }
-        });
+          // }
+        }
+      } catch (e) {
+        console.log("e", e);
+      }
+      // Create the topic and add it to the selected category
+      if (newSubtopicEn !== "" && newSubtopicFr !== "") {
+        await API.graphql(
+          graphqlOperation(createTopic, { english_name: newSubtopicEn })
+        )
+          .then(async (res) => {
+            await API.graphql(
+              graphqlOperation(addTopicDisplayLanguage, {
+                topic_id: res.data.createTopic.topic_id,
+                language: "fr",
+                name: newSubtopicFr,
+              })
+            );
+            await API.graphql(
+              graphqlOperation(addTopicToCategory, {
+                category_id: selectedTopic.category_id,
+                topic_id: res.data.createTopic.topic_id,
+              })
+            );
+            setSubtopics([...subtopics, { name: newSubtopicEn }]);
+          })
+          .catch((e) => {
+            console.log("e", e);
+            const errorMsg = e.errors[0].message;
+            if (errorMsg.includes("ER_DUP_ENTRY")) {
+              // todo
+              setInvalidInputErrorEn(true);
+              setInvalidInputErrorMsgEn(I18n.get("topicExistsErr"));
+              setInvalidInputErrorFr(true);
+              setInvalidInputErrorMsgFr(I18n.get("topicExistsErr"));
+            }
+          });
+      }
     }
   };
 
@@ -241,6 +295,35 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
             />
           </Box>
           <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            {/* <FormControl> */}
+            {/* <InputLabel>{I18n.get("selectTopic")}</InputLabel> */}
+            <Select
+              multiple
+              size="small"
+              label={I18n.get("selectTopic")}
+              value={selectedTopics}
+              onChange={handleSelectedTopics}
+              input={<OutlinedInput label="Select an existing topic" />}
+              // todo
+              renderValue={(selected) => (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                  {selected.map((value) => (
+                    <Chip key={value.name} label={value.name} />
+                  ))}
+                </Box>
+              )}
+            >
+              {allTopics === null ? (
+                <></>
+              ) : (
+                allTopics.map((topic) => (
+                  <MenuItem key={topic.name} value={topic}>
+                    {topic.name}
+                  </MenuItem>
+                ))
+              )}
+            </Select>
+            {/* </FormControl> */}
             <TextField
               size="small"
               label={newSubtopicEn === "" ? I18n.get("addEn") : ""}
