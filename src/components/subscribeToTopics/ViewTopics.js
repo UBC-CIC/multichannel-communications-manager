@@ -86,6 +86,7 @@ const ViewTopics = ({ language }) => {
   }
 
   async function queriedData() {
+    console.log("in querieddata");
     let categories = await API.graphql(
       graphqlOperation(getAllCategoriesForLanguage, { language: language })
     );
@@ -142,6 +143,7 @@ const ViewTopics = ({ language }) => {
 
   // get all the topics the user is subscribed to
   async function getUserSubscriptions(allCategories) {
+    console.log("in getUserSubscriptions");
     const returnedUser = await Auth.currentAuthenticatedUser();
     let getUserId = await API.graphql(
       graphqlOperation(getUserByEmail, {
@@ -175,6 +177,7 @@ const ViewTopics = ({ language }) => {
         setUserAlreadySubscribed((prev) => [...prev, false]);
       }
     }
+    console.log("userAlreadySubscribed", userAlreadySubscribed);
   }
 
   useEffect(() => {
@@ -212,6 +215,7 @@ const ViewTopics = ({ language }) => {
   };
 
   const handleAlreadySubscribedChange = (e, subtopic) => {
+    console.log("in handleAlreadySubscribedChange");
     if (e.target.checked) {
       setUserSelectedSubtopics((prev) => [...prev, subtopic]);
       setUserSelectedSubtopicsTemp((prev) => [...prev, subtopic]);
@@ -247,43 +251,41 @@ const ViewTopics = ({ language }) => {
         (s) => !onlySubtopics.includes(s)
       );
       // if the user deselects all their subscribed topics then they get unsubscribed from the category
-      if (
-        JSON.stringify(onlySubtopics) === JSON.stringify(subtopicsToUnfollow)
-      ) {
-        await API.graphql(
-          graphqlOperation(userUnfollowCategory, {
-            user_id: userID,
-            category_id: topics[index].category_id,
-          })
-        );
-      } else {
-        // subscribe to the new topics the user has selected
-        if (newUserSelectedSubtopics.length !== 0) {
-          let topicsToRemove = newUserSelectedSubtopics.map((s) =>
-            s.toString()
+      // if (
+      //   JSON.stringify(onlySubtopics) === JSON.stringify(subtopicsToUnfollow)
+      // ) {
+      //   await API.graphql(
+      //     graphqlOperation(userUnfollowCategory, {
+      //       user_id: userID,
+      //       category_id: topics[index].category_id,
+      //     })
+      //   );
+      // } else {
+      // subscribe to the new topics the user has selected
+      if (newUserSelectedSubtopics.length !== 0) {
+        let topicsToRemove = newUserSelectedSubtopics.map((s) => s.toString());
+        for (let x = 0; x < newUserSelectedSubtopics.length; x++) {
+          await API.graphql(
+            graphqlOperation(userFollowCategoryTopic, {
+              user_id: userID,
+              category_id: topics[index].category_id,
+              topic_id: newUserSelectedSubtopics[x],
+              email_notice: user.email_notice,
+              sms_notice: user.sms_notice,
+            })
           );
-          for (let x = 0; x < newUserSelectedSubtopics.length; x++) {
-            await API.graphql(
-              graphqlOperation(userFollowCategoryTopic, {
-                user_id: userID,
-                category_id: topics[index].category_id,
-                topic_id: newUserSelectedSubtopics[x],
-                email_notice: user.email_notice,
-                sms_notice: user.sms_notice,
-              })
-            );
-          }
-          for (let m = 0; m < topicsToRemove.length; m++) {
-            setUserSelectedSubtopicsTemp((prev) =>
-              prev.filter((s) => !s.toString().includes(topicsToRemove))
-            );
-          }
         }
+        for (let m = 0; m < topicsToRemove.length; m++) {
+          setUserSelectedSubtopicsTemp((prev) =>
+            prev.filter((s) => !s.toString().includes(topicsToRemove))
+          );
+        }
+
         // unsubscribe from the topics the user has deselected
         if (subtopicsToUnfollow.length !== 0) {
           let topicsToRemove = subtopicsToUnfollow.map((s) => s.toString());
           for (let n = 0; n < subtopicsToUnfollow.length; n++) {
-            console.log(subtopicsToUnfollow[n]);
+            console.log("subtopicsToUnfollow[n]", subtopicsToUnfollow[n]);
             await API.graphql(
               graphqlOperation(userUnfollowCategoryTopic, {
                 user_id: userID,

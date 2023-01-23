@@ -404,8 +404,11 @@ function Login(props) {
           })
           .catch((e) => {
             const errorMsg = e.message;
-            console.log(e);
-            if (errorMsg.includes("invalidVerificationCode")) {
+            console.log("e", e);
+            console.log("errorMsg", errorMsg);
+
+            console.log("type e", typeof e);
+            if (errorMsg.includes("Invalid verification code provided")) {
               setVerificationError(true);
             }
           });

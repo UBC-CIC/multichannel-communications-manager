@@ -139,7 +139,7 @@ type Mutation {
     category_id: Int!
     topic_id: Int!
   ): String
-  userUnfollowCategory(user_id: Int!, category_id: Int!): String
+  # userUnfollowCategory(user_id: Int!, category_id: Int!): String
 }
 
 type Query {

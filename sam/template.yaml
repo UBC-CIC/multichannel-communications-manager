@@ -1184,7 +1184,6 @@ Resources:
         #set($email_address = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.email_address, null)))
         #set($province = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.province, null)))
         #set($postal_code = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
-        #set($language = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.postal_code, null)))
 
         #if($context.arguments.email_notice)
           #set( $sql_email_notice = "email_notice=true, " )
@@ -1242,14 +1241,13 @@ Resources:
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "UPDATE `User` SET $sql_email_notice $sql_sms_notice $sql_email_address $sql_phone_address $sql_province $sql_postal_code $language WHERE `User`.user_id = :user_id;",
+        "sql": "UPDATE `User` SET $sql_email_notice $sql_sms_notice $sql_email_address $sql_phone_address $sql_province $sql_postal_code WHERE `User`.user_id = :user_id;",
         "SQLVariableMapping": {
         ":user_id": $context.arguments.user_id,
         ":email_address": $email_address,
         ":phone_address": $phone_address,
         ":province": $province,
-        ":postal_code": $postal_code,
-        ":language": $language
+        ":postal_code": $postal_code
         },
         "pinpoint":{"type": "userprofile", "action": "update"},
         "responseSQL": "select * from `User` where user_id=:user_id;"
@@ -1783,37 +1781,37 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
-  userUnfollowCategoryResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn:
-    - LambdaResolverAppSyncDataSource
-    Properties:
-      TypeName: Mutation
-      FieldName: userUnfollowCategory
-      RequestMappingTemplate: |
-        {
-        "version": "2018-05-29",
-        "operation": "Invoke",
-        "payload": {
-        "sql": 
-          "delete from `UserCategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id in (select categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_id = :category_id);",
-        "SQLVariableMapping": {
-        ":user_id": $context.arguments.user_id,
-        ":category_id": $context.arguments.category_id,
-        },
-        "pinpoint": {"type": "usersubscription", "action": "delete"},
-        "responseSQL": "select * from `CategoryInfo` c, `TopicInfo` t, `UserCategoryTopic` uct where uct.user_id = :user_id and c.category_id = :category_id and t.topic_id = :topic_id and c.language='en' and t.language='en';"
-        }
-        }
-      ResponseMappingTemplate: |
-        #if($ctx.error)
-          $util.error($ctx.error.message, $ctx.error.type)
-        #end
-        "success"
-      ApiId: !GetAtt GraphQLApiIdParameter.Value
-      DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
-      Kind: UNIT
-      MaxBatchSize: 0
+  # userUnfollowCategoryResolver:
+  #   Type: AWS::AppSync::Resolver
+  #   DependsOn:
+  #   - LambdaResolverAppSyncDataSource
+  #   Properties:
+  #     TypeName: Mutation
+  #     FieldName: userUnfollowCategory
+  #     RequestMappingTemplate: |
+  #       {
+  #       "version": "2018-05-29",
+  #       "operation": "Invoke",
+  #       "payload": {
+  #       "sql": 
+  #         "delete from `UserCategoryTopic` where `UserCategoryTopic`.user_id = :user_id and `UserCategoryTopic`.categoryTopic_id in (select categoryTopic_id from `CategoryTopic` where `CategoryTopic`.category_id = :category_id);",
+  #       "SQLVariableMapping": {
+  #       ":user_id": $context.arguments.user_id,
+  #       ":category_id": $context.arguments.category_id,
+  #       },
+  #       "pinpoint": {"type": "usersubscription", "action": "delete"},
+  #       "responseSQL": "select * from `CategoryInfo` c, `TopicInfo` t, `UserCategoryTopic` uct where uct.user_id = :user_id and c.category_id = :category_id and t.topic_id = :topic_id and c.language='en' and t.language='en';"
+  #       }
+  #       }
+  #     ResponseMappingTemplate: |
+  #       #if($ctx.error)
+  #         $util.error($ctx.error.message, $ctx.error.type)
+  #       #end
+  #       "success"
+  #     ApiId: !GetAtt GraphQLApiIdParameter.Value
+  #     DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
+  #     Kind: UNIT
+  #     MaxBatchSize: 0
 
   testSQLResolver:
     Type: AWS::AppSync::Resolver
