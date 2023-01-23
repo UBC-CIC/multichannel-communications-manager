@@ -74,6 +74,8 @@ CREATE UNIQUE INDEX \`CategoryTopic_index_1\` ON \`CategoryTopic\` (\`category_i
 
 CREATE UNIQUE INDEX \`TopicInfo_index_1\` ON \`TopicInfo\` (\`language\`, \`name\`);
 
+CREATE UNIQUE INDEX \`CategoryInfo_index_1\` ON \`CategoryInfo\` (\`language\`, \`title\`);
+
 ALTER TABLE \`CategoryTopic\` ADD FOREIGN KEY (\`category_id\`) REFERENCES \`Category\` (\`category_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE \`CategoryInfo\` ADD FOREIGN KEY (\`category_id\`) REFERENCES \`Category\` (\`category_id\`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -146,7 +148,7 @@ function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
 }
 
 exports.handler = async (event) => {
-  const secretName = "RDSCredentials";
+  const secretName = "RdsCredentials";
   const endpointUrl = `https://secretsmanager.${process.env.AWS_REGION}.amazonaws.com`;
   const region = process.env.AWS_REGION;
 
@@ -198,6 +200,7 @@ exports.handler = async (event) => {
 
   let sql_statements = event.sql.split(";"); // splits up multiple SQL statements into an array
   // try {
+  let firstSqlResult;
   for (let sql_statement of sql_statements) {
     // iterate through the SQL statements
     if (sql_statement.length < 3) {
@@ -211,9 +214,10 @@ exports.handler = async (event) => {
       connection
     );
     // execute the sql statement on our database
-    result.firstSqlResult = await executeSQL(connection, inputSQL);
+    firstSqlResult = await executeSQL(connection, inputSQL);
   }
-
+  result.firstSqlResult = firstSqlResult;
+  result.sqlResult = firstSqlResult;
   // for secondary SQL statement to execute, like a SELECT after an INSERT
   if (event.responseSQL) {
     const responseSQL = populateAndSanitizeSQL(

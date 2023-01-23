@@ -40,7 +40,7 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   const [titleFr, setTitleFr] = useState("");
   const [description, setDescription] = useState("");
   const [descriptionFr, setDescriptionFr] = useState("");
-  const [topicExistsError, setTopicsExistError] = useState(false);
+  const [topicExistsError, setTopicExistError] = useState(false);
   const [topicNullError, setTopicsNullError] = useState(false);
   const [invalidInputErrorEn, setInvalidInputErrorEn] = useState(false);
   // const [invalidInputErrorMsgEn, setInvalidInputErrorMsgEn] = useState("");
@@ -79,7 +79,9 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
     setSelectedTopics([]);
     setTitle("");
     setDescription("");
-    setTopicsExistError(false);
+    setTitleFr("");
+    setDescriptionFr("");
+    setTopicExistError(false);
     setTopicsNullError(false);
     setInvalidInputErrorEn(false);
     setInvalidInputErrorFr(false);
@@ -98,14 +100,14 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
       values.splice(index, 1);
       setInputFields(values);
     }
-    setTopicsExistError(false);
+    setTopicExistError(false);
     setTopicsNullError(false);
   };
 
   const handleChangeEn = (event, index) => {
     console.log("in handlechangeen");
     setNewTopic(event.target.value);
-    setTopicsExistError(false);
+    setTopicExistError(false);
     setTopicsNullError(false);
     const values = [...inputFields];
     values[index][event.target.name] = event.target.value;
@@ -123,24 +125,21 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   };
 
   const handleSave = async () => {
-    // todo
+    console.log("title", title);
+    console.log("titleFr", titleFr);
+
     if (title === "" || titleFr === "") {
-      if (title === "") {
-        setInvalidInputErrorEn(true);
-        // setInvalidInputErrorMsgEn(I18n.get("missingValue"));
-      } else {
-        setInvalidInputErrorEn(false);
-        // setInvalidInputErrorMsgEn("");
-      }
-      if (titleFr === "") {
-        setInvalidInputErrorFr(true);
-        // setInvalidInputErrorMsgFr(I18n.get("missingValue"));
-      } else {
-        setInvalidInputErrorFr(false);
-        // setInvalidInputErrorMsgEn("");
-      }
+      title === ""
+        ? setInvalidInputErrorEn(true)
+        : setInvalidInputErrorEn(false);
+      titleFr === ""
+        ? setInvalidInputErrorFr(true)
+        : setInvalidInputErrorFr(false);
     } else if (allTopics.map((t) => t.name).includes(newTopic)) {
-      setTopicsExistError(true);
+      console.log("allTopics", allTopics);
+      console.log("newTopic", newTopic);
+      console.log("1");
+      setTopicExistError(true);
     }
     // else if(){
 
@@ -148,7 +147,7 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
     else {
       setInvalidInputErrorEn(false);
       setInvalidInputErrorFr(false);
-      setTopicsExistError(false);
+      setTopicExistError(false);
       setTopicsNullError(false);
       let s3Key = "";
       if (document.getElementById("uploadFile").value === "") {
@@ -165,39 +164,45 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
       };
       console.log("createTopic", createdTopic);
       try {
+        // create all the new topics
+        for (let i = 0; i < inputFields.length; i++) {
+          if (inputFields[i].nameEn != "" && inputFields[i].nameFr != "") {
+            const response = await API.graphql(
+              graphqlOperation(createTopic, {
+                english_name: inputFields[i].nameEn,
+              })
+            );
+
+            console.log("createTopic response", response);
+            let r = await API.graphql(
+              graphqlOperation(addTopicDisplayLanguage, {
+                topic_id: response.data.createTopic.topic_id,
+                language: "fr",
+                name: inputFields[i].nameFr,
+              })
+            );
+            console.log("addTopicDisplayLanguage response", r);
+            let r2 = await API.graphql(
+              graphqlOperation(addTopicToCategory, {
+                category_id: categoryId,
+                topic_id: response.data.createTopic.topic_id,
+              })
+            );
+            console.log("addTopicToCategory response", r2);
+          }
+        }
+        // let newSubtopics = inputFields;
+        // .map((a) => a.nameEn);
+        // let allSubtopics = newSubtopics.concat(selectedTopics);
+
         // create the category in the database
         const res = await API.graphql(
           graphqlOperation(createCategory, createdTopic)
         );
         console.log("createCategory response", res);
-        const categoryId = res.data.createCategory.category_id;
-        // create all the new topics
-        for (let i = 0; i < inputFields.length; i++) {
-          const response = await API.graphql(
-            graphqlOperation(createTopic, {
-              english_name: inputFields[i].nameEn,
-            })
-          );
-          console.log("createTopic response", response);
-          let r = await API.graphql(
-            graphqlOperation(addTopicDisplayLanguage, {
-              topic_id: response.data.createTopic.topic_id,
-              language: "fr",
-              name: inputFields[i].nameFr,
-            })
-          );
-          console.log("addTopicDisplayLanguage response", r);
-          let r2 = await API.graphql(
-            graphqlOperation(addTopicToCategory, {
-              category_id: categoryId,
-              topic_id: response.data.createTopic.topic_id,
-            })
-          );
-          console.log("addTopicToCategory response", r2);
-        }
-        // let newSubtopics = inputFields;
-        // .map((a) => a.nameEn);
-        // let allSubtopics = newSubtopics.concat(selectedTopics);
+        let categoryId = res.data.createCategory.category_id;
+        console.log("categoryId", categoryId);
+
         // add all the selected topics to the category
         for (let i = 0; i < selectedTopics.length; i++) {
           await API.graphql(
@@ -224,7 +229,8 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
         console.log("e", e);
         const errorMsg = e.errors[0].message;
         if (errorMsg.includes("ER_DUP_ENTRY: Duplicate entry")) {
-          setTopicsExistError(true);
+          console.log("2");
+          setTopicExistError(true);
         }
         if (
           errorMsg.includes("ER_BAD_NULL_ERROR: Column 'name' cannot be null")

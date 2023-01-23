@@ -1302,13 +1302,13 @@ Resources:
       TypeName: Mutation
       FieldName: createCategory
       RequestMappingTemplate: |
-        #set($picture_location = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.picture_location, null)))
-        #set($description = $util.toJson($util.defaultIfNullOrEmpty($context.arguments.english_description, null)))
+        #set($picture_location = $util.toJson($util.defaultIfNullOrEmpty("$context.arguments.picture_location", null)))
+        #set($description = $util.toJson($util.defaultIfNullOrEmpty("$context.arguments.english_description", null)))
         {
         "version": "2018-05-29",
         "operation": "Invoke",
         "payload": {
-        "sql": "insert into Category (picture_location) values ($picture_location); SET @last_id_in_table1 = LAST_INSERT_ID(); INSERT INTO CategoryInfo (category_id,language,title,description) VALUES (@last_id_in_table1, 'en', :title, :description); ",
+        "sql": "insert into Category (picture_location) values (:picture_location); SET @last_id_in_table1 = LAST_INSERT_ID(); INSERT INTO CategoryInfo (category_id,language,title,description) VALUES (@last_id_in_table1, 'en', :title, :description); ",
         "SQLVariableMapping": {
         ":picture_location": $picture_location,
         ":title": "$context.arguments.english_title",
