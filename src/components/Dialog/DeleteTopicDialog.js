@@ -142,7 +142,6 @@ const DeleteTopicDialog = ({ open, handleClose, topics, reload, language }) => {
         <DialogContent dividers>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs centered value={value} onChange={handleUpdate}>
-              {/* todo */}
               <Tab label={I18n.get("categories")} />
               <Tab label={I18n.get("topics")} />
             </Tabs>

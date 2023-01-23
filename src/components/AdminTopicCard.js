@@ -136,7 +136,6 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
           console.log("e", e);
           const errorMsg = e.errors[0].message;
           if (errorMsg.includes("ER_DUP_ENTRY")) {
-            // todo
             setInvalidInputErrorEn(true);
             setInvalidInputErrorMsgEn(I18n.get("topicExistsErr"));
             setInvalidInputErrorFr(true);

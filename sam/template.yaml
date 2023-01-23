@@ -852,7 +852,6 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0   
 
-# TODO
   getCategoriesByUserIdResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -912,7 +911,6 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0   
 
-# TODO test this
   getCategoryResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -1171,7 +1169,6 @@ Resources:
       DataSourceName: !GetAtt LambdaResolverAppSyncDataSource.Name
       Kind: UNIT
 
-  # TODO
   updateUserResolver:
     Type: AWS::AppSync::Resolver
     DependsOn:
@@ -1534,7 +1531,6 @@ Resources:
       Kind: UNIT
       MaxBatchSize: 0
 
-  # TODO
   # updateTopicResolver:
   #   Type: AWS::AppSync::Resolver
   #   DependsOn:
@@ -1881,7 +1877,6 @@ Resources:
   GraphQLResolverRole:
     Type: AWS::IAM::Role
     Properties:
-    # todo
       RoleName: GraphQLResolverRole
       AssumeRolePolicyDocument:
         Version: '2012-10-17'

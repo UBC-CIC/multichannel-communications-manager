@@ -430,7 +430,7 @@ const ViewTopics = ({ language }) => {
         <Collapse in={alert}>
           <Alert severity={"success"} onClose={() => setAlert(false)}>
             {/* todo: translate */}
-            Your changes have been saved
+            {I18n.get("changesSaved")}
           </Alert>
         </Collapse>
       ) : (

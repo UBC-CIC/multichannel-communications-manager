@@ -110,6 +110,7 @@ export const languageData = {
     no: "No",
     continue: "Continue",
     thankyou: "Thank You!",
+    changesSaved: "Your changes have been saved",
     // provinces
     ab: "Alberta",
     bc: "British Columbia",
@@ -237,6 +238,8 @@ export const languageData = {
     no: "Non",
     continue: "Continuer",
     thankyou: "Merci!",
+    changesSaved: "Vos changements ont été enregistrés",
+
     // provinces
     ab: "Alberta",
     bc: "Colombie britannique",

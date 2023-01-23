@@ -310,7 +310,7 @@ const EditAccountInfo = () => {
     userData.sms_notice = sms_selected;
     await API.graphql(graphqlOperation(updateUser, userData));
     setAlert(true);
-    setAlertContent("Your changes have been successfully saved.");
+    setAlertContent(I18n.get("changesSaved"));
   }
 
   async function successAlert() {
