@@ -264,7 +264,6 @@ const ViewTopics = ({ language }) => {
             prev.filter((s) => !s.toString().includes(topicsToRemove))
           );
         }
-      }
 
         // unsubscribe from the topics the user has deselected
         if (subtopicsToUnfollow.length !== 0) {
@@ -412,7 +411,8 @@ const ViewTopics = ({ language }) => {
       {alert ? (
         <Collapse in={alert}>
           <Alert severity={"success"} onClose={() => setAlert(false)}>
-            {I18n.get("changesSaved")}
+            {/* todo: translate */}
+            Your changes have been saved
           </Alert>
         </Collapse>
       ) : (
