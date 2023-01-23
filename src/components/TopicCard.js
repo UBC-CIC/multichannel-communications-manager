@@ -50,7 +50,6 @@ const TopicCard = ({
     let onlyTopics = queriedTopics.data.getTopicsOfCategory;
     let topics = onlyTopics;
     setSubtopics(topics);
-    console.log("subtopics on load", subtopics);
   }
 
   useEffect(() => {
@@ -112,26 +111,17 @@ const TopicCard = ({
 
   // get the topics and whether they've been selected/deselected
   const handleChange = (e, subtopic) => {
-    console.log("in handleChange");
     setAlteredSubtopic((prev) => [...prev, subtopic]);
-    console.log("alteredSubtopic", alteredSubtopic);
     if (e.target.checked) {
-      console.log("in checked");
       setBoxCheck((prev) => [...prev, true]);
-      console.log("boxcheck", boxChecked);
 
       setSelectedSubtopics((prev) => [...prev, `${title}/${subtopic.name}`]);
-      console.log("selectedSubTopics", selectedSubTopics);
     } else if (!e.target.checked) {
-      console.log("in not checked");
-
       setBoxCheck((prev) => [...prev, false]);
-      console.log("boxcheck", boxChecked);
 
       setSelectedSubtopics((prev) =>
         prev.filter((s) => s !== `${title}/${subtopic.name}`)
       );
-      console.log("selectedSubTopics", selectedSubTopics);
     }
   };
 

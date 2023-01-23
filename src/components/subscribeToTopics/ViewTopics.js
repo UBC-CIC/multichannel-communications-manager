@@ -86,7 +86,6 @@ const ViewTopics = ({ language }) => {
   }
 
   async function queriedData() {
-    console.log("in querieddata");
     let categories = await API.graphql(
       graphqlOperation(getAllCategoriesForLanguage, { language: language })
     );
@@ -106,14 +105,11 @@ const ViewTopics = ({ language }) => {
           language: language,
         })
       );
-      console.log("queriedTopics", queriedTopics);
       let onlyTopics = queriedTopics.data.getTopicsOfCategory;
 
       // let topics = onlyTopics.map((a) => a.acronym
       // setSubtopics((subtopics) => [...subtopics, onlyTopics]);
       setSubtopics((subtopics) => [...subtopics, onlyTopics]);
-
-      console.log("subtopics", subtopics);
     }
   }
 
@@ -143,7 +139,6 @@ const ViewTopics = ({ language }) => {
 
   // get all the topics the user is subscribed to
   async function getUserSubscriptions(allCategories) {
-    console.log("in getUserSubscriptions");
     const returnedUser = await Auth.currentAuthenticatedUser();
     let getUserId = await API.graphql(
       graphqlOperation(getUserByEmail, {
@@ -177,12 +172,10 @@ const ViewTopics = ({ language }) => {
         setUserAlreadySubscribed((prev) => [...prev, false]);
       }
     }
-    console.log("userAlreadySubscribed", userAlreadySubscribed);
   }
 
   useEffect(() => {
     queriedData();
-    console.log("177");
     setSelectedSubtopicsCheckbox([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
@@ -192,20 +185,12 @@ const ViewTopics = ({ language }) => {
   // }, [language]);
 
   const handleChange = (e, subtopic) => {
-    console.log("in handlechange");
     if (e.target.checked) {
-      console.log("checked");
       setSelectedSubtopics((prev) => [...prev, subtopic]);
       setSelectedSubtopicsCheckbox((prev) => {
-        console.log("prev", prev);
-        console.log("subtopic", subtopic);
-        console.log("[...prev, subtopic]", [...prev, subtopic]);
-
         return [...prev, subtopic];
       });
-      console.log("selectedSubTopicsCheckbox", selectedSubTopicsCheckbox);
     } else if (!e.target.checked) {
-      console.log("not checked");
       setSelectedSubtopics((prev) => prev.filter((s) => s !== subtopic));
       setSelectedSubtopicsCheckbox((prev) =>
         prev.filter((s) => s !== subtopic)
@@ -215,7 +200,6 @@ const ViewTopics = ({ language }) => {
   };
 
   const handleAlreadySubscribedChange = (e, subtopic) => {
-    console.log("in handleAlreadySubscribedChange");
     if (e.target.checked) {
       setUserSelectedSubtopics((prev) => [...prev, subtopic]);
       setUserSelectedSubtopicsTemp((prev) => [...prev, subtopic]);
@@ -285,7 +269,6 @@ const ViewTopics = ({ language }) => {
         if (subtopicsToUnfollow.length !== 0) {
           let topicsToRemove = subtopicsToUnfollow.map((s) => s.toString());
           for (let n = 0; n < subtopicsToUnfollow.length; n++) {
-            console.log("subtopicsToUnfollow[n]", subtopicsToUnfollow[n]);
             await API.graphql(
               graphqlOperation(userUnfollowCategoryTopic, {
                 user_id: userID,
@@ -304,7 +287,6 @@ const ViewTopics = ({ language }) => {
       getUserSubscriptions(topics);
     } else {
       let topicsToRemove = selectedSubTopics.map((s) => s.toString());
-      console.log("selectedSubTopics", selectedSubTopics);
       for (let i = 0; i < selectedSubTopics.length; i++) {
         let userFollowData = {
           user_id: userID,

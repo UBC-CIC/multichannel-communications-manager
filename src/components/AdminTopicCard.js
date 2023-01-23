@@ -80,18 +80,14 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
       setImage(imageURL);
     }
     async function getTopics() {
-      console.log("in gettopics");
       const topicsQuery = await API.graphql(
         graphqlOperation(getAllTopicsForLanguage, { language: language })
       );
       const topics = topicsQuery.data.getAllTopicsForLanguage;
-      console.log("topics", topics);
       if (topics !== null) {
         const topicsName = topics.map((a) => a.name);
         // setAllTopics(topicsName);
         setAllTopics(topics);
-
-        console.log("alltopics", allTopics);
       }
     }
     getTopics();
@@ -114,7 +110,6 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
   };
 
   const handleSelectedTopics = (event) => {
-    console.log("event", event);
     const {
       target: { value },
     } = event;
@@ -143,7 +138,6 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
       (newSubtopicEn === "" || newSubtopicFr === "") &&
       !(newSubtopicEn === "" && newSubtopicFr === "")
     ) {
-      console.log("100");
       if (newSubtopicFr != "" && newSubtopicEn === "") {
         setInvalidInputErrorEn(true);
         setInvalidInputErrorMsgEn(I18n.get("missingValue"));
@@ -153,7 +147,6 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
         setInvalidInputErrorMsgFr(I18n.get("missingValue"));
       }
     } else {
-      console.log("110");
       try {
         for (let i = 0; i < selectedTopics.length; i++) {
           // if (selectedTopics[i].nameEn != "" && inputFields[i].nameFr != "") {
