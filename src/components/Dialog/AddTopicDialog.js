@@ -135,16 +135,15 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
       titleFr === ""
         ? setInvalidInputErrorFr(true)
         : setInvalidInputErrorFr(false);
-    } else if (allTopics.map((t) => t.name).includes(newTopic)) {
-      console.log("allTopics", allTopics);
-      console.log("newTopic", newTopic);
-      console.log("1");
-      setTopicExistError(true);
-    }
-    // else if(){
+      // } else if (allTopics.map((t) => t.name).includes(newTopic)) {
+      //   console.log("alltopics", allTopics);
+      //   console.log("newtopic", newTopic);
 
-    // }
-    else {
+      //   console.log("139");
+
+      // setTopicExistError(true);
+    } else {
+      console.log("141");
       setInvalidInputErrorEn(false);
       setInvalidInputErrorFr(false);
       setTopicExistError(false);
@@ -165,32 +164,32 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
       console.log("createTopic", createdTopic);
       try {
         // create all the new topics
-        for (let i = 0; i < inputFields.length; i++) {
-          if (inputFields[i].nameEn != "" && inputFields[i].nameFr != "") {
-            const response = await API.graphql(
-              graphqlOperation(createTopic, {
-                english_name: inputFields[i].nameEn,
-              })
-            );
+        // for (let i = 0; i < inputFields.length; i++) {
+        //   if (inputFields[i].nameEn != "" && inputFields[i].nameFr != "") {
+        //     const response = await API.graphql(
+        //       graphqlOperation(createTopic, {
+        //         english_name: inputFields[i].nameEn,
+        //       })
+        //     );
 
-            console.log("createTopic response", response);
-            let r = await API.graphql(
-              graphqlOperation(addTopicDisplayLanguage, {
-                topic_id: response.data.createTopic.topic_id,
-                language: "fr",
-                name: inputFields[i].nameFr,
-              })
-            );
-            console.log("addTopicDisplayLanguage response", r);
-            let r2 = await API.graphql(
-              graphqlOperation(addTopicToCategory, {
-                category_id: categoryId,
-                topic_id: response.data.createTopic.topic_id,
-              })
-            );
-            console.log("addTopicToCategory response", r2);
-          }
-        }
+        //     console.log("createTopic response", response);
+        //     let r = await API.graphql(
+        //       graphqlOperation(addTopicDisplayLanguage, {
+        //         topic_id: response.data.createTopic.topic_id,
+        //         language: "fr",
+        //         name: inputFields[i].nameFr,
+        //       })
+        //     );
+        //     console.log("addTopicDisplayLanguage response", r);
+        //     let r2 = await API.graphql(
+        //       graphqlOperation(addTopicToCategory, {
+        //         category_id: categoryId,
+        //         topic_id: response.data.createTopic.topic_id,
+        //       })
+        //     );
+        //     console.log("addTopicToCategory response", r2);
+        //   }
+        // }
         // let newSubtopics = inputFields;
         // .map((a) => a.nameEn);
         // let allSubtopics = newSubtopics.concat(selectedTopics);
@@ -204,14 +203,14 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
         console.log("categoryId", categoryId);
 
         // add all the selected topics to the category
-        for (let i = 0; i < selectedTopics.length; i++) {
-          await API.graphql(
-            graphqlOperation(addTopicToCategory, {
-              category_id: categoryId,
-              topic_id: selectedTopics[i].topic_id,
-            })
-          );
-        }
+        // for (let i = 0; i < selectedTopics.length; i++) {
+        //   await API.graphql(
+        //     graphqlOperation(addTopicToCategory, {
+        //       category_id: categoryId,
+        //       topic_id: selectedTopics[i].topic_id,
+        //     })
+        //   );
+        // }
         clearFields();
         reload();
 
@@ -363,7 +362,8 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
             rows={5}
             onChange={(e) => setDescriptionFr(e.target.value)}
           />
-          <FormControl>
+          {/* todo */}
+          {/* <FormControl>
             <InputLabel>{I18n.get("selectTopic")}</InputLabel>
             <Select
               multiple
@@ -413,7 +413,7 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
           ))}
           <Button sx={{ width: "fit-content" }} onClick={handleAddSubtopic}>
             {I18n.get("addTopic")}
-          </Button>
+          </Button> */}
         </Box>
       </DialogContent>
       <DialogActions>

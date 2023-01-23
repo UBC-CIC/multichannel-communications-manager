@@ -133,14 +133,14 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
           setSubtopics([...subtopics, { name: newSubtopicEn }]);
         })
         .catch((e) => {
+          console.log("e", e);
           const errorMsg = e.errors[0].message;
-          if (
-            errorMsg.includes(
-              "ER_DUP_ENTRY: Duplicate entry 'Jobs' for key 'acronym'"
-            )
-          ) {
+          if (errorMsg.includes("ER_DUP_ENTRY")) {
+            // todo
             setInvalidInputErrorEn(true);
             setInvalidInputErrorMsgEn(I18n.get("topicExistsErr"));
+            setInvalidInputErrorFr(true);
+            setInvalidInputErrorMsgFr(I18n.get("topicExistsErr"));
           }
         });
     }
