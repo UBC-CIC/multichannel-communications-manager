@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture diagram](../docs/images/architecture-diagram.png)
+![Architecture diagram](../docs/images/architecture-diagram.jpg)
 
 ## Description
 
