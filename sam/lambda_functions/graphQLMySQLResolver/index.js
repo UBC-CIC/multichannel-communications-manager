@@ -139,8 +139,6 @@ function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
       // if in the GraphQL request, a user does not pass in the value of a variable required in the statement, set the variable to null
       escapedValue = null;
     }
-    console.log("key: ", key);
-    console.log("escapedVal: ", escapedValue);
     sql = sql.replace(key, escapedValue);
   });
 

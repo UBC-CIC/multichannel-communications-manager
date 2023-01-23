@@ -136,8 +136,6 @@ const SelectTopics = ({ handleNextStep, language }) => {
 
   async function nextClicked() {
     const allSelectedTopicsTemp = allSelectedTopics;
-    console.log("allSelectedTopics", allSelectedTopics);
-    console.log("allSelectedTopicsTemp", allSelectedTopicsTemp);
 
     for (var i = 0; i < allSelectedTopicsTemp.length; i++) {
       await API.graphql(

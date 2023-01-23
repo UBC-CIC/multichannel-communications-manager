@@ -101,7 +101,6 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
 
   const addTopic = async () => {
     if (newSubtopicEn === "" || newSubtopicFr === "") {
-      console.log("100");
       if (newSubtopicEn === "") {
         setInvalidInputErrorEn(true);
         setInvalidInputErrorMsgEn(I18n.get("missingValue"));
@@ -111,7 +110,6 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
         setInvalidInputErrorMsgFr(I18n.get("missingValue"));
       }
     } else {
-      console.log("110");
       // Create the topic and add it to the selected category
       await API.graphql(
         graphqlOperation(createTopic, { english_name: newSubtopicEn })

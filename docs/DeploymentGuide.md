@@ -81,7 +81,7 @@ From here, we are going to run the CloudFormation template. This template will a
 sam build
 ```
 ```bash
-sam deploy --guided --capabilities CAPABILITY_NAMED_IAM --stack-name <stack-name-of-your-choosing>
+sam deploy --guided --capabilities CAPABILITY_NAMED_IAM
 ```
 
 NOTE: Be sure to include the `--profile <AWS PROFILE>` to the end of the command if you used it in the previous step!
@@ -98,8 +98,8 @@ The following block of text is what will appear when running the command. It is 
 
    Setting default arguments for 'sam deploy'
    =========================================
-   Stack Name [communicationsmanagerDev]:
-      (This will be the name of the stack you entered when running sam deploy, just press enter)
+   Stack Name [sam-app]:
+      (Enter a name for the stack)
    AWS Region [ca-central-1]: <REGION YOU WANT TO DEPLOY TO>
       (Ensure that you enter the same exact region you used to deploy Amplify in)
    Parameter ProjectName [newsletterManager]: 
@@ -119,7 +119,9 @@ The following block of text is what will appear when running the command. It is 
    Parameter EncryptDatabase [True]: 
       (Encrypts the database for added security)
    Parameter SenderEmail []: <FROM_ADDRESS FOR ALL EMAIL COMMUNICATIONS>
-      (This will be used to send out verification emails as well as campaigns in Pinpoint)
+      (This will be used to send out verification emails as well as campaigns in Pinpoint. Expect to receive an email to this address titled "Amazon Web Services - Email Address Verification Request")
+   Parameter OrganizationName []: <NAME OF YOUR ORGANIZATION>
+      (This name will appear in the subscription message when a user signs up)
 
    #Shows you resources changes to be deployed and require a 'Y' to initiate deploy
    Confirm changes before deploy [y/N]: y

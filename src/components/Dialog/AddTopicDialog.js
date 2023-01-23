@@ -56,25 +56,20 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
 
   useEffect(() => {
     async function getTopics() {
-      console.log("in gettopics");
       const topicsQuery = await API.graphql(
         graphqlOperation(getAllTopicsForLanguage, { language: language })
       );
       const topics = topicsQuery.data.getAllTopicsForLanguage;
-      console.log("topics", topics);
       if (topics !== null) {
         const topicsName = topics.map((a) => a.name);
         // setAllTopics(topicsName);
         setAllTopics(topics);
-
-        console.log("alltopics", allTopics);
       }
     }
     getTopics();
   }, [language]);
 
   const clearFields = () => {
-    console.log("in clearfields");
     setInputFields([]);
     setSelectedTopics([]);
     setTitle("");
@@ -105,7 +100,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   };
 
   const handleChangeEn = (event, index) => {
-    console.log("in handlechangeen");
     setNewTopic(event.target.value);
     setTopicExistError(false);
     setTopicsNullError(false);
@@ -117,7 +111,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   const handleChangeFr = (event, index) => {
     // setNewTopic(event.target.value);
     // setTopicsExistError(false);
-    console.log("in handlechangefr");
 
     const values = [...inputFields];
     values[index][event.target.name] = event.target.value;
@@ -125,9 +118,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   };
 
   const handleSave = async () => {
-    console.log("title", title);
-    console.log("titleFr", titleFr);
-
     if (title === "" || titleFr === "") {
       title === ""
         ? setInvalidInputErrorEn(true)
@@ -143,7 +133,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
 
       // setTopicExistError(true);
     } else {
-      console.log("141");
       setInvalidInputErrorEn(false);
       setInvalidInputErrorFr(false);
       setTopicExistError(false);
@@ -161,7 +150,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
         english_description: description,
         picture_location: s3Key,
       };
-      console.log("createTopic", createdTopic);
       try {
         // create all the new topics
         // for (let i = 0; i < inputFields.length; i++) {
@@ -198,9 +186,7 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
         const res = await API.graphql(
           graphqlOperation(createCategory, createdTopic)
         );
-        console.log("createCategory response", res);
         let categoryId = res.data.createCategory.category_id;
-        console.log("categoryId", categoryId);
 
         // add all the selected topics to the category
         // for (let i = 0; i < selectedTopics.length; i++) {
@@ -223,12 +209,10 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
             description: descriptionFr,
           })
         );
-        console.log("addCategoryDisplayLanguage response", r3);
       } catch (e) {
         console.log("e", e);
         const errorMsg = e.errors[0].message;
         if (errorMsg.includes("ER_DUP_ENTRY: Duplicate entry")) {
-          console.log("2");
           setTopicExistError(true);
         }
         if (
@@ -242,7 +226,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   // };
 
   const handleSelectedTopics = (event) => {
-    console.log("event", event);
     const {
       target: { value },
     } = event;
@@ -302,7 +285,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
                 label={I18n.get("titleEn")}
                 onChange={(e) => setTitle(e.target.value)}
                 error={invalidInputErrorEn}
-                // todo
                 helperText={!!invalidInputErrorEn && I18n.get("missingValue")}
               />
             </Box>
@@ -350,7 +332,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
               label={I18n.get("titleFr") + " *"}
               onChange={(e) => setTitleFr(e.target.value)}
               error={invalidInputErrorFr}
-              // todo
               helperText={!!invalidInputErrorFr && I18n.get("missingValue")}
             />
           </Box>
@@ -443,7 +424,6 @@ const InputRow = ({
         size="small"
         name="nameEn"
         InputLabelProps={{ shrink: true }}
-        // todo
         label={I18n.get("topicEn")}
         onChange={(event) => handleChangeEn(event, index)}
         value={item.nameEn}
