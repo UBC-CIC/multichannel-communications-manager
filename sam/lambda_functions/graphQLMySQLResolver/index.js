@@ -16,6 +16,8 @@ async function conditionallyCreateDB(connection) {
   // the lambda handler function proceeds as usual
   let adminName = process.env.ADMIN_NAME;
   // let adminEmail = process.env.ADMIN_EMAIL;
+
+  // todo: add unique constraint on language + id
   let createDBSQL = `
   CREATE TABLE \`User\` (
   \`user_id\` int PRIMARY KEY AUTO_INCREMENT,
@@ -49,7 +51,6 @@ CREATE TABLE \`TopicInfo\` (
   \`topic_id\` int,
   \`language\` ENUM ('en', 'fr') NOT NULL,
   \`name\` varchar(40) NOT NULL,
-  // todo
   PRIMARY KEY (\`topic_id\`, \`language\`)
 );
 
@@ -67,7 +68,6 @@ CREATE TABLE \`UserCategoryTopic\` (
   PRIMARY KEY (\`user_id\`, \`categoryTopic_id\`)
 );
 
-// todo: add unique constraint on language + id
 CREATE INDEX \`User_index_0\` ON \`User\` (\`email_address\`);
 
 CREATE UNIQUE INDEX \`CategoryTopic_index_1\` ON \`CategoryTopic\` (\`category_id\`, \`topic_id\`);
@@ -147,8 +147,8 @@ function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
 
 exports.handler = async (event) => {
   const secretName = "RDSCredentials";
-  const endpointUrl = "https://secretsmanager.us-east-1.amazonaws.com";
-  const region = "ca-central-1";
+  const endpointUrl = `https://secretsmanager.${process.env.AWS_REGION}.amazonaws.com`;
+  const region = process.env.AWS_REGION;
 
   var params = {
     SecretId: secretName,

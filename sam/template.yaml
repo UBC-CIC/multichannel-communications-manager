@@ -419,7 +419,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: Subnet grouping for private subnets
-      DBSubnetGroupName: subnet-group-private-1-2
+      DBSubnetGroupName: subnetgroup-private-1-2
       SubnetIds: 
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -433,7 +433,7 @@ Resources:
     - DBPrivateSubnetGrouping
     Properties: 
       DatabaseName: !Ref 'DBName'
-      DBClusterIdentifier: dbcluster
+      DBClusterIdentifier: mcmdbcluster
       DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
       DBSubnetGroupName: !Ref DBPrivateSubnetGrouping
       DeletionProtection: !Ref 'DeletionProtection'
@@ -463,7 +463,7 @@ Resources:
     DependsOn:
     - DBCluster
     Properties: 
-      DBClusterIdentifier: dbcluster
+      DBClusterIdentifier: mcmdbcluster
       Engine: aurora-mysql 
       DBInstanceClass: !Ref 'DBInstanceClass'
       DBInstanceIdentifier: !Sub '${ProjectName}-${EnvironmentName}-dbinstance'
@@ -497,7 +497,7 @@ Resources:
     # - DBInstance
     Properties: 
       Description: Stores the credentials for the RDS instance
-      Name: RDSCredentials
+      Name: RdsCredentials
       GenerateSecretString:
         SecretStringTemplate: !Sub '{"username":"admin","engine":"mysql","port":3306,"region":"${AWS::Region}"}'
         # !Sub '{"username":"admin","engine":"mysql","host":"${DBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
@@ -513,7 +513,7 @@ Resources:
   LambdaServiceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub 'Lambda-ServiceRole-${AWS::Region}'    
+      RoleName: !Sub 'LambdaFunction-ServiceRole-${AWS::Region}'    
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:

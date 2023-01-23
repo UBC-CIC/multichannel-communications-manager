@@ -405,7 +405,7 @@ function Login(props) {
           .catch((e) => {
             const errorMsg = e.message;
             console.log(e);
-            if (errorMsg.includes(I18n.get("invalidVerificationCode"))) {
+            if (errorMsg.includes("invalidVerificationCode")) {
               setVerificationError(true);
             }
           });
