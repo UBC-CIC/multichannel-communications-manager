@@ -25,16 +25,6 @@ Parameters:
     Type: String
     Default: dev
     Description: A name to identify the environment (ex. dev, prod, test)
-
-      # AmplifyBucket:
-      #   Type: String
-      #   Description: "The name of the S3 bucket for the Amplify project (ex. projectname-storage-0123456789-dev)"
-      # AppSyncApiId:
-      #   Type: String
-      #   Description: "The ID of the AppSync API for the Amplify project (ex. AbcdeF1234567)"
-      # AmplifyCognitoUserPoolId:
-      #   Type: String
-      #   Description: "The ID of the Cognito User Pool for the Amplify project (ex. us-east-1_aBcDeFgh)"  
   LinkToHostingDomain:
     Description: Link to the user portal
     Type: String
@@ -79,9 +69,6 @@ Parameters:
     Description: Enable encryption of the database
     Type: String
     Default: True
-  # CognitoAdminName:
-  #   Type: String
-  #   Description: The name of the admin user for Cognito
   SenderEmail:
     Type: String
     Description: The email address from which end uers will receive emails
@@ -321,22 +308,6 @@ Resources:
           FromPort: -1
           ToPort: -1
           CidrIp: 0.0.0.0/0
-
-  # RDSProxySecurityGroup:
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties:
-  #     VpcId: !Ref VPC
-  #     GroupDescription: Security group for RDS proxy, allows for ingress traffic 
-  #     SecurityGroupIngress:
-  #       - IpProtocol: tcp
-  #         FromPort: 3306
-  #         ToPort: 3306
-  #         CidrIp: 10.0.0.0/16
-  #     SecurityGroupEgress:
-  #       - IpProtocol: -1
-  #         FromPort: 0
-  #         ToPort: 65535
-  #         CidrIp: 10.0.0.0/16
 
   SGRds:
     Type: AWS::EC2::SecurityGroup
@@ -663,37 +634,6 @@ Resources:
     Properties:
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref graphQLMySQLResolver]]
       RetentionInDays: 14
-
-
-  # Cognito #############################
-
-  # AdminCognitoUser:
-  #   Type: AWS::Cognito::UserPoolUser
-  #   DependsOn: AdminSESIdentity
-  #   Properties: 
-  #     UserPoolId: '{{resolve:ssm:UserPoolId}}'
-  #     Username: !Ref SenderEmail
-  #     UserAttributes: 
-  #       - Name: 'name'
-  #         Value: !Ref CognitoAdminName
-  #       - Name: 'email'
-  #         Value: !Ref AdminEmail
-  #       # - Name: 'preferred_username'
-  #       #   Value: !Ref AdminEmail
-  #       - Name: 'email_verified'
-  #         Value: True
-  #       # - Name: 'custom:type'
-  #       #   Value: 'Admins'
-  #       # - Name: 'custom:firstLogin'
-  #       #   Value: 'true'
-
-  # AdminCognitoUserAttachment:
-  #   Type: AWS::Cognito::UserPoolUserToGroupAttachment
-  #   DependsOn: AdminCognitoUser
-  #   Properties: 
-  #     GroupName: 'Admins'
-  #     Username: !Ref AdminCognitoUser
-  #     UserPoolId: '{{resolve:ssm:UserPoolId}}'
 
 
   # APPSYNC #####################################################
