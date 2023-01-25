@@ -99,11 +99,6 @@ function Login(props) {
     useState([]);
   const [userPhone, setUserPhone] = useState("");
   const [invalidInputError, setInvalidInputError] = useState(false);
-  // const [language, setLanguage] = useState(
-  //   navigator.language === "fr" || navigator.language.startsWith("fr")
-  //     ? "fr"
-  //     : "en"
-  // );
 
   const provinceOptions = [
     I18n.get("bc"),
@@ -318,11 +313,7 @@ function Login(props) {
     } catch (e) {
       console.log("e", e);
       const errorMsg = e.message;
-      if (
-        errorMsg.includes("No current user")
-        // ||
-        // e.includes("The user is not authenticated")
-      ) {
+      if (errorMsg.includes("No current user")) {
         setVerificationError(true);
       }
     }

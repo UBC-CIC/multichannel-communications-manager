@@ -119,9 +119,9 @@ The following block of text is what will appear when running the command. It is 
    Parameter EncryptDatabase [True]: 
       (Encrypts the database for added security)
    Parameter SenderEmail []: <FROM_ADDRESS FOR ALL EMAIL COMMUNICATIONS>
-      (This will be used to send out verification emails as well as campaigns in Pinpoint. Expect to receive an email to this address titled "Amazon Web Services - Email Address Verification Request")
-   Parameter OrganizationName []: <NAME OF YOUR ORGANIZATION>
-      (This name will appear in the subscription message when a user signs up)
+      (This will be used to send out verification emails as well as campaigns in Pinpoint)
+   Parameter OrganizationName [] <YOUR ORGANIZATION'S NAME>
+      (This name will be displayed in the subscription message that your users will receive)
 
    #Shows you resources changes to be deployed and require a 'Y' to initiate deploy
    Confirm changes before deploy [y/N]: y

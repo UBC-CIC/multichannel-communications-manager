@@ -122,6 +122,8 @@ Resources:
           Value: !Ref 'EnvironmentName'
         - Key: "Name"
           Value: !Sub ${ProjectName} VPC
+  
+
 
   IGWAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -140,7 +142,7 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
       CidrBlock: 10.0.0.0/24
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} Public Subnet (AZ1)
@@ -157,7 +159,7 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 1, !GetAZs  '' ]
       CidrBlock: 10.0.1.0/24
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} Public Subnet (AZ2)
@@ -281,34 +283,13 @@ Resources:
       SubnetId: !Ref PrivateSubnet2
       RouteTableId: !Ref PrivateRouteTable
 
-  # OpenSecurityGroup:
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties: 
-  #     GroupDescription: A security group that allows all traffic in and out
-  #     GroupName: open-security-group
-  #     SecurityGroupEgress: 
-  #       - IpProtocol: -1
-  #         FromPort: -1
-  #         ToPort: -1
-  #         CidrIp: 0.0.0.0/0
-  #     SecurityGroupIngress: 
-  #       - IpProtocol: -1
-  #         FromPort: -1
-  #         ToPort: -1
-  #         CidrIp: 0.0.0.0/0
-  #     VpcId: !Ref VPC
-  #     Tags:
-  #       - Key: "Project"
-  #         Value: !Ref 'ProjectName'
-  #       - Key: "EnvironmentName"
-  #         Value: !Ref 'EnvironmentName'
-
   ClosedSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: A security group that allows no traffic in, but all traffic out
       GroupName: closed-security-group
       SecurityGroupEgress: 
+        # - Description: allows all traffic out
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
@@ -325,16 +306,17 @@ Resources:
     # DependsOn:
     #   - ClosedSecurityGroup
     Properties: 
-      GroupDescription: A security group for RDS that allows all traffic in on port 3306
+      GroupDescription: A security group for RDS that allows all traffic in on port 3306 from within the vpc, and all traffic out
       GroupName: Proxy-security-group
       VpcId: !Ref VPC
       SecurityGroupIngress:
+        # - Description: allows all traffic in on port 3306 from ClosedSecurityGroup
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
           SourceSecurityGroupId: !Ref ClosedSecurityGroup
-          #  !Ref OpenSecurityGroup
       SecurityGroupEgress:
+        # - Description: allows all traffic out
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
@@ -366,6 +348,7 @@ Resources:
       GroupName: RDS-security-group
       VpcId: !Ref VPC
       SecurityGroupIngress:
+        # - Description: allows traffic in on port 3306 from ClosedSecurityGroup and SGProxy
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
@@ -375,33 +358,12 @@ Resources:
           ToPort: 3306
           SourceSecurityGroupId: !Ref SGProxy
       SecurityGroupEgress:
+        # - Description: allows all traffic out
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
           CidrIp: 0.0.0.0/0
 
-  # MySQLAuroraInboundSG:
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties: 
-  #     GroupDescription: A security group for RDS that allows traffic from the rds proxy, and all traffic out
-  #     GroupName: MySQLAurora-security-group
-  #     SecurityGroupIngress:  # traffic in
-  #       - IpProtocol: tcp
-  #         FromPort: 3306
-  #         ToPort: 3306
-  #         # SourceSecurityGroupId: !Ref SGProxy
-  #         # CidrIp: 0.0.0.0/0
-  #     SecurityGroupEgress: 
-  #       - IpProtocol: -1
-  #         FromPort: -1
-  #         ToPort: -1
-  #         CidrIp: 0.0.0.0/0
-  #     VpcId: !Ref VPC
-  #     Tags:
-  #       - Key: "Project"
-  #         Value: !Ref 'ProjectName'
-  #       - Key: "EnvironmentName"
-  #         Value: !Ref 'EnvironmentName'
     
 
 # RDS #########################################
@@ -455,7 +417,6 @@ Resources:
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
       VpcSecurityGroupIds:  
-        # - !Ref MySQLAuroraInboundSG
         - !Ref SGRds
 
   DBInstance:
@@ -530,13 +491,16 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: appsync:GraphQL
-                Resource: '*'
+                # Resource: '*'
+                Resource: !Sub "arn:aws:appsync:${AWS::Region}:${AWS::AccountId}:apis/${GraphQLApiIdParameter.Value}"
               - Effect: Allow
                 Action: lambda:InvokeAsync
-                Resource: '*'
+                # Resource: '*'
+                Resource: !Ref graphQLMySQLResolver
               - Effect: Allow
                 Action: lambda:InvokeFunction
-                Resource: '*'
+                # Resource: '*'
+                Resource: !Ref graphQLMySQLResolver
     
   EIP:
     Type: 'AWS::EC2::EIP'
@@ -660,7 +624,6 @@ Resources:
     - RDSProxy
     - ClosedSecurityGroup
     - DBInstance
-    - LambdaServiceRole
     Properties:
       FunctionName: graphQL-MySQL-Resolver
       # Layers:
@@ -1905,9 +1868,35 @@ Resources:
             - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/GraphQL-MySQL-Resolver:*
           - Effect: Allow
             Action:
-            - mobiletargeting:*
-            Resource: '*'
-            # - !GetAtt PinpointApp.Arn
+            - mobiletargeting:CreateApp
+            - mobiletargeting:CreateCampaign
+            - mobiletargeting:CreateEmailTemplate
+            - mobiletargeting:CreateSegment
+            - mobiletargeting:DeleteAdmChannel
+            - mobiletargeting:DeleteEmailChannel
+            - mobiletargeting:DeleteEndpoint
+            - mobiletargeting:DeleteSegment
+            - mobiletargeting:DeleteSmsChannel
+            - mobiletargeting:DeleteUserEndpoints
+            - mobiletargeting:GetApp
+            - mobiletargeting:GetEmailChannel
+            - mobiletargeting:GetEndpoint
+            - mobiletargeting:GetSegment
+            - mobiletargeting:GetSegments
+            - mobiletargeting:GetUserEndpoints
+            - mobiletargeting:GetUserEndpoints
+            - mobiletargeting:PutEventStream
+            - mobiletargeting:PutEvents
+            - mobiletargeting:RemoveAttributes
+            - mobiletargeting:SendMessages
+            - mobiletargeting:SendUsersMessages
+            - mobiletargeting:UpdateEmailChannel
+            - mobiletargeting:UpdateEndpoint
+            - mobiletargeting:UpdateEndpointsBatch
+            - mobiletargeting:UpdateSegment
+            - mobiletargeting:UpdateSmsChannel
+            # Resource: '*'
+            Resource: PinpointApp.Arn
           - Effect: Allow
             Action: rds-db:connect
             Resource: 
@@ -1942,21 +1931,7 @@ Resources:
         SampledRequestsEnabled: true
         CloudWatchMetricsEnabled: true
         MetricName: mcm-waf
-      # Rules:
-      #   - Name: mcmWAFRule
-      #     Priority: 1
-      #     Statement:
-      #       RateBasedStatement:
-      #         Limit: 1000
-      #         AggregateKeyType: IP
-      #         ScopeDownStatement:
-      #           OrStatement:
-      #             Statements:
-      #               - ByteMatchStatement:
-      #                   FieldToMatch: URI
-      #                   PositionalConstraint: CONTAINS
-      #                   TargetString: graphql
-      #                   TextTransformation: NONE
+        # todo
       Rules:
         - Name: AWS-AWSManagedRulesCommonRuleSet
           Priority: 1

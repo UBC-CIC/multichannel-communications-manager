@@ -59,11 +59,6 @@ const SelectTopics = ({ handleNextStep, language }) => {
   //for pagination
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
-  // const [language, setLanguage] = useState(
-  //   navigator.language === "fr" || navigator.language.startsWith("fr-")
-  //     ? "fr"
-  //     : "en"
-  // );
   const topicsPerPage = 3;
 
   async function queriedData() {

@@ -107,7 +107,6 @@ type Mutation {
     title: String
     description: String # picture_location: String
   ): Category
-  # TODO: delete or archive?
   deleteCategory(category_id: Int!): String
 
   createTopic(english_name: String!): TopicFull

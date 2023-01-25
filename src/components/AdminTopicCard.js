@@ -54,11 +54,6 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
   const [newSubtopicFr, setNewSubtopicFr] = useState("");
 
   const [image, setImage] = useState("");
-  // const [language, setLanguage] = useState(
-  //   navigator.language === "fr" || navigator.language.startsWith("fr")
-  //     ? "fr"
-  //     : "en"
-  // );
 
   async function getSubtopics() {
     let queriedTopics = await API.graphql(
@@ -69,7 +64,6 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
     );
     let onlyTopics = queriedTopics.data.getTopicsOfCategory;
     let topics = onlyTopics;
-    // .map((a) => a.acronym);
     setSubtopics(topics);
   }
 
@@ -86,17 +80,12 @@ const AdminTopicCard = ({ selectedTopic, setSelectedTopic, language }) => {
       const topics = topicsQuery.data.getAllTopicsForLanguage;
       if (topics !== null) {
         const topicsName = topics.map((a) => a.name);
-        // setAllTopics(topicsName);
         setAllTopics(topics);
       }
     }
     getTopics();
     getCategoryImage();
   }, []);
-
-  // useEffect(() => {
-  //   setTopicDisplayLanguage(language);
-  // }, [language]);
 
   //updates setSelectedSubtopics every time subtopics are selected/unselected by user
   const handleChange = (e, subtopic) => {

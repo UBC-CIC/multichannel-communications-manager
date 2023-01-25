@@ -40,7 +40,6 @@ const StyledImageListItem = styled(ImageListItem)`
 `;
 
 const Admin = ({ language }) => {
-  // const { language } = props;
   const [topics, setTopics] = useState([]);
   const [topicsTemp, setTopicsTemp] = useState([]);
   const [searchVal, setSearchVal] = useState("");
@@ -86,11 +85,6 @@ const Admin = ({ language }) => {
     queriedData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
-
-  // useEffect(() => {
-  //   console.log("in useeffect");
-  //   setTopicDisplayLanguage(language);
-  // }, [language]);
 
   function search() {
     if (searchVal === "") {

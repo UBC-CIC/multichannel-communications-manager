@@ -34,11 +34,6 @@ const TopicCard = ({
   const [userID, setUserID] = useState("");
   const [image, setImage] = useState("");
   const [alert, setAlert] = useState(false);
-  // const [language, setLanguage] = useState(
-  //   navigator.language === "fr" || navigator.language.startsWith("fr-")
-  //     ? "fr"
-  //     : "en"
-  // );
 
   async function queriedSubtopics() {
     let queriedTopics = await API.graphql(

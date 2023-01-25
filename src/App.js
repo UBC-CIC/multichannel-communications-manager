@@ -26,25 +26,16 @@ function App(props) {
       ? "fr"
       : "en"
   );
-  // I18n.setLanguage(language);
-  // console.log("current navigator language: ", navigator.language);
 
   const [currentLoginState, updateCurrentLoginState] = useState(loginState);
 
   useEffect(() => {
-    // I18n.setLanguage(language);
     setAuthListener();
   }, []);
 
   useEffect(() => {
     updateCurrentLoginState(loginState);
   }, [loginState]);
-
-  // useEffect(() => {
-  //   // console.log("in useeffect");
-  //   // console.log("I18n.setLanguage(language)", language);
-  //   I18n.setLanguage(language);
-  // }, [language]);
 
   async function setAuthListener() {
     Hub.listen("auth", (data) => {
@@ -59,7 +50,6 @@ function App(props) {
   }
 
   return (
-    // <LocalizationProvider>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
         <div style={{ width: "100vw", height: "100vh", overflowX: "hidden" }}>
@@ -108,7 +98,6 @@ function App(props) {
         </div>
       </ThemeProvider>
     </StyledEngineProvider>
-    // </LocalizationProvider>
   );
 }
 

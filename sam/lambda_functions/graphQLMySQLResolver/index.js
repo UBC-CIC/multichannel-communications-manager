@@ -14,10 +14,7 @@ async function conditionallyCreateDB(connection) {
   // if the database has not yet been made, make it
   // otherwise, this throws an error, which is caught in the handler and
   // the lambda handler function proceeds as usual
-  let adminName = process.env.ADMIN_NAME;
-  // let adminEmail = process.env.ADMIN_EMAIL;
 
-  // todo: add unique constraint on language + id
   let createDBSQL = `
   CREATE TABLE \`User\` (
   \`user_id\` int PRIMARY KEY AUTO_INCREMENT,
@@ -101,11 +98,6 @@ ALTER TABLE \`UserCategoryTopic\` ADD FOREIGN KEY (\`categoryTopic_id\`) REFEREN
     result = await executeSQL(connection, sql_statement);
   }
 
-  // result = await executeSQL(
-  //   connection,
-  //   "INSERT INTO \`User\` (email_address) VALUES ('" + adminEmail + "');"
-  // );
-
   return result;
 }
 
@@ -155,29 +147,20 @@ exports.handler = async (event) => {
   };
   let secret;
   let sm = new SecretsManager({ region: region });
-  // console.log("137");
   try {
     secret = await sm.getSecretValue(params).promise();
     secret = JSON.parse(secret.SecretString);
-    // console.log("secret:", secret);
   } catch (e) {
     console.log("e:", e);
   }
 
   let connection;
-  // console.log("secret: ", secret);
-  // console.log("type of secret: ", typeof secret);
-  // console.log("user:", secret.username);
-  // console.log("password: ", secret.password);
   connection = mysql.createPool({
     host: process.env.RDSPROXY_ENDPOINT,
-    // user: process.env.USERNAME,
-    // password: process.env.PASSWORD,
     user: secret.username,
     password: secret.password,
     database: process.env.DBNAME,
   });
-  // console.log("connection:", connection);
 
   console.log("event: ", event);
   // called whenever a GraphQL event is received
@@ -197,7 +180,6 @@ exports.handler = async (event) => {
   }
 
   let sql_statements = event.sql.split(";"); // splits up multiple SQL statements into an array
-  // try {
   let firstSqlResult;
   for (let sql_statement of sql_statements) {
     // iterate through the SQL statements
@@ -308,21 +290,6 @@ exports.handler = async (event) => {
           switch (pinpointAction.action) {
             case "insert":
             case "update":
-              // let data = await executeGraphQL(`
-              //   query MyQuery {
-              //     getCategory(category_id: ${event.SQLVariableMapping[":category_id"]}, language: 'en') {
-              //       title
-              //     }
-              //   }
-              // `);
-              // let categoryTitle = data.getCategory.title;
-              // data = await executeGraphQL(`
-              //   query MyQuery {
-              //     getTopic(language: en, topic_id: ${event.SQLVariableMapping[":topic_id"]}) {
-              //       name
-              //     }
-              //   }
-              // `);
               if (updatedSubscription) {
                 let categoryTitle = updatedSubscription[0].title;
                 let topicName = updatedSubscription[0].name;
@@ -396,37 +363,3 @@ async function sendNotification(address, type) {
 
   console.log("notification sent? ", result);
 }
-
-// async function executeGraphQL(query) {
-//   console.log("executing query: ", query);
-//   return new Promise((resolve, reject) => {
-//     // let options = {
-//     //   method: "POST",
-//     //   headers: {
-//     //     "x-api-key": GRAPHQL_API_KEY,
-//     //   },
-//     //   body: JSON.stringify({ query, variables }),
-//     // };
-//     let gqlQuery = gqlRequest.gql([query]);
-
-//     const gqlClient = new gqlRequest.GraphQLClient(GRAPHQL_ENDPOINT, {
-//       headers: {
-//         "x-api-key": GRAPHQL_API_KEY,
-//       },
-//     });
-
-//     gqlClient
-//       .request(gqlQuery)
-//       .then((response) => {
-//         console.log("executeGraphQL response:", response);
-//         return response;
-//       })
-//       .then((json) => {
-//         console.log("executeGraphQL return:", JSON.stringify(json));
-//         resolve(json);
-//       })
-//       .catch((err) => {
-//         reject(err);
-//       });
-//   });
-// }

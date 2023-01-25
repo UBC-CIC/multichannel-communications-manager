@@ -28,7 +28,6 @@ export class cdkStack extends cdk.Stack {
     );
     const GraphQLAPIIdOutput = cdk.Fn.ref(dependencies.api.mcm.GraphQLAPIIdOutput)
     const GraphQLAPIEndpointOutput = cdk.Fn.ref(dependencies.api.mcm.GraphQLAPIEndpointOutput)
-    // const BucketNameOutput = cdk.Fn.ref(dependencies.storage.s3commit2actstorage4f79922d.BucketName);
     const UserPoolIdOutput = cdk.Fn.ref(dependencies.auth.mcmf0082716f0082716.UserPoolId);
     /* AWS CDK code goes here - learn more: https://docs.aws.amazon.com/cdk/latest/guide/home.html */
     new ssm.StringParameter(this, 'ParameterStoreGraphQLAPIId', {
@@ -40,10 +39,6 @@ export class cdkStack extends cdk.Stack {
       stringValue: GraphQLAPIEndpointOutput,
     });
 
-    // new ssm.StringParameter(this, 'ParameterStoreBucketName', {
-    //   parameterName: 'BucketName',
-    //   stringValue: BucketNameOutput,
-    // });
     new ssm.StringParameter(this, 'ParameterStoreUserPoolId', {
       parameterName: 'UserPoolId',
       stringValue: UserPoolIdOutput,

@@ -31,52 +31,29 @@ import {
 } from "../../graphql/mutations";
 
 const ViewTopics = ({ language }) => {
-  // const [topicsLanguage, setTopicsLanguage] = useState(language);
   const [alert, setAlert] = useState(false);
   // all topics on the page
-  // category_id
-  // title
-  // description
-  // picture_location
   const [topics, setTopics] = useState([]);
   // all subtopics (on the page)
-  // acronym string -> obj
   const [subtopics, setSubtopics] = useState([]);
   // userSubscription relationships, set once
-  // user_id
-  // category_acronym
-  // topic_acronym
-  // email_notice
-  // sms_notice
   const [userSubscribed, setUserSubscribed] = useState([]);
   const [image, setImage] = useState([]);
-  //
-  // acronym string
   const [selectedSubTopics, setSelectedSubtopics] = useState([]);
   // for categories that user is not subscribed to, if its topics are checked by the user
-  // acronym string
   const [selectedSubTopicsCheckbox, setSelectedSubtopicsCheckbox] = useState(
     []
   );
   // for categories that user is subscribed to, if its topics are checked by the user
-  // acronym string
   const [userSelectedSubTopics, setUserSelectedSubtopics] = useState([]);
-  // acronym string
   const [userSelectedSubTopicsTemp, setUserSelectedSubtopicsTemp] = useState(
     []
   );
-  // acronym string
   const [userUnfollow, setUserUnfollow] = useState([]);
   const [userID, setUserID] = useState("");
   // if user already subscribed to the topic on the page at corresponding index
-  // bool
   const [userAlreadySubscribed, setUserAlreadySubscribed] = useState([]);
   const [user, setUser] = useState();
-  // const [language, setLanguage] = useState(
-  //   navigator.language === "fr" || navigator.language.startsWith("fr-")
-  //     ? "fr"
-  //     : "en"
-  // );
 
   async function getCategoryImages(categories) {
     for (let i = 0; i < categories.length; i++) {
@@ -107,8 +84,6 @@ const ViewTopics = ({ language }) => {
       );
       let onlyTopics = queriedTopics.data.getTopicsOfCategory;
 
-      // let topics = onlyTopics.map((a) => a.acronym
-      // setSubtopics((subtopics) => [...subtopics, onlyTopics]);
       setSubtopics((subtopics) => [...subtopics, onlyTopics]);
     }
   }
@@ -195,7 +170,6 @@ const ViewTopics = ({ language }) => {
       setSelectedSubtopicsCheckbox((prev) =>
         prev.filter((s) => s !== subtopic)
       );
-      // console.log("selectedSubTopicsCheckbox", selectedSubTopicsCheckbox);
     }
   };
 
@@ -234,17 +208,7 @@ const ViewTopics = ({ language }) => {
       newUserSelectedSubtopics = userSelectedSubTopicsTemp.filter(
         (s) => !onlySubtopics.includes(s)
       );
-      // if the user deselects all their subscribed topics then they get unsubscribed from the category
-      // if (
-      //   JSON.stringify(onlySubtopics) === JSON.stringify(subtopicsToUnfollow)
-      // ) {
-      //   await API.graphql(
-      //     graphqlOperation(userUnfollowCategory, {
-      //       user_id: userID,
-      //       category_id: topics[index].category_id,
-      //     })
-      //   );
-      // } else {
+
       // subscribe to the new topics the user has selected
       if (newUserSelectedSubtopics.length !== 0) {
         let topicsToRemove = newUserSelectedSubtopics.map((s) => s.toString());
@@ -264,26 +228,27 @@ const ViewTopics = ({ language }) => {
             prev.filter((s) => !s.toString().includes(topicsToRemove))
           );
         }
+      }
 
-        // unsubscribe from the topics the user has deselected
-        if (subtopicsToUnfollow.length !== 0) {
-          let topicsToRemove = subtopicsToUnfollow.map((s) => s.toString());
-          for (let n = 0; n < subtopicsToUnfollow.length; n++) {
-            await API.graphql(
-              graphqlOperation(userUnfollowCategoryTopic, {
-                user_id: userID,
-                category_id: topics[index].category_id,
-                topic_id: subtopicsToUnfollow[n],
-              })
-            );
-          }
-          for (let m = 0; m < topicsToRemove.length; m++) {
-            setUserUnfollow((prev) =>
-              prev.filter((s) => !s.toString().includes(topicsToRemove))
-            );
-          }
+      // unsubscribe from the topics the user has deselected
+      if (subtopicsToUnfollow.length !== 0) {
+        let topicsToRemove = subtopicsToUnfollow.map((s) => s.toString());
+        for (let n = 0; n < subtopicsToUnfollow.length; n++) {
+          await API.graphql(
+            graphqlOperation(userUnfollowCategoryTopic, {
+              user_id: userID,
+              category_id: topics[index].category_id,
+              topic_id: subtopicsToUnfollow[n],
+            })
+          );
+        }
+        for (let m = 0; m < topicsToRemove.length; m++) {
+          setUserUnfollow((prev) =>
+            prev.filter((s) => !s.toString().includes(topicsToRemove))
+          );
         }
       }
+
       getUserSubscriptions(topics);
     } else {
       let topicsToRemove = selectedSubTopics.map((s) => s.toString());
