@@ -123,19 +123,7 @@ Resources:
         - Key: "Name"
           Value: !Sub ${ProjectName} VPC
   
-  # VPCFlowLog:
-  #   Type: AWS::EC2::FlowLog
-  #   Properties: 
-  #     ResourceId: !Ref VPC
-  #     ResourceType: VPC
-  #     Tags:
-  #       - Key: "Project"
-  #         Value: !Ref 'ProjectName'
-  #       - Key: "EnvironmentName"
-  #         Value: !Ref 'EnvironmentName'
-  #       - Key: "Name"
-  #         Value: !Sub ${ProjectName} VPC Flow log
-  
+
 
   IGWAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
