@@ -120,6 +120,8 @@ The following block of text is what will appear when running the command. It is 
       (Encrypts the database for added security)
    Parameter SenderEmail []: <FROM_ADDRESS FOR ALL EMAIL COMMUNICATIONS>
       (This will be used to send out verification emails as well as campaigns in Pinpoint)
+   Parameter OrganizationName [] <YOUR ORGANIZATION'S NAME>
+      (This name will be displayed in the subscription message that your users will receive)
 
    #Shows you resources changes to be deployed and require a 'Y' to initiate deploy
    Confirm changes before deploy [y/N]: y
