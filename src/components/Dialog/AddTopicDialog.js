@@ -43,16 +43,9 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   const [topicExistsError, setTopicExistError] = useState(false);
   const [topicNullError, setTopicsNullError] = useState(false);
   const [invalidInputErrorEn, setInvalidInputErrorEn] = useState(false);
-  // const [invalidInputErrorMsgEn, setInvalidInputErrorMsgEn] = useState("");
   const [invalidInputErrorFr, setInvalidInputErrorFr] = useState(false);
-  // const [invalidInputErrorMsgFr, setInvalidInputErrorMsgFr] = useState("");
   const [uploadFile, setUploadFile] = useState();
   const [selectedUploadFile, setSelectedUploadFile] = useState("");
-  // const [language, setLanguage] = useState(
-  //   navigator.language === "fr" || navigator.language.startsWith("fr")
-  //     ? "fr"
-  //     : "en"
-  // );
 
   useEffect(() => {
     async function getTopics() {
@@ -62,7 +55,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
       const topics = topicsQuery.data.getAllTopicsForLanguage;
       if (topics !== null) {
         const topicsName = topics.map((a) => a.name);
-        // setAllTopics(topicsName);
         setAllTopics(topics);
       }
     }
@@ -109,9 +101,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
   };
 
   const handleChangeFr = (event, index) => {
-    // setNewTopic(event.target.value);
-    // setTopicsExistError(false);
-
     const values = [...inputFields];
     values[index][event.target.name] = event.target.value;
     setInputFields(values);
@@ -125,13 +114,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
       titleFr === ""
         ? setInvalidInputErrorFr(true)
         : setInvalidInputErrorFr(false);
-      // } else if (allTopics.map((t) => t.name).includes(newTopic)) {
-      //   console.log("alltopics", allTopics);
-      //   console.log("newtopic", newTopic);
-
-      //   console.log("139");
-
-      // setTopicExistError(true);
     } else {
       setInvalidInputErrorEn(false);
       setInvalidInputErrorFr(false);
@@ -285,7 +267,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
                 label={I18n.get("titleEn")}
                 onChange={(e) => setTitle(e.target.value)}
                 error={invalidInputErrorEn}
-                // todo
                 helperText={!!invalidInputErrorEn && I18n.get("missingValue")}
               />
             </Box>
@@ -333,7 +314,6 @@ const AddTopicDialog = ({ open, handleClose, reload, language }) => {
               label={I18n.get("titleFr") + " *"}
               onChange={(e) => setTitleFr(e.target.value)}
               error={invalidInputErrorFr}
-              // todo
               helperText={!!invalidInputErrorFr && I18n.get("missingValue")}
             />
           </Box>
@@ -426,7 +406,6 @@ const InputRow = ({
         size="small"
         name="nameEn"
         InputLabelProps={{ shrink: true }}
-        // todo
         label={I18n.get("topicEn")}
         onChange={(event) => handleChangeEn(event, index)}
         value={item.nameEn}

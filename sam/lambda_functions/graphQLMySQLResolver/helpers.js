@@ -18,14 +18,11 @@ function getUserEndpoints(userID) {
       UserId: userID,
     };
 
-    // console.trace(params);
     pinpoint.getUserEndpoints(params, function (err, data) {
       if (err) {
         console.error(err, err.stack);
         reject(err);
       } else {
-        // console.debug(data.EndpointsResponse.Item);
-
         //Strip off INACTIVE
         var filteredEndpoints = data.EndpointsResponse.Item.filter(
           (endpoint) => endpoint.EndpointStatus !== "INACTIVE"
@@ -67,11 +64,6 @@ function upsertEndpoint(userID, endpointID, endpoint_address, endpoint_type) {
       JSON.stringify(request, null, 2)
     );
 
-    // changedAccount = {
-    //   userId: params.User.UserId,
-    //   EndpointId: endpointID,
-    // };
-
     pinpoint.updateEndpoint(request, function (err, response) {
       if (err) {
         console.log("ppt.updateEndpoint err:");
@@ -100,11 +92,7 @@ async function upsertUserProfile(userID, province, postalCode) {
     let request = {
       ApplicationId: PINPOINTID,
       EndpointId: "email" + "_" + userID,
-      EndpointRequest: {
-        // User: {
-        //   UserAttributes: {},
-        // },
-      },
+      EndpointRequest: {},
     };
 
     let userProfileRequest = { User: { UserAttributes: {} } };

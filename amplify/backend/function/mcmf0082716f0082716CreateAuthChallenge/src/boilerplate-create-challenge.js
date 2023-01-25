@@ -66,7 +66,7 @@ async function sendEmail(emailAddress, secretLoginCode) {
 
 const getSenderAddress = async () => {
   let param = {
-    Name: "EmailSenderParameter" /* required */,
+    Name: "EmailSenderParameter",
     WithDecryption: true,
   };
 

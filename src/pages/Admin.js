@@ -87,11 +87,6 @@ const Admin = ({ language }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
-  // useEffect(() => {
-  //   console.log("in useeffect");
-  //   setTopicDisplayLanguage(language);
-  // }, [language]);
-
   function search() {
     if (searchVal === "") {
       return;
