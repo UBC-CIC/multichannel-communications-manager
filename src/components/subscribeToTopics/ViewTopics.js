@@ -155,10 +155,6 @@ const ViewTopics = ({ language }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
-  // useEffect(() => {
-  //   setTopicsLanguage(language);
-  // }, [language]);
-
   const handleChange = (e, subtopic) => {
     if (e.target.checked) {
       setSelectedSubtopics((prev) => [...prev, subtopic]);

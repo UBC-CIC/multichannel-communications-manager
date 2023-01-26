@@ -51,11 +51,6 @@ const Admin = ({ language }) => {
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState();
   const topicsPerPage = 10;
-  // const [language, setLanguage] = useState(
-  //   navigator.language === "fr" || navigator.language.startsWith("fr")
-  //     ? "fr"
-  //     : "en"
-  // );
 
   async function queriedData() {
     setImage([]);

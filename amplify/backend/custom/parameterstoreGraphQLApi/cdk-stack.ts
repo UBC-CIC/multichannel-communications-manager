@@ -23,7 +23,6 @@ export class cdkStack extends cdk.Stack {
       [
         {category: 'api', resourceName: "mcm"},
         {category: 'auth', resourceName: "mcmf0082716f0082716" },
-        // {category: 'hosting', resourceName: "" },
       ]
     );
     const GraphQLAPIIdOutput = cdk.Fn.ref(dependencies.api.mcm.GraphQLAPIIdOutput)
