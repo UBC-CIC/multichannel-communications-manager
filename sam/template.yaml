@@ -467,11 +467,11 @@ Resources:
               - Effect: Allow
                 Action: lambda:InvokeAsync
                 # Resource: '*'
-                Resource: !Ref graphQLMySQLResolver
+                Resource: !GetAtt graphQLMySQLResolver.Arn
               - Effect: Allow
                 Action: lambda:InvokeFunction
                 # Resource: '*'
-                Resource: !Ref graphQLMySQLResolver
+                Resource: !GetAtt graphQLMySQLResolver.Arn
     
   EIP:
     Type: 'AWS::EC2::EIP'
@@ -1836,7 +1836,7 @@ Resources:
             - mobiletargeting:UpdateSegment
             - mobiletargeting:UpdateSmsChannel
             # Resource: '*'
-            Resource: PinpointApp.Arn
+            Resource: !GetAtt PinpointApp.Arn
           - Effect: Allow
             Action: rds-db:connect
             Resource: 
