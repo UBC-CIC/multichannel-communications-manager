@@ -276,11 +276,11 @@ Resources:
       GroupDescription: A security group that allows no traffic in, but all traffic out
       GroupName: closed-security-group
       SecurityGroupEgress: 
-        # - Description: allows all traffic out
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
           CidrIp: 0.0.0.0/0
+          Description: allows all traffic out
       VpcId: !Ref VPC
       Tags:
         - Key: "Project"
@@ -297,17 +297,17 @@ Resources:
       GroupName: Proxy-security-group
       VpcId: !Ref VPC
       SecurityGroupIngress:
-        # - Description: allows all traffic in on port 3306 from ClosedSecurityGroup
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
           SourceSecurityGroupId: !Ref ClosedSecurityGroup
+          Description: allows all traffic in on port 3306 from ClosedSecurityGroup
       SecurityGroupEgress:
-        # - Description: allows all traffic out
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
           CidrIp: 0.0.0.0/0
+          Description: allows all traffic out
 
   SGRds:
     Type: AWS::EC2::SecurityGroup
@@ -319,22 +319,22 @@ Resources:
       GroupName: RDS-security-group
       VpcId: !Ref VPC
       SecurityGroupIngress:
-        # - Description: allows traffic in on port 3306 from ClosedSecurityGroup and SGProxy
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
           SourceSecurityGroupId: !Ref ClosedSecurityGroup
+          Description: allows traffic in on port 3306 from ClosedSecurityGroup
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
           SourceSecurityGroupId: !Ref SGProxy
+          Description: allows traffic in on port 3306 from SGProxy
       SecurityGroupEgress:
-        # - Description: allows all traffic out
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
           CidrIp: 0.0.0.0/0
-
+          Description: allows all traffic out
     
 
 # RDS #########################################
@@ -436,6 +436,7 @@ Resources:
       # SecretString: !Sub '{"username":"${DBUser}","password":"${DBPassword}","engine":"mysql","host":"${DBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
         GenerateStringKey: "password"
         ExcludeCharacters: '"@/\'
+      KmsKeyId: !GetAtt KmsKey.Arn
       Tags:
         - Key: "Project"
           Value: !Ref 'ProjectName'
@@ -606,6 +607,7 @@ Resources:
         - x86_64
       MemorySize: 1000
       Timeout: 100
+      ReservedConcurrentExecutions: 10000
       Description: Called by AppSync to resolve SQL statements in the form of a request mapping and send requests to Pinpoint
       Role: !GetAtt GraphQLResolverRole.Arn
       Environment:
@@ -634,6 +636,7 @@ Resources:
     Properties:
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref graphQLMySQLResolver]]
       RetentionInDays: 14
+      KmsKeyId: !GetAtt KmsKey.Arn
 
 
   # APPSYNC #####################################################
@@ -1846,8 +1849,13 @@ Resources:
             - "ec2:CreateNetworkInterface"
             - "ec2:DeleteNetworkInterface"
             - "ec2:DescribeNetworkInterfaces"
-            Resource: '*'
-          # - Effect: Allow
+            # Resource: '*'
+            Resource:
+              - !GetAtt PublicSubnet1.Arn
+              - !GetAtt PublicSubnet2.Arn
+              - !GetAtt PrivateSubnet1.Arn
+              - !GetAtt PrivateSubnet2.Arn
+                        # - Effect: Allow
           #   Action:
           #   - "ses:SendEmail"
           #   Resource: 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity:*'
@@ -1903,3 +1911,19 @@ Resources:
     Properties:
       ResourceArn: !Sub "arn:aws:appsync:${AWS::Region}:${AWS::AccountId}:apis/${GraphQLApiIdParameter.Value}"
       WebACLArn: !GetAtt WAF.Arn
+
+  KmsKey:
+    Type: AWS::KMS::Key
+    Properties: 
+      Description: KMS key for root user to access sms secrets and cloudwatch logs
+      EnableKeyRotation: true
+      KeyPolicy: 
+        Version: 2012-10-17
+        Id: key-mcm-1
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: 'arn:aws:iam:${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
