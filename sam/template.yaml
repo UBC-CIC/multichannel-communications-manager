@@ -657,7 +657,7 @@ Resources:
         - x86_64
       MemorySize: 1000
       Timeout: 100
-      # ReservedConcurrentExecutions: 100
+      ReservedConcurrentExecutions: 100
       Description: Called by AppSync to resolve SQL statements in the form of a request mapping and send requests to Pinpoint
       Role: !GetAtt GraphQLResolverRole.Arn
       Environment:
