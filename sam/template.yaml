@@ -1915,17 +1915,7 @@ Resources:
             - "ec2:DescribeNetworkInterfaces"
             - "ec2:CreateNetworkInterface"
             - "ec2:DeleteNetworkInterface"
-            Resource: '*'
-          # - Effect: Allow
-          #   Action:
-          #   - "ec2:CreateNetworkInterface"
-          #   - "ec2:DeleteNetworkInterface"
-          #   # Resource: '*'
-          #   Resource:
-          #     - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PublicSubnet1}"
-          #     - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PublicSubnet2}"
-          #     - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PrivateSubnet1}"
-          #     - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PrivateSubnet2}"                        
+            Resource: '*'                      
       Description: Role for graphql resolver lambda
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
@@ -1951,7 +1941,6 @@ Resources:
         SampledRequestsEnabled: true
         CloudWatchMetricsEnabled: true
         MetricName: mcm-waf
-        # todo
       Rules:
         - Name: AWS-AWSManagedRulesCommonRuleSet
           Priority: 1
@@ -2017,7 +2006,6 @@ Resources:
           - Effect: Allow
             Principal:
               Service: !Sub "secretsmanager.${AWS::Region}.amazonaws.com"
-              # secretsmanager.amazonaws.com
             Action: 
               - "kms:Encrypt*"
               - "kms:Decrypt*"
