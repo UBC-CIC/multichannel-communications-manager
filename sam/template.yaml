@@ -273,14 +273,14 @@ Resources:
   ClosedSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties: 
-      GroupDescription: A security group that allows no traffic in, but all traffic out
-      GroupName: closed-security-group
+      GroupDescription: A security group that allows no traffic in, all traffic out to within vpc from port 3306
+      # GroupName: closed-security-group
       SecurityGroupEgress: 
-        - IpProtocol: -1
-          FromPort: -1
-          ToPort: -1
-          CidrIp: 0.0.0.0/0
-          Description: allows all traffic out
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 10.0.0.0/16
+          Description: allows all traffic out to within vpc from port 3306
       VpcId: !Ref VPC
       Tags:
         - Key: "Project"
@@ -293,8 +293,8 @@ Resources:
     # DependsOn:
     #   - ClosedSecurityGroup
     Properties: 
-      GroupDescription: A security group for RDS that allows all traffic in on port 3306 from within the vpc, and all traffic out
-      GroupName: Proxy-security-group
+      GroupDescription: A security group for RDS that allows all traffic in on port 3306 from within the vpc, and all traffic out within the vpc
+      # GroupName: Proxy-security-group
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -303,11 +303,11 @@ Resources:
           SourceSecurityGroupId: !Ref ClosedSecurityGroup
           Description: allows all traffic in on port 3306 from ClosedSecurityGroup
       SecurityGroupEgress:
-        - IpProtocol: -1
-          FromPort: -1
-          ToPort: -1
-          CidrIp: 0.0.0.0/0
-          Description: allows all traffic out
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 10.0.0.0/16
+          Description: allows all traffic out to the vpc
 
   SGRds:
     Type: AWS::EC2::SecurityGroup
@@ -315,8 +315,8 @@ Resources:
       - ClosedSecurityGroup
       - SGProxy
     Properties: 
-      GroupDescription: A security group for RDS that allows all traffic in on port 3306 from the proxy and other vpc resources
-      GroupName: RDS-security-group
+      GroupDescription: A security group for RDS that allows all traffic in on port 3306 from the proxy and other vpc resources and traffic out from port 3306 to vpc
+      # GroupName: RDS-security-group
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -330,32 +330,32 @@ Resources:
           SourceSecurityGroupId: !Ref SGProxy
           Description: allows traffic in on port 3306 from SGProxy
       SecurityGroupEgress:
-        - IpProtocol: -1
-          FromPort: -1
-          ToPort: -1
-          CidrIp: 0.0.0.0/0
-          Description: allows all traffic out
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 10.0.0.0/16
+          Description: allows traffic out from port 3306 to vpc
     
 
 # RDS #########################################
-  
-  DBSubnetGrouping:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties: 
-      DBSubnetGroupDescription: Subnet group!
-      DBSubnetGroupName: subnet-group-1-2
-      SubnetIds: 
-        - !Ref PublicSubnet1
-        - !Ref PublicSubnet2
 
   DBPrivateSubnetGrouping:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: Subnet grouping for private subnets
-      DBSubnetGroupName: subnetgroup-private-1-2
+      DBSubnetGroupName: subnetgroupprivate-1-2
       SubnetIds: 
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
+
+  DBSubnetGrouping:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group!
+      DBSubnetGroupName: subnet-group-1-2
+      SubnetIds:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
 
   DBCluster:
     Type: AWS::RDS::DBCluster
@@ -366,7 +366,7 @@ Resources:
     - DBPrivateSubnetGrouping
     Properties: 
       DatabaseName: !Ref 'DBName'
-      DBClusterIdentifier: mcmdbcluster
+      # DBClusterIdentifier: mcmdbcluster
       DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
       DBSubnetGroupName: !Ref DBPrivateSubnetGrouping
       DeletionProtection: !Ref 'DeletionProtection'
@@ -395,10 +395,12 @@ Resources:
     DependsOn:
     - DBCluster
     Properties: 
-      DBClusterIdentifier: mcmdbcluster
+      # DBClusterIdentifier: mcmdbcluster
+      DBClusterIdentifier: !Ref DBCluster
+      StorageEncrypted: !Ref 'EncryptDatabase'
       Engine: aurora-mysql 
       DBInstanceClass: !Ref 'DBInstanceClass'
-      DBInstanceIdentifier: !Sub '${ProjectName}-${EnvironmentName}-dbinstance'
+      # DBInstanceIdentifier: !Sub '${ProjectName}-${EnvironmentName}-dbinstance'
       PubliclyAccessible: false 
       # DBParameterGroupName: 
       #   Ref: RDSDBParameterGroup
@@ -429,7 +431,7 @@ Resources:
     # - DBInstance
     Properties: 
       Description: Stores the credentials for the RDS instance
-      Name: RdsCredentials
+      Name: RDSCredentials
       GenerateSecretString:
         SecretStringTemplate: !Sub '{"username":"admin","engine":"mysql","port":3306,"region":"${AWS::Region}"}'
         # !Sub '{"username":"admin","engine":"mysql","host":"${DBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
@@ -446,7 +448,7 @@ Resources:
   LambdaServiceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub 'LambdaFunction-ServiceRole-${AWS::Region}'    
+      # RoleName: !Sub 'LambdaFunction-ServiceRole-${AWS::Region}'    
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -607,7 +609,7 @@ Resources:
         - x86_64
       MemorySize: 1000
       Timeout: 100
-      ReservedConcurrentExecutions: 10000
+      # ReservedConcurrentExecutions: 100
       Description: Called by AppSync to resolve SQL statements in the form of a request mapping and send requests to Pinpoint
       Role: !GetAtt GraphQLResolverRole.Arn
       Environment:
@@ -1783,7 +1785,7 @@ Resources:
   GraphQLResolverRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: GraphQLResolverRole
+      # RoleName: GraphQLResolverRole
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -1846,16 +1848,17 @@ Resources:
             - !GetAtt RDSProxy.DBProxyArn
           - Effect: Allow
             Action:
+            - "ec2:DescribeNetworkInterfaces"
+            Resource: '*'
+          - Effect: Allow
+            Action:
             - "ec2:CreateNetworkInterface"
             - "ec2:DeleteNetworkInterface"
-            - "ec2:DescribeNetworkInterfaces"
-            # Resource: '*'
-            Resource:
-              - !GetAtt PublicSubnet1.Arn
-              - !GetAtt PublicSubnet2.Arn
-              - !GetAtt PrivateSubnet1.Arn
-              - !GetAtt PrivateSubnet2.Arn
-                        # - Effect: Allow
+            Resource: '*'
+              - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PublicSubnet1}"
+              - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PublicSubnet2}"
+              - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PrivateSubnet1}"
+              - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PrivateSubnet2}"                        # - Effect: Allow
           #   Action:
           #   - "ses:SendEmail"
           #   Resource: 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity:*'
@@ -1915,7 +1918,7 @@ Resources:
   KmsKey:
     Type: AWS::KMS::Key
     Properties: 
-      Description: KMS key for root user to access sms secrets and cloudwatch logs
+      Description: KMS key for root user in the account to access sms secrets and cloudwatch logs
       EnableKeyRotation: true
       KeyPolicy: 
         Version: 2012-10-17
@@ -1924,6 +1927,17 @@ Resources:
           - Sid: Enable IAM User Permissions
             Effect: Allow
             Principal:
-              AWS: 'arn:aws:iam:${AWS::AccountId}:root'
+              # AWS: 'arn:aws:iam::160092849934:root'
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
             Action: 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Principal:
+              Service: logs.amazonaws.com
+            Action: kms:Encrypt
+            Resource: '*'
+          - Effect: Allow
+            Principal:
+              Service: secretsmanager.amazonaws.com
+            Action: kms:Encrypt
             Resource: '*'

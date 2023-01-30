@@ -138,7 +138,7 @@ function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
 }
 
 exports.handler = async (event) => {
-  const secretName = "RdsCredentials";
+  const secretName = "RDSCredentials";
   const endpointUrl = `https://secretsmanager.${process.env.AWS_REGION}.amazonaws.com`;
   const region = process.env.AWS_REGION;
 
