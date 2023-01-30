@@ -85,6 +85,9 @@ Resources:
         Type: String 
         Value: "{{resolve:ssm:GraphqlApiId:1}}"
         Description: Communication Manager GraphQL Api Id
+        Tags:
+          Project: !Ref 'ProjectName'
+          EnvironmentName: !Ref 'EnvironmentName'
 
   IGW:
     Type: AWS::EC2::InternetGateway
@@ -308,6 +311,11 @@ Resources:
           ToPort: 3306
           CidrIp: 10.0.0.0/16
           Description: allows all traffic out to the vpc
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
 
   SGRds:
     Type: AWS::EC2::SecurityGroup
@@ -335,6 +343,11 @@ Resources:
           ToPort: 3306
           CidrIp: 10.0.0.0/16
           Description: allows traffic out from port 3306 to vpc
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
     
 
 # RDS #########################################
@@ -347,6 +360,11 @@ Resources:
       SubnetIds: 
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
 
   DBSubnetGrouping:
     Type: AWS::RDS::DBSubnetGroup
@@ -356,6 +374,11 @@ Resources:
       SubnetIds:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
 
   DBCluster:
     Type: AWS::RDS::DBCluster
@@ -475,11 +498,21 @@ Resources:
                 Action: lambda:InvokeFunction
                 # Resource: '*'
                 Resource: !GetAtt graphQLMySQLResolver.Arn
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
     
   EIP:
     Type: 'AWS::EC2::EIP'
     Properties:
       Domain: vpc
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
 
   NatGateway:
     Type: 'AWS::EC2::NatGateway'
@@ -487,6 +520,11 @@ Resources:
     Properties:
       AllocationId: !GetAtt 'EIP.AllocationId'
       SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
 
   NGWRoute:
     Type: 'AWS::EC2::Route'
@@ -516,6 +554,11 @@ Resources:
       - RDSCredentialsSecret
       - DBInstance
     Properties:
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -568,19 +611,19 @@ Resources:
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
 
-  RDSProxyTargetGroup:
-    Type: AWS::RDS::DBProxyTargetGroup
-    DependsOn:
-    - DBCluster
-    - RDSProxy
-    Properties:
-      DBProxyName: !Ref RDSProxy
-      DBClusterIdentifiers: [!Ref DBCluster] 
-      TargetGroupName: default
-      ConnectionPoolConfigurationInfo:
-          MaxConnectionsPercent: 100
-          MaxIdleConnectionsPercent: 50
-          ConnectionBorrowTimeout: 120
+  # RDSProxyTargetGroup:
+  #   Type: AWS::RDS::DBProxyTargetGroup
+  #   DependsOn:
+  #   - DBCluster
+  #   - RDSProxy
+  #   Properties:
+  #     DBProxyName: !Ref RDSProxy
+  #     DBClusterIdentifiers: [!Ref DBCluster] 
+  #     TargetGroupName: default
+  #     ConnectionPoolConfigurationInfo:
+  #         MaxConnectionsPercent: 100
+  #         MaxIdleConnectionsPercent: 50
+  #         ConnectionBorrowTimeout: 120
 
 
   # Lambda functions ####################################
@@ -600,6 +643,11 @@ Resources:
     - DBInstance
     Properties:
       FunctionName: graphQL-MySQL-Resolver
+      # Tags:
+      #   - Key: "Project"
+      #     Value: !Ref 'ProjectName'
+      #   - Key: "EnvironmentName"
+      #     Value: !Ref 'EnvironmentName'      
       # Layers:
       #   - !Ref graphQLMySQLResolverLayers
       Handler: index.handler
@@ -639,7 +687,11 @@ Resources:
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref graphQLMySQLResolver]]
       RetentionInDays: 14
       KmsKeyId: !GetAtt KmsKey.Arn
-
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
 
   # APPSYNC #####################################################
 
@@ -657,6 +709,11 @@ Resources:
             Principal:
               Service:
                 - appsync.amazonaws.com
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
 
   LambdaResolverAppSyncDataSource:
     Type: AWS::AppSync::DataSource
@@ -672,6 +729,7 @@ Resources:
       ServiceRoleArn: !GetAtt LambdaServiceRole.Arn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt graphQLMySQLResolver.Arn
+
 
   getUserByIdResolver:
     Type: AWS::AppSync::Resolver
@@ -1754,6 +1812,9 @@ Resources:
     Type: AWS::Pinpoint::App
     Properties:
       Name: PinpointApp
+      Tags:
+        Project: !Ref 'ProjectName'
+        EnvironmentName: !Ref 'EnvironmentName'
   PinpointSMSChannel:
     Type: AWS::Pinpoint::SMSChannel
     DependsOn: 
@@ -1773,12 +1834,15 @@ Resources:
         !Sub 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${SenderEmail}'
       Enabled: true
   EmailSenderParameter:
-      Type: AWS::SSM::Parameter
-      Properties: 
-        Name: "EmailSenderParameter"
-        Type: String 
-        Value: !Ref SenderEmail
-        Description: sender email for all SES communications
+    Type: AWS::SSM::Parameter
+    Properties: 
+      Name: "EmailSenderParameter"
+      Type: String 
+      Value: !Ref SenderEmail
+      Description: sender email for all SES communications
+      Tags:
+        Project: !Ref 'ProjectName'
+        EnvironmentName: !Ref 'EnvironmentName'
 
 
   #Lambda Resources
@@ -1816,7 +1880,7 @@ Resources:
             - mobiletargeting:CreateApp
             - mobiletargeting:CreateCampaign
             - mobiletargeting:CreateEmailTemplate
-            - mobiletargeting:CreateSegment
+            # - mobiletargeting:CreateSegment
             - mobiletargeting:DeleteAdmChannel
             - mobiletargeting:DeleteEmailChannel
             - mobiletargeting:DeleteEndpoint
@@ -1826,8 +1890,8 @@ Resources:
             - mobiletargeting:GetApp
             - mobiletargeting:GetEmailChannel
             - mobiletargeting:GetEndpoint
-            - mobiletargeting:GetSegment
-            - mobiletargeting:GetSegments
+            # - mobiletargeting:GetSegment
+            # - mobiletargeting:GetSegments
             - mobiletargeting:GetUserEndpoints
             - mobiletargeting:GetUserEndpoints
             - mobiletargeting:PutEventStream
@@ -1838,7 +1902,7 @@ Resources:
             - mobiletargeting:UpdateEmailChannel
             - mobiletargeting:UpdateEndpoint
             - mobiletargeting:UpdateEndpointsBatch
-            - mobiletargeting:UpdateSegment
+            # - mobiletargeting:UpdateSegment
             - mobiletargeting:UpdateSmsChannel
             # Resource: '*'
             Resource: !GetAtt PinpointApp.Arn
@@ -1849,19 +1913,19 @@ Resources:
           - Effect: Allow
             Action:
             - "ec2:DescribeNetworkInterfaces"
-            Resource: '*'
-          - Effect: Allow
-            Action:
             - "ec2:CreateNetworkInterface"
             - "ec2:DeleteNetworkInterface"
             Resource: '*'
-              - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PublicSubnet1}"
-              - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PublicSubnet2}"
-              - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PrivateSubnet1}"
-              - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PrivateSubnet2}"                        # - Effect: Allow
+          # - Effect: Allow
           #   Action:
-          #   - "ses:SendEmail"
-          #   Resource: 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity:*'
+          #   - "ec2:CreateNetworkInterface"
+          #   - "ec2:DeleteNetworkInterface"
+          #   # Resource: '*'
+          #   Resource:
+          #     - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PublicSubnet1}"
+          #     - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PublicSubnet2}"
+          #     - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PrivateSubnet1}"
+          #     - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/${PrivateSubnet2}"                        
       Description: Role for graphql resolver lambda
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
@@ -1870,6 +1934,11 @@ Resources:
       - arn:aws:iam::aws:policy/AmazonRDSFullAccess
       - arn:aws:iam::aws:policy/AWSAppSyncInvokeFullAccess
       - arn:aws:iam::aws:policy/AmazonSESFullAccess
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
   
   WAF:
     Type: AWS::WAFv2::WebACL
@@ -1908,6 +1977,11 @@ Resources:
             SampledRequestsEnabled: true
             CloudWatchMetricsEnabled: true
             MetricName: LimitRequests1000
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
 
   WAFAssociation:
     Type: AWS::WAFv2::WebACLAssociation
@@ -1927,17 +2001,32 @@ Resources:
           - Sid: Enable IAM User Permissions
             Effect: Allow
             Principal:
-              # AWS: 'arn:aws:iam::160092849934:root'
               AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
             Action: 'kms:*'
             Resource: '*'
           - Effect: Allow
             Principal:
-              Service: logs.amazonaws.com
-            Action: kms:Encrypt
+              Service: !Sub "logs.${AWS::Region}.amazonaws.com"
+            Action: 
+              - "kms:Encrypt*"
+              - "kms:Decrypt*"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:Describe*"
             Resource: '*'
           - Effect: Allow
             Principal:
-              Service: secretsmanager.amazonaws.com
-            Action: kms:Encrypt
+              Service: !Sub "secretsmanager.${AWS::Region}.amazonaws.com"
+              # secretsmanager.amazonaws.com
+            Action: 
+              - "kms:Encrypt*"
+              - "kms:Decrypt*"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:Describe*"
             Resource: '*'
+      Tags:
+        - Key: "Project"
+          Value: !Ref 'ProjectName'
+        - Key: "EnvironmentName"
+          Value: !Ref 'EnvironmentName'
