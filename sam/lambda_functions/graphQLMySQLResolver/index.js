@@ -138,7 +138,7 @@ function populateAndSanitizeSQL(sql, SQLVariableMapping, connection) {
 }
 
 exports.handler = async (event) => {
-  const secretName = "RDSCredentials";
+  const secretName = "DBCredentials";
   const endpointUrl = `https://secretsmanager.${process.env.AWS_REGION}.amazonaws.com`;
   const region = process.env.AWS_REGION;
 
@@ -146,7 +146,8 @@ exports.handler = async (event) => {
     SecretId: secretName,
   };
   let secret;
-  let sm = new SecretsManager({ region: region });
+  const sm = new SecretsManager({ region: region });
+
   try {
     secret = await sm.getSecretValue(params).promise();
     secret = JSON.parse(secret.SecretString);

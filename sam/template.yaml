@@ -69,6 +69,9 @@ Parameters:
     Description: Enable encryption of the database
     Type: String
     Default: True
+  # CognitoAdminName:
+  #   Type: String
+  #   Description: The name of the admin user for Cognito
   SenderEmail:
     Type: String
     Description: The email address from which end uers will receive emails
@@ -85,9 +88,6 @@ Resources:
         Type: String 
         Value: "{{resolve:ssm:GraphqlApiId:1}}"
         Description: Communication Manager GraphQL Api Id
-        Tags:
-          Project: !Ref 'ProjectName'
-          EnvironmentName: !Ref 'EnvironmentName'
 
   IGW:
     Type: AWS::EC2::InternetGateway
@@ -112,8 +112,6 @@ Resources:
           Value: !Ref 'EnvironmentName'
         - Key: "Name"
           Value: !Sub ${ProjectName} VPC
-  
-
 
   IGWAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -273,17 +271,27 @@ Resources:
       SubnetId: !Ref PrivateSubnet2
       RouteTableId: !Ref PrivateRouteTable
 
-  ClosedSecurityGroup:
+  ClosedSG:
     Type: AWS::EC2::SecurityGroup
     Properties: 
-      GroupDescription: A security group that allows no traffic in, all traffic out to within vpc from port 3306
+      GroupDescription: A security group that allows no traffic in, but all traffic out from port 443, 80, and 3306
       # GroupName: closed-security-group
       SecurityGroupEgress: 
         - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: allows all traffic out from port 443
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: allows all traffic out from port 80
+        - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          CidrIp: 10.0.0.0/16
-          Description: allows all traffic out to within vpc from port 3306
+          CidrIp: 0.0.0.0/0
+          Description: allows all traffic out from port 3306
       VpcId: !Ref VPC
       Tags:
         - Key: "Project"
@@ -291,107 +299,87 @@ Resources:
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
   
-  SGProxy:
+  ProxySG:
     Type: AWS::EC2::SecurityGroup
     # DependsOn:
-    #   - ClosedSecurityGroup
+    #   - ClosedSG
     Properties: 
-      GroupDescription: A security group for RDS that allows all traffic in on port 3306 from within the vpc, and all traffic out within the vpc
+      GroupDescription: A security group for RDS that allows all traffic in on port 3306 from ClosedSG
       # GroupName: Proxy-security-group
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref ClosedSecurityGroup
-          Description: allows all traffic in on port 3306 from ClosedSecurityGroup
+          SourceSecurityGroupId: !Ref ClosedSG
+          Description: allows all traffic in on port 3306 from ClosedSG
       SecurityGroupEgress:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          CidrIp: 10.0.0.0/16
-          Description: allows all traffic out to the vpc
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
+          DestinationSecurityGroupId: !Ref ClosedSG
+          Description: allows all traffic out on port 3306 to ClosedSG
 
-  SGRds:
+  RdsSG:
     Type: AWS::EC2::SecurityGroup
     DependsOn:
-      - ClosedSecurityGroup
-      - SGProxy
+      - ClosedSG
+      - ProxySG
     Properties: 
-      GroupDescription: A security group for RDS that allows all traffic in on port 3306 from the proxy and other vpc resources and traffic out from port 3306 to vpc
+      GroupDescription: A security group for RDS that allows all traffic in on port 3306 from the proxy and other vpc resources
       # GroupName: RDS-security-group
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref ClosedSecurityGroup
-          Description: allows traffic in on port 3306 from ClosedSecurityGroup
+          SourceSecurityGroupId: !Ref ClosedSG
+          Description: allows all tcp traffic in on port 3306 from ClosedSG
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref SGProxy
-          Description: allows traffic in on port 3306 from SGProxy
+          SourceSecurityGroupId: !Ref ProxySG
+          Description: allows all tcp traffic out on port 3306 to ProxySG
       SecurityGroupEgress:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          CidrIp: 10.0.0.0/16
-          Description: allows traffic out from port 3306 to vpc
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
+          DestinationSecurityGroupId: !Ref ClosedSG
+          Description: allows all tcp traffic out on port 3306 to ClosedSG
     
 
 # RDS #########################################
+  
+  DBSubnetGrouping:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: Subnet group!
+      DBSubnetGroupName: subnet-group-1-2
+      SubnetIds: 
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
 
-  DBPrivateSubnetGrouping:
+  DatabasePrivateSubnetGrouping:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: Subnet grouping for private subnets
-      DBSubnetGroupName: subnetgroupprivate-1-2
+      # DBSubnetGroupName: subnetgroup-private-1-2
       SubnetIds: 
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
 
-  DBSubnetGrouping:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties:
-      DBSubnetGroupDescription: Subnet group!
-      DBSubnetGroupName: subnet-group-1-2
-      SubnetIds:
-        - !Ref PublicSubnet1
-        - !Ref PublicSubnet2
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
-
-  DBCluster:
+  DbCluster:
     Type: AWS::RDS::DBCluster
     DependsOn:
     - VPC
     - PrivateSubnet1
     - PrivateSubnet2
-    - DBPrivateSubnetGrouping
+    - DatabasePrivateSubnetGrouping
     Properties: 
       DatabaseName: !Ref 'DBName'
-      # DBClusterIdentifier: mcmdbcluster
+      # DbClusterIdentifier: mcmDbCluster
       DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
-      DBSubnetGroupName: !Ref DBPrivateSubnetGrouping
+      DBSubnetGroupName: !Ref DatabasePrivateSubnetGrouping
       DeletionProtection: !Ref 'DeletionProtection'
       EnableCloudwatchLogsExports: 
         - general
@@ -400,8 +388,8 @@ Resources:
       EnableIAMDatabaseAuthentication: false 
       Engine: aurora-mysql
       EngineVersion: !Ref 'DBEngineVersion'
-      MasterUsername: !Sub '{{resolve:secretsmanager:${RDSCredentialsSecret}::username}}'
-      MasterUserPassword: !Sub '{{resolve:secretsmanager:${RDSCredentialsSecret}::password}}'
+      MasterUsername: !Sub '{{resolve:secretsmanager:${DBCredentialsSecret}::username}}'
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${DBCredentialsSecret}::password}}'
       Port: 3306
       StorageEncrypted: !Ref 'EncryptDatabase' 
       SourceRegion: !Sub '${AWS::Region}'
@@ -411,16 +399,14 @@ Resources:
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
       VpcSecurityGroupIds:  
-        - !Ref SGRds
+        - !Ref RdsSG
 
   DBInstance:
     Type: AWS::RDS::DBInstance
     DependsOn:
-    - DBCluster
+    - DbCluster
     Properties: 
-      # DBClusterIdentifier: mcmdbcluster
-      DBClusterIdentifier: !Ref DBCluster
-      StorageEncrypted: !Ref 'EncryptDatabase'
+      DBClusterIdentifier: !Ref DbCluster
       Engine: aurora-mysql 
       DBInstanceClass: !Ref 'DBInstanceClass'
       # DBInstanceIdentifier: !Sub '${ProjectName}-${EnvironmentName}-dbinstance'
@@ -433,11 +419,6 @@ Resources:
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
       
-  # PicturesBucket:
-  #   Type: AWS::S3::Bucket
-  #   Properties: 
-  #     BucketName: category-pictures-bucket
-
   RDSClusterParameterGroup:
     Type: "AWS::RDS::DBClusterParameterGroup"
     Properties:
@@ -446,19 +427,19 @@ Resources:
       Parameters:
         binlog_format: ROW
 
-  RDSCredentialsSecret:
+  DBCredentialsSecret:
     Type: AWS::SecretsManager::Secret
     DependsOn:
-    # - DBCluster
+    # - DbCluster
     - IGWAttachment
     # - DBInstance
     Properties: 
       Description: Stores the credentials for the RDS instance
-      Name: RDSCredentials
+      Name: DBCredentials
       GenerateSecretString:
         SecretStringTemplate: !Sub '{"username":"admin","engine":"mysql","port":3306,"region":"${AWS::Region}"}'
-        # !Sub '{"username":"admin","engine":"mysql","host":"${DBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
-      # SecretString: !Sub '{"username":"${DBUser}","password":"${DBPassword}","engine":"mysql","host":"${DBCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
+        # !Sub '{"username":"admin","engine":"mysql","host":"${DbCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
+      # SecretString: !Sub '{"username":"${DBUser}","password":"${DBPassword}","engine":"mysql","host":"${DbCluster.Endpoint.Address}","port":3306,"region":"${AWS::Region}"}'
         GenerateStringKey: "password"
         ExcludeCharacters: '"@/\'
       KmsKeyId: !GetAtt KmsKey.Arn
@@ -488,31 +469,17 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: appsync:GraphQL
-                # Resource: '*'
                 Resource: !Sub "arn:aws:appsync:${AWS::Region}:${AWS::AccountId}:apis/${GraphQLApiIdParameter.Value}"
               - Effect: Allow
                 Action: lambda:InvokeAsync
-                # Resource: '*'
                 Resource: !GetAtt graphQLMySQLResolver.Arn
               - Effect: Allow
                 Action: lambda:InvokeFunction
-                # Resource: '*'
                 Resource: !GetAtt graphQLMySQLResolver.Arn
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
-    
   EIP:
     Type: 'AWS::EC2::EIP'
     Properties:
       Domain: vpc
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
 
   NatGateway:
     Type: 'AWS::EC2::NatGateway'
@@ -520,11 +487,6 @@ Resources:
     Properties:
       AllocationId: !GetAtt 'EIP.AllocationId'
       SubnetId: !Ref PublicSubnet1
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
 
   NGWRoute:
     Type: 'AWS::EC2::Route'
@@ -539,7 +501,7 @@ Resources:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.rds'
       PrivateDnsEnabled: true
       SecurityGroupIds:
-        - !Ref ClosedSecurityGroup
+        - !Ref ClosedSG
       SubnetIds:
         # - !Ref PublicSubnet1
         # - !Ref PublicSubnet2
@@ -551,14 +513,9 @@ Resources:
   RDSProxyRole:
     Type: AWS::IAM::Role
     DependsOn:
-      - RDSCredentialsSecret
+      - DBCredentialsSecret
       - DBInstance
     Properties:
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -575,10 +532,10 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 'secretsmanager:GetSecretValue'
-                Resource: !Ref RDSCredentialsSecret
+                Resource: !Ref DBCredentialsSecret
               - Effect: Allow
                 Action: rds-db:connect
-                Resource: !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:${DBCluster}"
+                Resource: !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:${DbCluster}"
               - Effect: Allow
                 Action: rds-db:connect
                 Resource: !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:${DBInstance}"
@@ -587,7 +544,7 @@ Resources:
     Type: AWS::RDS::DBProxy
     DependsOn:
     - DBInstance
-    - RDSCredentialsSecret
+    - DBCredentialsSecret
     - PrivateSubnet1
     - PrivateSubnet2
     - RDSProxyRole
@@ -599,31 +556,31 @@ Resources:
       RequireTLS: false
       RoleArn: !GetAtt RDSProxyRole.Arn
       Auth:
-        - {AuthScheme: SECRETS, SecretArn: !Ref RDSCredentialsSecret, IAMAuth: DISABLED}
+        - {AuthScheme: SECRETS, SecretArn: !Ref DBCredentialsSecret, IAMAuth: DISABLED}
       VpcSubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
       VpcSecurityGroupIds:
-        - !Ref SGProxy
+        - !Ref ProxySG
       Tags:
         - Key: "Project"
           Value: !Ref 'ProjectName'
         - Key: "EnvironmentName"
           Value: !Ref 'EnvironmentName'
 
-  # RDSProxyTargetGroup:
-  #   Type: AWS::RDS::DBProxyTargetGroup
-  #   DependsOn:
-  #   - DBCluster
-  #   - RDSProxy
-  #   Properties:
-  #     DBProxyName: !Ref RDSProxy
-  #     DBClusterIdentifiers: [!Ref DBCluster] 
-  #     TargetGroupName: default
-  #     ConnectionPoolConfigurationInfo:
-  #         MaxConnectionsPercent: 100
-  #         MaxIdleConnectionsPercent: 50
-  #         ConnectionBorrowTimeout: 120
+  RDSProxyTargetGroup:
+    Type: AWS::RDS::DBProxyTargetGroup
+    DependsOn:
+    - DbCluster
+    - RDSProxy
+    Properties:
+      DBProxyName: !Ref RDSProxy
+      DBClusterIdentifiers: [!Ref DbCluster] 
+      TargetGroupName: default
+      ConnectionPoolConfigurationInfo:
+          MaxConnectionsPercent: 100
+          MaxIdleConnectionsPercent: 50
+          ConnectionBorrowTimeout: 120
 
 
   # Lambda functions ####################################
@@ -639,15 +596,11 @@ Resources:
     Type: AWS::Serverless::Function
     DependsOn:
     - RDSProxy
-    - ClosedSecurityGroup
+    - ClosedSG
     - DBInstance
+    # - LambdaServiceRole
     Properties:
       FunctionName: graphQL-MySQL-Resolver
-      # Tags:
-      #   - Key: "Project"
-      #     Value: !Ref 'ProjectName'
-      #   - Key: "EnvironmentName"
-      #     Value: !Ref 'EnvironmentName'      
       # Layers:
       #   - !Ref graphQLMySQLResolverLayers
       Handler: index.handler
@@ -666,16 +619,13 @@ Resources:
           # PASSWORD: !Ref 'DBPassword'
           # USERNAME: !Ref 'DBUser'
           RDSPROXY_ENDPOINT: !GetAtt RDSProxy.Endpoint
-          # ADMIN_NAME: !Ref CognitoAdminName
-          # ADMIN_EMAIL: !Ref SenderEmail
           EMAIL_SENDER: !Ref SenderEmail
           PINPOINT_APPID: !Ref PinpointApp
           LINK_TO_APP: !Ref LinkToHostingDomain
           ORGANIZATION_NAME: !Ref OrganizationName
       VpcConfig:
         SecurityGroupIds:
-          - !Ref ClosedSecurityGroup
-          # - !Ref OpenSecurityGroup
+          - !Ref ClosedSG
         SubnetIds:
           - !Ref PrivateSubnet1
           - !Ref PrivateSubnet2
@@ -685,13 +635,9 @@ Resources:
     DependsOn: graphQLMySQLResolver
     Properties:
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref graphQLMySQLResolver]]
-      RetentionInDays: 14
       KmsKeyId: !GetAtt KmsKey.Arn
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
+      RetentionInDays: 14
+
 
   # APPSYNC #####################################################
 
@@ -709,11 +655,6 @@ Resources:
             Principal:
               Service:
                 - appsync.amazonaws.com
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
 
   LambdaResolverAppSyncDataSource:
     Type: AWS::AppSync::DataSource
@@ -729,7 +670,6 @@ Resources:
       ServiceRoleArn: !GetAtt LambdaServiceRole.Arn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt graphQLMySQLResolver.Arn
-
 
   getUserByIdResolver:
     Type: AWS::AppSync::Resolver
@@ -1812,9 +1752,6 @@ Resources:
     Type: AWS::Pinpoint::App
     Properties:
       Name: PinpointApp
-      Tags:
-        Project: !Ref 'ProjectName'
-        EnvironmentName: !Ref 'EnvironmentName'
   PinpointSMSChannel:
     Type: AWS::Pinpoint::SMSChannel
     DependsOn: 
@@ -1834,15 +1771,12 @@ Resources:
         !Sub 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${SenderEmail}'
       Enabled: true
   EmailSenderParameter:
-    Type: AWS::SSM::Parameter
-    Properties: 
-      Name: "EmailSenderParameter"
-      Type: String 
-      Value: !Ref SenderEmail
-      Description: sender email for all SES communications
-      Tags:
-        Project: !Ref 'ProjectName'
-        EnvironmentName: !Ref 'EnvironmentName'
+      Type: AWS::SSM::Parameter
+      Properties: 
+        Name: "EmailSenderParameter"
+        Type: String 
+        Value: !Ref SenderEmail
+        Description: sender email for all SES communications
 
 
   #Lambda Resources
@@ -1877,45 +1811,30 @@ Resources:
             - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/GraphQL-MySQL-Resolver:*
           - Effect: Allow
             Action:
-            - mobiletargeting:CreateApp
-            - mobiletargeting:CreateCampaign
-            - mobiletargeting:CreateEmailTemplate
-            # - mobiletargeting:CreateSegment
-            - mobiletargeting:DeleteAdmChannel
-            - mobiletargeting:DeleteEmailChannel
-            - mobiletargeting:DeleteEndpoint
-            - mobiletargeting:DeleteSegment
-            - mobiletargeting:DeleteSmsChannel
-            - mobiletargeting:DeleteUserEndpoints
-            - mobiletargeting:GetApp
-            - mobiletargeting:GetEmailChannel
-            - mobiletargeting:GetEndpoint
-            # - mobiletargeting:GetSegment
-            # - mobiletargeting:GetSegments
-            - mobiletargeting:GetUserEndpoints
-            - mobiletargeting:GetUserEndpoints
-            - mobiletargeting:PutEventStream
-            - mobiletargeting:PutEvents
-            - mobiletargeting:RemoveAttributes
-            - mobiletargeting:SendMessages
-            - mobiletargeting:SendUsersMessages
-            - mobiletargeting:UpdateEmailChannel
-            - mobiletargeting:UpdateEndpoint
-            - mobiletargeting:UpdateEndpointsBatch
-            # - mobiletargeting:UpdateSegment
-            - mobiletargeting:UpdateSmsChannel
+            - mobiletargeting:Create*
+            - mobiletargeting:Delete*
+            - mobiletargeting:Get*
+            - mobiletargeting:Send*
+            - mobiletargeting:Update*
+            - mobiletargeting:List*
             # Resource: '*'
-            Resource: !GetAtt PinpointApp.Arn
+            Resource: 
+            - !GetAtt PinpointApp.Arn
+            - !Sub "arn:aws:mobiletargeting:${AWS::Region}:${AWS::AccountId}:apps/*/endpoints/*"
           - Effect: Allow
-            Action: rds-db:connect
+            Action: rds-db:connect'
             Resource: 
             - !GetAtt RDSProxy.DBProxyArn
           - Effect: Allow
             Action:
-            - "ec2:DescribeNetworkInterfaces"
             - "ec2:CreateNetworkInterface"
             - "ec2:DeleteNetworkInterface"
-            Resource: '*'                      
+            - "ec2:DescribeNetworkInterfaces"
+            Resource: '*'
+          # - Effect: Allow
+          #   Action:
+          #   - "ses:SendEmail"
+          #   Resource: 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity:*'
       Description: Role for graphql resolver lambda
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
@@ -1924,11 +1843,6 @@ Resources:
       - arn:aws:iam::aws:policy/AmazonRDSFullAccess
       - arn:aws:iam::aws:policy/AWSAppSyncInvokeFullAccess
       - arn:aws:iam::aws:policy/AmazonSESFullAccess
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
   
   WAF:
     Type: AWS::WAFv2::WebACL
@@ -1966,11 +1880,6 @@ Resources:
             SampledRequestsEnabled: true
             CloudWatchMetricsEnabled: true
             MetricName: LimitRequests1000
-      Tags:
-        - Key: "Project"
-          Value: !Ref 'ProjectName'
-        - Key: "EnvironmentName"
-          Value: !Ref 'EnvironmentName'
 
   WAFAssociation:
     Type: AWS::WAFv2::WebACLAssociation
