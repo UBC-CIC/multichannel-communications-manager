@@ -69,9 +69,6 @@ Parameters:
     Description: Enable encryption of the database
     Type: String
     Default: True
-  # CognitoAdminName:
-  #   Type: String
-  #   Description: The name of the admin user for Cognito
   SenderEmail:
     Type: String
     Description: The email address from which end uers will receive emails
@@ -314,38 +311,55 @@ Resources:
           SourceSecurityGroupId: !Ref ClosedSG
           Description: allows all traffic in on port 3306 from ClosedSG
       SecurityGroupEgress:
+        # - IpProtocol: tcp
+        #   FromPort: 3306
+        #   ToPort: 3306
+        #   DestinationSecurityGroupId: !Ref ClosedSG
+        #   Description: allows all traffic out on port 3306 to ClosedSG
+        # - IpProtocol: tcp
+        #   FromPort: 3306
+        #   ToPort: 3306
+        #   DestinationSecurityGroupId: !Ref RdsSG
+        #   Description: allows all traffic out on port 3306 to RdsSG
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          DestinationSecurityGroupId: !Ref ClosedSG
-          Description: allows all traffic out on port 3306 to ClosedSG
+          CidrIp: '10.0.0.0/16'
+          Description: allows all traffic out on port 3306 to vpc
+
+
 
   RdsSG:
     Type: AWS::EC2::SecurityGroup
-    DependsOn:
-      - ClosedSG
-      - ProxySG
+    # DependsOn:
+      # - ClosedSG
+      # - ProxySG
     Properties: 
       GroupDescription: A security group for RDS that allows all traffic in on port 3306 from the proxy and other vpc resources
       # GroupName: RDS-security-group
       VpcId: !Ref VPC
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 3306
-          ToPort: 3306
-          SourceSecurityGroupId: !Ref ClosedSG
-          Description: allows all tcp traffic in on port 3306 from ClosedSG
+        # - IpProtocol: tcp
+        #   FromPort: 3306
+        #   ToPort: 3306
+        #   SourceSecurityGroupId: !Ref ClosedSG
+        #   Description: allows all tcp traffic in on port 3306 from ClosedSG
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
           SourceSecurityGroupId: !Ref ProxySG
-          Description: allows all tcp traffic out on port 3306 to ProxySG
+          Description: allows all tcp traffic out on port 3306 from ProxySG
       SecurityGroupEgress:
+        # - IpProtocol: tcp
+        #   FromPort: 3306
+        #   ToPort: 3306
+        #   DestinationSecurityGroupId: !Ref ClosedSG
+        #   Description: allows all tcp traffic out on port 3306 to ClosedSG
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          DestinationSecurityGroupId: !Ref ClosedSG
-          Description: allows all tcp traffic out on port 3306 to ClosedSG
+          CidrIp: '10.0.0.0/16'
+          Description: allows all traffic out on port 3306 to vpc
     
 
 # RDS #########################################
@@ -550,7 +564,7 @@ Resources:
     - RDSProxyRole
     Properties:
       DebugLogging: true
-      DBProxyName: RDS-Proxy
+      DBProxyName: mcm-Rds-Proxy
       EngineFamily: MYSQL
       IdleClientTimeout: 120
       RequireTLS: false
@@ -1822,7 +1836,7 @@ Resources:
             - !GetAtt PinpointApp.Arn
             - !Sub "arn:aws:mobiletargeting:${AWS::Region}:${AWS::AccountId}:apps/*/endpoints/*"
           - Effect: Allow
-            Action: rds-db:connect'
+            Action: rds-db:connect
             Resource: 
             - !GetAtt RDSProxy.DBProxyArn
           - Effect: Allow
